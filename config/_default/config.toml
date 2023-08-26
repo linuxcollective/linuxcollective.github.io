@@ -1,5 +1,5 @@
 title = 'Linux Collective'
-baseURL = 'https://linuxcollective.github.io/'
+baseURL = 'https://linuxcollective.github.io'
 
 defaultContentLanguage = 'en'
 languageCode = 'en-us'
