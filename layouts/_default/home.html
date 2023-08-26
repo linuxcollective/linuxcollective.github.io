@@ -5,6 +5,9 @@
       <h1>{{ .Site.Title }}</h1>
       <h2>{{ .Site.Params.description }}</h2>
       <img src="/img/icon/Linux Collective-2.png"  width="300" height="300"> 
+      <a href="https://discord.gg/n67skBXg"> <img src="/img/icon/button.png" > </a>
+       
+
       {{ with .Site.Params.githubRepos }}
         {{ partial "github-repos-grid" . }}
       {{ else }}
@@ -12,7 +15,16 @@
           {{ partial "github-buttons" . }}
         {{ end }}
       {{ end }}
+      <h3> Thanks to all our contributors!</h3>
+
+      <a href="https://github.com/linuxcollective/linuxcollective.github.io/graphs/contributors">
+        <img src="https://contrib.rocks/image?repo=linuxcollective/linuxcollective.github.io" />
+      </a>
+      <!--  https://contrib.rocks -->
     </section>
+  
+
+
   </main>
 </div>
 {{ end }}

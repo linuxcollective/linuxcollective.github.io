@@ -11,9 +11,8 @@ twitterURL = 'https://twitter.com/i/communities/1499311438745468931'
 githubURL = 'https://github.com/sangam14'
 youtubeURL = 'https://www.youtube.com/@CloudNativeFolks'
 
-githubRepo = 'your/repo'
-githubSponsorURL = 'https://github.com/sponsors/'
-buyMeACoffeeURL = 'https://www.buymeacoffee.com/'
+githubRepo = 'linuxcollective/linuxcollective.github.io'
+
 
 [algolia]
 [algolia.en]
