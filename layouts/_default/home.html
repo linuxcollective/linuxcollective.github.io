@@ -1,0 +1,19 @@
+{{ define "main" }}
+<div id="site-main-content-wrapper">
+  <main>
+    <section class="cover">
+      <h1>{{ .Site.Title }}</h1>
+      <h2>{{ .Site.Params.description }}</h2>
+      <img src="/img/icon/Linux Collective-2.png"  width="300" height="300"> 
+      {{ with .Site.Params.githubRepos }}
+        {{ partial "github-repos-grid" . }}
+      {{ else }}
+        {{ with .Site.Params.githubRepo }}
+          {{ partial "github-buttons" . }}
+        {{ end }}
+      {{ end }}
+    </section>
+  </main>
+</div>
+{{ end }}
+
