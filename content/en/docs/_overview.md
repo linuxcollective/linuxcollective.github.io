@@ -23,5 +23,7 @@ Linux is a free and open-source operating system that can be used on computers, 
 
 ## How do I get started with Linux?
 
-
+- Linux History 
+- Linux Distros 
+- level & Layer abstraction in linux 
 
