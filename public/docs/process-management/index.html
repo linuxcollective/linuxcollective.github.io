@@ -333,11 +333,11 @@
   <div class="article-meta-bar">
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      12 min read
+      16 min read
     </span>
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      2147 words
+      2849 words
     </span>
     
     <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/a6.process-management.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
@@ -547,7 +547,130 @@ Preempt             Wait Event               Signal Received
                   v
 [ CPU resumes in Ring 3: Task B continues executing ]
 </code></pre><hr>
-<h2 id="6-modern-container-primitives-namespaces--cgroups">6. Modern Container Primitives: Namespaces &amp; cgroups</h2>
+<h2 id="6-signals-priorities--procpid-superuser-anatomy">6. Signals, Priorities &amp; <code>/proc/&lt;PID&gt;/</code> Superuser Anatomy</h2>
+<p>In <em>How Linux Works</em>, Brian Ward emphasizes that signals and the <code>/proc</code> filesystem are the two primary tools superusers possess to inspect and control processes.</p>
+<h3 id="1-unix-signals-asynchronous-process-interrupts">1. Unix Signals: Asynchronous Process Interrupts</h3>
+<p>Signals notify a process that an event has occurred. The kernel checks for pending signals whenever a process transitions from kernel mode back to user mode.</p>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: left">Signal</th>
+					<th style="text-align: left">Number</th>
+					<th style="text-align: left">Default Action</th>
+					<th style="text-align: left">Catchable?</th>
+					<th style="text-align: left">Purpose &amp; Superuser Usage</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: left"><strong><code>SIGHUP</code></strong></td>
+					<td style="text-align: left"><code>1</code></td>
+					<td style="text-align: left">Terminate</td>
+					<td style="text-align: left">Yes</td>
+					<td style="text-align: left">Hangup detected on controlling terminal; standard convention for <strong>daemons to reload configuration</strong> without restarting.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong><code>SIGINT</code></strong></td>
+					<td style="text-align: left"><code>2</code></td>
+					<td style="text-align: left">Terminate</td>
+					<td style="text-align: left">Yes</td>
+					<td style="text-align: left">Interrupt from keyboard (<code>Ctrl+C</code>).</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong><code>SIGQUIT</code></strong></td>
+					<td style="text-align: left"><code>3</code></td>
+					<td style="text-align: left">Core Dump</td>
+					<td style="text-align: left">Yes</td>
+					<td style="text-align: left">Quit from keyboard (<code>Ctrl+\</code>); dumps process memory to disk.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong><code>SIGKILL</code></strong></td>
+					<td style="text-align: left"><code>9</code></td>
+					<td style="text-align: left">Terminate</td>
+					<td style="text-align: left"><strong>NO</strong></td>
+					<td style="text-align: left">Unconditional immediate termination by the kernel. Cannot be caught, blocked, or ignored. <em>Always try SIGTERM first!</em></td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong><code>SIGSEGV</code></strong></td>
+					<td style="text-align: left"><code>11</code></td>
+					<td style="text-align: left">Core Dump</td>
+					<td style="text-align: left">Yes</td>
+					<td style="text-align: left">Invalid memory reference (Page fault outside VMA or write to read-only page).</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong><code>SIGPIPE</code></strong></td>
+					<td style="text-align: left"><code>13</code></td>
+					<td style="text-align: left">Terminate</td>
+					<td style="text-align: left">Yes</td>
+					<td style="text-align: left">Writing to a pipe with no reader attached.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong><code>SIGTERM</code></strong></td>
+					<td style="text-align: left"><code>15</code></td>
+					<td style="text-align: left">Terminate</td>
+					<td style="text-align: left">Yes</td>
+					<td style="text-align: left">Polite termination request. Allows daemons to flush buffers, complete transactions, and close open files.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong><code>SIGCHLD</code></strong></td>
+					<td style="text-align: left"><code>17</code></td>
+					<td style="text-align: left">Ignore</td>
+					<td style="text-align: left">Yes</td>
+					<td style="text-align: left">Sent to parent process whenever a child process terminates, stops, or resumes.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong><code>SIGSTOP</code></strong></td>
+					<td style="text-align: left"><code>19</code></td>
+					<td style="text-align: left">Stop</td>
+					<td style="text-align: left"><strong>NO</strong></td>
+					<td style="text-align: left">Freezes process execution immediately (e.g. <code>Ctrl+Z</code>). Cannot be caught or ignored.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong><code>SIGCONT</code></strong></td>
+					<td style="text-align: left"><code>18</code></td>
+					<td style="text-align: left">Continue</td>
+					<td style="text-align: left">Yes</td>
+					<td style="text-align: left">Resumes a previously stopped process.</td>
+			</tr>
+	</tbody>
+</table>
+<h3 id="2-process-priorities--nice-values">2. Process Priorities &amp; Nice Values</h3>
+<p>Linux processes execute with priorities between <code>0</code> and <code>139</code>:</p>
+<ul>
+<li><strong>Real-Time Priorities (<code>0</code> to <code>99</code>)</strong>: Controlled by <code>chrt</code> using <code>SCHED_FIFO</code> or <code>SCHED_RR</code>.</li>
+<li><strong>Standard Nice Values (<code>-20</code> to <code>+19</code>)</strong>: Maps to kernel static priorities <code>100</code> to <code>139</code>.
+<ul>
+<li>Default nice is <strong><code>0</code></strong>.</li>
+<li><strong><code>-20</code></strong>: Highest priority (least &ldquo;nice&rdquo; to other tasks; gets largest CPU slice).</li>
+<li><strong><code>+19</code></strong>: Lowest priority (most &ldquo;nice&rdquo;; yields to everything else).</li>
+<li>Regular users can only increase their nice value (reduce priority). Only <code>root</code> can assign negative nice values.</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Launch background compilation with low CPU priority</span>
+</span></span><span class="line"><span class="cl">nice -n <span class="m">19</span> make -j4
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Increase priority of a running production database (root required)</span>
+</span></span><span class="line"><span class="cl">sudo renice -n -10 -p <span class="m">1842</span>
+</span></span></code></pre></div><h3 id="3-the-procpid-anatomy">3. The <code>/proc/&lt;PID&gt;/</code> Anatomy</h3>
+<p>The <code>/proc</code> filesystem directly exposes the kernel&rsquo;s internal <code>task_struct</code> for every running PID:</p>
+<ul>
+<li><strong><code>/proc/&lt;PID&gt;/cmdline</code></strong>: Exact command-line arguments separated by null bytes (<code>\0</code>).</li>
+<li><strong><code>/proc/&lt;PID&gt;/environ</code></strong>: Process environment variables.</li>
+<li><strong><code>/proc/&lt;PID&gt;/fd/</code></strong>: Directory containing symlinks for every open file descriptor (<code>0</code>=stdin, <code>1</code>=stdout, <code>2</code>=stderr, sockets, open disk files).</li>
+<li><strong><code>/proc/&lt;PID&gt;/status</code></strong>: Human-readable process state:
+<ul>
+<li><code>State:</code> (e.g., <code>S (sleeping)</code>, <code>D (disk sleep)</code>, <code>Z (zombie)</code>).</li>
+<li><code>VmPeak</code> &amp; <code>VmSize</code>: Total virtual memory mapped.</li>
+<li><code>VmRSS</code>: Resident Set Size (actual physical RAM frames consumed).</li>
+<li><code>voluntary_ctxt_switches</code>: Number of times the task slept waiting for I/O.</li>
+</ul>
+</li>
+<li><strong><code>/proc/&lt;PID&gt;/limits</code></strong>: Soft and hard resource limits (<code>RLIMIT_NOFILE</code> max open files, <code>RLIMIT_NPROC</code>).</li>
+<li><strong><code>/proc/&lt;PID&gt;/wchan</code></strong>: The exact kernel function where the process is currently blocked waiting (invaluable for diagnosing stuck processes in <code>D</code> state!).</li>
+</ul>
+<hr>
+<h2 id="7-modern-container-primitives-namespaces--cgroups">7. Modern Container Primitives: Namespaces &amp; cgroups</h2>
 <p>Containers (Docker, Podman, Kubernetes, containerd) are not hardware virtual machines. <strong>A container is simply a standard Linux process isolated by Namespaces and restricted by Control Groups (cgroups).</strong></p>
 <pre tabindex="0"><code>+------------------------------------------------------------------------+
 |                          WHAT IS A CONTAINER?                          |
@@ -620,7 +743,7 @@ Preempt             Wait Event               Signal Received
 </span></span><span class="line"><span class="cl"><span class="c1"># Inspect active namespaces:</span>
 </span></span><span class="line"><span class="cl">ls -l /proc/self/ns/
 </span></span></code></pre></div><hr>
-<h2 id="7-hands-on-practical-labs">7. Hands-On Practical Labs</h2>
+<h2 id="8-hands-on-practical-labs">8. Hands-On Practical Labs</h2>
 <h3 id="lab-61-creating-inspecting-and-reaping-zombie-processes-in-c">Lab 6.1: Creating, Inspecting, and Reaping Zombie Processes in C</h3>
 <p>A zombie process occurs when a child process terminates, but its parent has not yet read its exit status code via <code>wait()</code> or <code>waitpid()</code>. The kernel frees the child&rsquo;s memory pages but retains its <code>struct task_struct</code> and PID slot.</p>
 <h4 id="complete-source-zombie_democ">Complete Source: <code>zombie_demo.c</code></h4>
@@ -709,13 +832,77 @@ user  18401  0.0  0.0      0     0 pts/0  Z+   12:00   0:00 [zombie_demo] &lt;de
 <li><code>CLONE_THREAD</code>: Assigns the same <code>tgid</code> (Thread Group ID).</li>
 </ul>
 <hr>
-<h2 id="8-summary-checklist">8. Summary Checklist</h2>
+<h3 id="lab-63-handling-asynchronous-signals-sigaction--auditing-procpidstatus">Lab 6.3: Handling Asynchronous Signals (<code>sigaction</code>) &amp; Auditing <code>/proc/&lt;PID&gt;/status</code></h3>
+<p>In <em>How Linux Works</em>, superusers learn that daemons should catch <code>SIGHUP</code> to reload config without restarting. Here, we build a daemon in C that handles <code>SIGHUP</code> and <code>SIGTERM</code>, and inspect its <code>/proc</code> state.</p>
+<h4 id="1-source-code-signal_daemonc">1. Source Code: <code>signal_daemon.c</code></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#define _POSIX_C_SOURCE 200809L
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;signal.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="k">volatile</span> <span class="kt">sig_atomic_t</span> <span class="n">reload_requested</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="k">volatile</span> <span class="kt">sig_atomic_t</span> <span class="n">keep_running</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">handle_signal</span><span class="p">(</span><span class="kt">int</span> <span class="n">sig</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">sig</span> <span class="o">==</span> <span class="n">SIGHUP</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">reload_requested</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">sig</span> <span class="o">==</span> <span class="n">SIGTERM</span> <span class="o">||</span> <span class="n">sig</span> <span class="o">==</span> <span class="n">SIGINT</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">keep_running</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">sigaction</span> <span class="n">sa</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl">    <span class="n">sa</span><span class="p">.</span><span class="n">sa_handler</span> <span class="o">=</span> <span class="n">handle_signal</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">sigemptyset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sa</span><span class="p">.</span><span class="n">sa_mask</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">sigaction</span><span class="p">(</span><span class="n">SIGHUP</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">sa</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">sigaction</span><span class="p">(</span><span class="n">SIGTERM</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">sa</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">sigaction</span><span class="p">(</span><span class="n">SIGINT</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">sa</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[Daemon] Started. PID: %d. Waiting for signals...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">getpid</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">tick</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">while</span> <span class="p">(</span><span class="n">keep_running</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">tick</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">reload_requested</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[Daemon: PID %d] SIGHUP received! Reloading configuration dynamically...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">getpid</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl">            <span class="n">reload_requested</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[Daemon: PID %d] SIGTERM received! Flushed buffers, exiting cleanly.</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">getpid</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h4 id="2-verification-steps">2. Verification Steps:</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 1. Compile and run in background</span>
+</span></span><span class="line"><span class="cl">gcc -O2 signal_daemon.c -o signal_daemon
+</span></span><span class="line"><span class="cl">./signal_daemon <span class="p">&amp;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">DPID</span><span class="o">=</span><span class="nv">$!</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 2. Inspect caught signals mask in /proc</span>
+</span></span><span class="line"><span class="cl">grep -E <span class="s1">&#39;SigCgt|SigIgn|State&#39;</span> /proc/<span class="nv">$DPID</span>/status
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 3. Send SIGHUP to trigger configuration reload</span>
+</span></span><span class="line"><span class="cl"><span class="nb">kill</span> -HUP <span class="nv">$DPID</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 4. Gracefully terminate with SIGTERM</span>
+</span></span><span class="line"><span class="cl"><span class="nb">kill</span> -TERM <span class="nv">$DPID</span>
+</span></span><span class="line"><span class="cl"><span class="nb">wait</span> <span class="nv">$DPID</span> 2&gt;/dev/null
+</span></span></code></pre></div><hr>
+<h2 id="9-summary-checklist">9. Summary Checklist</h2>
 <ul>
 <li><input checked="" disabled="" type="checkbox"> <strong>No Threads Myth</strong>: Understood that both processes and threads are <code>task_struct</code> instances.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>PID vs TGID</strong>: Mastered how POSIX compatibility is maintained inside the kernel.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Copy-On-Write</strong>: Traced page table duplication and write-fault traps.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Signals Architecture</strong>: Mastered <code>SIGTERM</code> vs <code>SIGKILL</code>, signal masks, and safe <code>sigaction</code> handling.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Process Priorities</strong>: Configured nice values (<code>-20</code> to <code>+19</code>) and real-time scheduling.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong><code>/proc/&lt;PID&gt;/</code> Diagnostics</strong>: Audited memory RSS, file descriptors (<code>/proc/PID/fd</code>), and blocked functions (<code>wchan</code>).</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Context Switching</strong>: Dissected <code>switch_mm</code> (CR3 reload) and <code>switch_to</code> register swapping.</li>
-<li><input checked="" disabled="" type="checkbox"> <strong>Hands-on Labs</strong>: Reaped zombie processes in C and traced <code>clone()</code> flags via <code>strace</code>.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Hands-on Labs</strong>: Reaped zombie processes, traced <code>clone()</code> flags, and handled POSIX signals in C.</li>
 </ul>
 
       </div>
@@ -860,19 +1047,27 @@ user  18401  0.0  0.0      0     0 pts/0  Z+   12:00   0:00 [zombie_demo] &lt;de
       </ul>
     </li>
     <li><a href="#5-the-context-switch-what-happens-on-silicon">5. The Context Switch: What Happens on Silicon?</a></li>
-    <li><a href="#6-modern-container-primitives-namespaces--cgroups">6. Modern Container Primitives: Namespaces &amp; cgroups</a>
+    <li><a href="#6-signals-priorities--procpid-superuser-anatomy">6. Signals, Priorities &amp; <code>/proc/&lt;PID&gt;/</code> Superuser Anatomy</a>
+      <ul>
+        <li><a href="#1-unix-signals-asynchronous-process-interrupts">1. Unix Signals: Asynchronous Process Interrupts</a></li>
+        <li><a href="#2-process-priorities--nice-values">2. Process Priorities &amp; Nice Values</a></li>
+        <li><a href="#3-the-procpid-anatomy">3. The <code>/proc/&lt;PID&gt;/</code> Anatomy</a></li>
+      </ul>
+    </li>
+    <li><a href="#7-modern-container-primitives-namespaces--cgroups">7. Modern Container Primitives: Namespaces &amp; cgroups</a>
       <ul>
         <li><a href="#1-linux-namespaces-isolation">1. Linux Namespaces (Isolation)</a></li>
         <li><a href="#2-control-groups-cgroups-v2-resource-limiting">2. Control Groups (cgroups v2: Resource Limiting)</a></li>
       </ul>
     </li>
-    <li><a href="#7-hands-on-practical-labs">7. Hands-On Practical Labs</a>
+    <li><a href="#8-hands-on-practical-labs">8. Hands-On Practical Labs</a>
       <ul>
         <li><a href="#lab-61-creating-inspecting-and-reaping-zombie-processes-in-c">Lab 6.1: Creating, Inspecting, and Reaping Zombie Processes in C</a></li>
         <li><a href="#lab-62-tracing-clone-system-call-flags-with-strace">Lab 6.2: Tracing <code>clone()</code> System Call Flags with <code>strace</code></a></li>
+        <li><a href="#lab-63-handling-asynchronous-signals-sigaction--auditing-procpidstatus">Lab 6.3: Handling Asynchronous Signals (<code>sigaction</code>) &amp; Auditing <code>/proc/&lt;PID&gt;/status</code></a></li>
       </ul>
     </li>
-    <li><a href="#8-summary-checklist">8. Summary Checklist</a></li>
+    <li><a href="#9-summary-checklist">9. Summary Checklist</a></li>
   </ul>
 </nav>
   </div>

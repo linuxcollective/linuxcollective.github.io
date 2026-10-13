@@ -333,11 +333,11 @@
   <div class="article-meta-bar">
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      9 min read
+      10 min read
     </span>
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      1623 words
+      1862 words
     </span>
     
     <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/a8.container-primitives.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
@@ -363,7 +363,60 @@
 </ol>
 <p>In this guide, we demystify container engines by building a container runtime from scratch using raw Linux kernel primitives.</p>
 <hr>
-<h2 id="1-the-anatomy-of-a-container">1. The Anatomy of a Container</h2>
+<h2 id="1-virtual-machines-vs-containers-the-virtualization-spectrum">1. Virtual Machines vs. Containers: The Virtualization Spectrum</h2>
+<p>In <em>How Linux Works</em>, Brian Ward explores virtualization by contrasting full hardware virtualization with lightweight OS-level container isolation:</p>
+<pre tabindex="0"><code>    HARDWARE VIRTUALIZATION (KVM / QEMU)             OS-LEVEL CONTAINERS (Docker / Podman)
++------------------------------------------+    +------------------------------------------+
+|  Guest App    |  Guest App   | Guest App |    |  App 1       |  App 2       |  App 3     |
++---------------+--------------+-----------+    +--------------+--------------+------------+
+|  GUEST OS (Independent Linux / Windows)  |    |  Isolated Namespaces &amp; cgroups v2 limits  |
++------------------------------------------+    +------------------------------------------+
+|  VIRTUAL HARDWARE (Emulated by QEMU)     |    |                                          |
++------------------------------------------+    |                                          |
+|  HYPERVISOR: KVM (/dev/kvm) in Linux     |    |           SINGLE HOST LINUX KERNEL       |
++------------------------------------------+    |        (Shared Ring 0 Address Space)     |
+|           PHYSICAL HARDWARE              |    |                                          |
++------------------------------------------+    +------------------------------------------+
+</code></pre><h3 id="the-architectural-trade-offs">The Architectural Trade-offs:</h3>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: left">Characteristic</th>
+					<th style="text-align: left">Virtual Machines (KVM / QEMU)</th>
+					<th style="text-align: left">Linux Containers (Docker / Podman / LXC)</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: left"><strong>Kernel Instance</strong></td>
+					<td style="text-align: left">Separate guest kernel per virtual machine.</td>
+					<td style="text-align: left"><strong>Single shared host kernel</strong> across all containers.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Startup Latency</strong></td>
+					<td style="text-align: left">Seconds to minutes (BIOS POST, kernel boot).</td>
+					<td style="text-align: left"><strong>Milliseconds</strong> (simply spawning a standard process).</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Memory Footprint</strong></td>
+					<td style="text-align: left">Gigabytes (duplicate guest kernels, systemd).</td>
+					<td style="text-align: left">Megabytes (only application binaries and libraries).</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Hardware Emulation</strong></td>
+					<td style="text-align: left">Emulated CPU, PCI buses, virtual NICs via QEMU.</td>
+					<td style="text-align: left"><strong>Zero emulation</strong>; executes directly on physical CPU.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Isolation Strength</strong></td>
+					<td style="text-align: left">Hardware-enforced (Intel VT-x/AMD-V MMU EPT).</td>
+					<td style="text-align: left">Operating system-enforced (Namespaces, cgroups, Seccomp).</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="2-the-anatomy-of-a-container">2. The Anatomy of a Container</h2>
+<p>A container is not a physical boundary; it is a standard Linux process isolated by Namespaces and constrained by Control Groups:</p>
 <pre tabindex="0"><code>+=============================================================================+
 |                               HOST LINUX KERNEL                             |
 |  Single Shared Kernel: Memory Manager, Scheduler, VFS, Drivers (Ring 0)     |
@@ -382,7 +435,7 @@
 | Capabilities: Full root       |       | Capabilities: Dropped CAP_SYS_ADMIN|
 +-------------------------------+       +------------------------------------+
 </code></pre><hr>
-<h2 id="2-the-7-linux-namespaces">2. The 7 Linux Namespaces</h2>
+<h2 id="3-the-7-linux-namespaces">3. The 7 Linux Namespaces</h2>
 <p>Namespaces partition global system resources so that a group of processes observes an independent, virtualized instance. When a process inspects its namespaces, it can view them in <code>/proc/[PID]/ns/</code>:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ls -l /proc/self/ns/
 </span></span></code></pre></div><table>
@@ -440,7 +493,7 @@
 	</tbody>
 </table>
 <hr>
-<h2 id="3-resource-limiting-control-groups-v2-cgroups-v2">3. Resource Limiting: Control Groups v2 (cgroups v2)</h2>
+<h2 id="4-resource-limiting-control-groups-v2-cgroups-v2">4. Resource Limiting: Control Groups v2 (cgroups v2)</h2>
 <p>While namespaces isolate visibility, <strong>Control Groups (cgroups)</strong> constrain resource consumption to prevent runaway processes from starving host resources.</p>
 <p>In Linux 4.5+, <strong>cgroups v2</strong> introduced a single unified hierarchy mounted at <code>/sys/fs/cgroup</code>. Every process belongs to exactly one cgroup in the tree.</p>
 <h3 id="core-controllers-in-cgroups-v2">Core Controllers in cgroups v2:</h3>
@@ -451,7 +504,7 @@
 <li><strong><code>pids.max</code></strong>: Caps the number of active tasks/threads to protect against fork-bombs.</li>
 </ul>
 <hr>
-<h2 id="4-layered-filesystems-overlayfs--pivot_root">4. Layered Filesystems: OverlayFS &amp; <code>pivot_root</code></h2>
+<h2 id="5-layered-filesystems-overlayfs--pivot_root">5. Layered Filesystems: OverlayFS &amp; <code>pivot_root</code></h2>
 <p>Containers achieve instant startup times and low disk footprints through <strong>OverlayFS</strong>, a union mount filesystem:</p>
 <pre tabindex="0"><code>+--------------------------------------------------------------------------+
 | MERGED VIEW (/merged) -&gt; What the running container sees                 |
@@ -471,7 +524,7 @@
 <li>Escaping a properly configured <code>pivot_root</code> mount namespace is cryptographically and architecturally impossible without breaking kernel memory isolation.</li>
 </ul>
 <hr>
-<h2 id="5-hands-on-practical-labs">5. Hands-On Practical Labs</h2>
+<h2 id="6-hands-on-practical-labs">6. Hands-On Practical Labs</h2>
 <h3 id="lab-81-building-a-complete-container-from-scratch-in-shell">Lab 8.1: Building a Complete Container from Scratch in Shell</h3>
 <p>In this lab, we construct an isolated container runtime using raw Linux command-line utilities without Docker or containerd.</p>
 <h4 id="step-1-create-a-minimal-rootfs">Step 1: Create a Minimal Rootfs</h4>
@@ -660,8 +713,9 @@ oom_kill 1
 [+] Attempting FORBIDDEN syscall: mkdir(&#39;test_dir&#39;)...
 Bad system call (core dumped)
 </code></pre><hr>
-<h2 id="6-summary-checklist">6. Summary Checklist</h2>
+<h2 id="7-summary-checklist">7. Summary Checklist</h2>
 <ul>
+<li><input checked="" disabled="" type="checkbox"> <strong>Virtualization vs Containers</strong>: Contrasted hardware KVM/QEMU hypervisors with shared-kernel OS containers.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Namespaces Demystified</strong>: Understood the 7 Linux namespaces and verified them in <code>/proc/self/ns/</code>.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>cgroups v2 Mastery</strong>: Created custom cgroup slices, set <code>memory.max</code>, and inspected <code>memory.events</code>.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>OverlayFS &amp; <code>pivot_root</code></strong>: Contrasted <code>chroot</code> with <code>pivot_root</code> for secure filesystem root isolation.</li>
@@ -804,26 +858,31 @@ Bad system call (core dumped)
     <strong><i class="icon icon-toc"></i> On this page</strong>
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#1-the-anatomy-of-a-container">1. The Anatomy of a Container</a></li>
-    <li><a href="#2-the-7-linux-namespaces">2. The 7 Linux Namespaces</a></li>
-    <li><a href="#3-resource-limiting-control-groups-v2-cgroups-v2">3. Resource Limiting: Control Groups v2 (cgroups v2)</a>
+    <li><a href="#1-virtual-machines-vs-containers-the-virtualization-spectrum">1. Virtual Machines vs. Containers: The Virtualization Spectrum</a>
+      <ul>
+        <li><a href="#the-architectural-trade-offs">The Architectural Trade-offs:</a></li>
+      </ul>
+    </li>
+    <li><a href="#2-the-anatomy-of-a-container">2. The Anatomy of a Container</a></li>
+    <li><a href="#3-the-7-linux-namespaces">3. The 7 Linux Namespaces</a></li>
+    <li><a href="#4-resource-limiting-control-groups-v2-cgroups-v2">4. Resource Limiting: Control Groups v2 (cgroups v2)</a>
       <ul>
         <li><a href="#core-controllers-in-cgroups-v2">Core Controllers in cgroups v2:</a></li>
       </ul>
     </li>
-    <li><a href="#4-layered-filesystems-overlayfs--pivot_root">4. Layered Filesystems: OverlayFS &amp; <code>pivot_root</code></a>
+    <li><a href="#5-layered-filesystems-overlayfs--pivot_root">5. Layered Filesystems: OverlayFS &amp; <code>pivot_root</code></a>
       <ul>
         <li><a href="#pivot_root-vs-chroot"><code>pivot_root</code> vs. <code>chroot</code></a></li>
       </ul>
     </li>
-    <li><a href="#5-hands-on-practical-labs">5. Hands-On Practical Labs</a>
+    <li><a href="#6-hands-on-practical-labs">6. Hands-On Practical Labs</a>
       <ul>
         <li><a href="#lab-81-building-a-complete-container-from-scratch-in-shell">Lab 8.1: Building a Complete Container from Scratch in Shell</a></li>
         <li><a href="#lab-82-enforcing-memory-limits--triggering-cgroups-v2-oom-killer">Lab 8.2: Enforcing Memory Limits &amp; Triggering cgroups v2 OOM Killer</a></li>
         <li><a href="#lab-83-system-call-sandboxing-with-seccomp-bpf-in-c">Lab 8.3: System Call Sandboxing with Seccomp-BPF in C</a></li>
       </ul>
     </li>
-    <li><a href="#6-summary-checklist">6. Summary Checklist</a></li>
+    <li><a href="#7-summary-checklist">7. Summary Checklist</a></li>
   </ul>
 </nav>
   </div>

@@ -333,11 +333,11 @@
   <div class="article-meta-bar">
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      8 min read
+      10 min read
     </span>
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      1392 words
+      1866 words
     </span>
     
     <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/a9.ebpf-and-observability.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
@@ -363,7 +363,49 @@
 </ol>
 <p>With the advent of the <strong>Extended Berkeley Packet Filter (eBPF)</strong> and Linux performance tracing infrastructure (<code>perf</code>, <code>ftrace</code>, <code>bpftrace</code>), Linux engineers can safely execute sandboxed, verified code directly in the kernel upon every packet arrival, disk request, context switch, or function invocation.</p>
 <hr>
-<h2 id="1-brendan-greggs-performance-methodologies">1. Brendan Gregg&rsquo;s Performance Methodologies</h2>
+<h2 id="1-classic-superuser-monitoring--the-load-average-paradox">1. Classic Superuser Monitoring &amp; The Load Average Paradox</h2>
+<p>In <em>How Linux Works</em>, Brian Ward explains that before deploying deep dynamic kernel tracers, superusers must understand what standard system health metrics actually report—beginning with the widely misunderstood <strong>System Load Average</strong>.</p>
+<h3 id="the-load-average-paradox">The Load Average Paradox:</h3>
+<p>When you run <code>uptime</code> or <code>top</code>, you see three numbers representing the 1, 5, and 15-minute load averages:</p>
+<pre tabindex="0"><code>$ uptime
+ 01:00:00 up 14 days,  3:24,  2 users,  load average: 12.45, 8.20, 4.10
+</code></pre><ul>
+<li><strong>The Common Myth</strong>: &ldquo;Load average measures CPU saturation.&rdquo;</li>
+<li><strong>The Linux Reality</strong>: On traditional Unix, load average counted tasks in <code>TASK_RUNNING</code> (<code>R</code>). But in 1993, Linux kernel developer Matthias Urlichs modified Linux to also include tasks in <strong><code>TASK_UNINTERRUPTIBLE</code> (<code>D</code> state)</strong>.</li>
+<li><strong>Why this matters</strong>: A process in <code>D</code> state is typically waiting for disk I/O, NVMe request completion, or an NFS lock.</li>
+<li><strong>Result</strong>: A machine with 4 CPU cores reporting a load average of <strong><code>12.0</code></strong> might have <strong>0% CPU utilization</strong> and 12 threads frozen waiting on slow or wedged storage!</li>
+</ul>
+<pre tabindex="0"><code>+-------------------------------------------------------------------------+
+|                  LINUX LOAD AVERAGE CALCULATION                         |
+|                                                                         |
+|    Tasks in TASK_RUNNING (R)       Tasks in TASK_UNINTERRUPTIBLE (D)    |
+|    (Executing on CPU or runnable)  + (Blocked on Disk I/O or Locks)     |
++-------------------------------------------------------------------------+
+</code></pre><h3 id="the-standard-superuser-triage-toolkit">The Standard Superuser Triage Toolkit:</h3>
+<ol>
+<li><strong><code>vmstat 1</code></strong>:
+<ul>
+<li><code>r</code>: Runnable tasks.</li>
+<li><code>b</code>: Tasks blocked in uninterruptible sleep (<code>D</code> state).</li>
+<li><code>us</code> / <code>sy</code> / <code>id</code> / <code>wa</code> / <code>st</code>: User CPU %, System (kernel) CPU %, Idle %, I/O Wait % (waiting on disk), Steal % (time stolen by VM hypervisor).</li>
+</ul>
+</li>
+<li><strong><code>iostat -xz 1</code></strong>:
+<ul>
+<li><code>r/s</code> and <code>w/s</code>: Read and write IOPS.</li>
+<li><code>await</code>: Average time in milliseconds for I/O requests to be serviced.</li>
+<li><code>%util</code>: Percentage of CPU time during which I/O requests were issued to the device.</li>
+</ul>
+</li>
+<li><strong><code>top</code> / <code>htop</code></strong>:
+<ul>
+<li>Press <code>1</code> to view per-CPU core breakdown.</li>
+<li>Sort by <code>%CPU</code> or <code>RES</code> (Resident Set Size).</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="2-brendan-greggs-performance-methodologies">2. Brendan Gregg&rsquo;s Performance Methodologies</h2>
 <p>Before touching tracing tools, an engineer must apply structured methodology to avoid falling into the &ldquo;random metric guessing&rdquo; trap.</p>
 <h3 id="1-the-use-method-for-physical--virtual-resources">1. The USE Method (For Physical &amp; Virtual Resources)</h3>
 <p>For <strong>every resource</strong> (CPUs, Memory buses, NVMe drives, Network interfaces):</p>
@@ -380,7 +422,7 @@
 <li><strong>Duration</strong>: Latency distribution (p50, p90, p99, p99.9).</li>
 </ul>
 <hr>
-<h2 id="2-linux-tracing-hook-points">2. Linux Tracing Hook Points</h2>
+<h2 id="3-linux-tracing-hook-points">3. Linux Tracing Hook Points</h2>
 <p>Linux provides four distinct categories of probe points:</p>
 <pre tabindex="0"><code>+--------------------------------------------------------------------------+
 | USER SPACE: glibc, Nginx, PostgreSQL, Python, Go Runtime                 |
@@ -407,7 +449,7 @@
 <li><strong>PMU Hardware Counters</strong>: Physical performance monitoring units inside modern Intel/AMD/ARM CPUs that count hardware events (instructions, cycles, cache misses) without software code modifications.</li>
 </ol>
 <hr>
-<h2 id="3-the-ebpf-architecture">3. The eBPF Architecture</h2>
+<h2 id="4-the-ebpf-architecture">4. The eBPF Architecture</h2>
 <p>eBPF is a register-based virtual machine running directly inside the Linux kernel.</p>
 <pre tabindex="0"><code>+--------------------------------------------------------------------------+
 | 1. C Source Code (my_probe.bpf.c)                                        |
@@ -465,7 +507,7 @@
 <li><code>BPF_MAP_TYPE_PERF_EVENT_ARRAY</code>: Per-CPU event buffer.</li>
 </ul>
 <hr>
-<h2 id="4-hands-on-practical-labs">4. Hands-On Practical Labs</h2>
+<h2 id="5-hands-on-practical-labs">5. Hands-On Practical Labs</h2>
 <h3 id="lab-91-writing-a-standalone-ebpf-program-with-libbpf-in-c">Lab 9.1: Writing a Standalone eBPF Program with libbpf in C</h3>
 <p>In this lab, we write a real eBPF kernel program that hooks into the <code>sys_enter_execve</code> tracepoint to capture every new command executed on the operating system in real-time.</p>
 <h4 id="1-the-kernel-ebpf-code-exec_tracebpfc">1. The Kernel eBPF Code: <code>exec_trace.bpf.c</code></h4>
@@ -589,8 +631,31 @@
 <li>Click on any frame to zoom in and pinpoint exact performance bottlenecks.</li>
 </ul>
 <hr>
-<h2 id="5-summary-checklist">5. Summary Checklist</h2>
+<h3 id="lab-94-diagnosing-the-load-average-d-state-disk-io-bottleneck">Lab 9.4: Diagnosing the Load Average D-State Disk I/O Bottleneck</h3>
+<p>In this lab, we demonstrate the <em>How Linux Works</em> Load Average Paradox: triggering an artificial disk I/O bottleneck to observe high load average while CPU utilization remains near zero.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 1. In Terminal 1: Monitor CPU and blocked task states every second</span>
+</span></span><span class="line"><span class="cl">vmstat <span class="m">1</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 2. In Terminal 2: Generate heavy synchronous disk write load</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Writes 2GB of direct synchronous data to disk, forcing processes into TASK_UNINTERRUPTIBLE (D) state:</span>
+</span></span><span class="line"><span class="cl">dd <span class="k">if</span><span class="o">=</span>/dev/zero <span class="nv">of</span><span class="o">=</span>/tmp/io_pressure.bin <span class="nv">bs</span><span class="o">=</span>64k <span class="nv">count</span><span class="o">=</span><span class="m">32768</span> <span class="nv">oflag</span><span class="o">=</span>sync <span class="p">&amp;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">DD_PID</span><span class="o">=</span><span class="nv">$!</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 3. Observe the output of vmstat:</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># - Look at the &#39;b&#39; column (Blocked tasks in D state): it will spike!</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># - Look at the &#39;wa&#39; column (I/O wait %): it will dominate while &#39;us&#39; (user CPU) is low.</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 4. In Terminal 3: Check uptime and process state:</span>
+</span></span><span class="line"><span class="cl">uptime
+</span></span><span class="line"><span class="cl">ps aux <span class="p">|</span> grep -E <span class="s1">&#39; D |D\+&#39;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 5. Clean up</span>
+</span></span><span class="line"><span class="cl"><span class="nb">kill</span> -9 <span class="nv">$DD_PID</span> 2&gt;/dev/null
+</span></span><span class="line"><span class="cl">rm -f /tmp/io_pressure.bin
+</span></span></code></pre></div><hr>
+<h2 id="6-summary-checklist">6. Summary Checklist</h2>
 <ul>
+<li><input checked="" disabled="" type="checkbox"> <strong>Superuser Metrics Triage</strong>: Mastered <code>uptime</code>, <code>vmstat</code>, <code>iostat</code>, and why <code>D</code>-state disk tasks elevate load average.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Methodology First</strong>: Applied Brendan Gregg&rsquo;s USE and RED methods to systems diagnosis.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Instrumentation Map</strong>: Mastered Tracepoints, kprobes, uprobes, and PMU counters.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>eBPF Mechanics</strong>: Understood the in-kernel verifier, JIT compilation, and BPF maps.</li>
@@ -742,27 +807,34 @@
     <strong><i class="icon icon-toc"></i> On this page</strong>
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#1-brendan-greggs-performance-methodologies">1. Brendan Gregg&rsquo;s Performance Methodologies</a>
+    <li><a href="#1-classic-superuser-monitoring--the-load-average-paradox">1. Classic Superuser Monitoring &amp; The Load Average Paradox</a>
+      <ul>
+        <li><a href="#the-load-average-paradox">The Load Average Paradox:</a></li>
+        <li><a href="#the-standard-superuser-triage-toolkit">The Standard Superuser Triage Toolkit:</a></li>
+      </ul>
+    </li>
+    <li><a href="#2-brendan-greggs-performance-methodologies">2. Brendan Gregg&rsquo;s Performance Methodologies</a>
       <ul>
         <li><a href="#1-the-use-method-for-physical--virtual-resources">1. The USE Method (For Physical &amp; Virtual Resources)</a></li>
         <li><a href="#2-the-red-method-for-request-driven-services">2. The RED Method (For Request-Driven Services)</a></li>
       </ul>
     </li>
-    <li><a href="#2-linux-tracing-hook-points">2. Linux Tracing Hook Points</a></li>
-    <li><a href="#3-the-ebpf-architecture">3. The eBPF Architecture</a>
+    <li><a href="#3-linux-tracing-hook-points">3. Linux Tracing Hook Points</a></li>
+    <li><a href="#4-the-ebpf-architecture">4. The eBPF Architecture</a>
       <ul>
         <li><a href="#the-in-kernel-verifier">The In-Kernel Verifier</a></li>
         <li><a href="#bpf-maps">BPF Maps</a></li>
       </ul>
     </li>
-    <li><a href="#4-hands-on-practical-labs">4. Hands-On Practical Labs</a>
+    <li><a href="#5-hands-on-practical-labs">5. Hands-On Practical Labs</a>
       <ul>
         <li><a href="#lab-91-writing-a-standalone-ebpf-program-with-libbpf-in-c">Lab 9.1: Writing a Standalone eBPF Program with libbpf in C</a></li>
         <li><a href="#lab-92-production-bpftrace-one-liners--latency-histograms">Lab 9.2: Production <code>bpftrace</code> One-Liners &amp; Latency Histograms</a></li>
         <li><a href="#lab-93-cpu-profiling--flame-graph-generation-with-linux-perf">Lab 9.3: CPU Profiling &amp; Flame Graph Generation with Linux <code>perf</code></a></li>
+        <li><a href="#lab-94-diagnosing-the-load-average-d-state-disk-io-bottleneck">Lab 9.4: Diagnosing the Load Average D-State Disk I/O Bottleneck</a></li>
       </ul>
     </li>
-    <li><a href="#5-summary-checklist">5. Summary Checklist</a></li>
+    <li><a href="#6-summary-checklist">6. Summary Checklist</a></li>
   </ul>
 </nav>
   </div>

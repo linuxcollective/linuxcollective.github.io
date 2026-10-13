@@ -333,11 +333,11 @@
   <div class="article-meta-bar">
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      12 min read
+      14 min read
     </span>
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      2107 words
+      2501 words
     </span>
     
     <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/a5.kernel-subsystem.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
@@ -451,14 +451,65 @@ Represents an open file instance created in a process when calling <code>open()<
 </ul>
 <hr>
 <h2 id="4-the-networking-subsystem-net">4. The Networking Subsystem (NET)</h2>
-<p>The Linux network stack delivers line-rate packet processing across high-density 100GbE/400GbE infrastructure.</p>
-<h3 id="1-struct-sk_buff-socket-buffer">1. <code>struct sk_buff</code> (Socket Buffer)</h3>
+<p>In <em>How Linux Works</em>, Brian Ward dedicates multiple chapters to networking because Linux serves as the routing and packet-filtering backbone of modern cloud networks.</p>
+<pre tabindex="0"><code>+-------------------------------------------------------------------------------+
+|  USER SPACE: Application Sockets (HTTP, SSH, DNS, gRPC)                       |
++-------------------------------------------------------------------------------+
+                                    |
+                         [ POSIX Socket API: socket(), bind(), connect() ]
+                                    v
++-------------------------------------------------------------------------------+
+|  TRANSPORT LAYER (TCP / UDP): Connection state machines, congestion control   |
++-------------------------------------------------------------------------------+
+                                    |
+                         [ netfilter: INPUT / OUTPUT hooks ]
+                                    v
++-------------------------------------------------------------------------------+
+|  NETWORK LAYER (IPv4 / IPv6): Routing tables (ip route), TTL, Fragmentation   |
++-------------------------------------------------------------------------------+
+                                    |
+                         [ netfilter: PREROUTING / FORWARD / POSTROUTING ]
+                                    v
++-------------------------------------------------------------------------------+
+|  LINK LAYER &amp; DEVICE DRIVERS: ARP resolution, sk_buff allocation, NAPI polling|
++-------------------------------------------------------------------------------+
+                                    v
++-------------------------------------------------------------------------------+
+|  PHYSICAL HARDWARE: NIC DMA Controller &amp; Ring Buffers (XDP execution)         |
++-------------------------------------------------------------------------------+
+</code></pre><h3 id="1-struct-sk_buff-socket-buffer">1. <code>struct sk_buff</code> (Socket Buffer)</h3>
 <p>The socket buffer (<code>sk_buff</code>) is the most critical networking structure in the kernel:</p>
 <ul>
 <li>It represents a single network packet traversing the protocol stack.</li>
 <li>It avoids expensive memory copies. As a packet travels from the Ethernet driver → IP layer → TCP layer → Socket buffer, the kernel merely adjusts internal pointer offsets (<code>head</code>, <code>data</code>, <code>tail</code>, <code>end</code>) without copying packet payload bytes.</li>
 </ul>
-<h3 id="2-napi-new-api-interrupt-mitigation">2. NAPI (New API) Interrupt Mitigation</h3>
+<h3 id="2-network-interfaces--iproute2-configuration">2. Network Interfaces &amp; <code>iproute2</code> Configuration</h3>
+<p>Linux abstracts hardware ports into network interfaces:</p>
+<ul>
+<li><strong><code>lo</code></strong>: The Loopback interface (<code>127.0.0.1</code>), entirely software-driven in kernel memory.</li>
+<li><strong><code>eth0</code> / <code>enp3s0</code></strong>: Predictably named physical Ethernet controllers.</li>
+<li><strong><code>veth</code> pairs</strong>: Virtual ethernet pairs acting as bidirectional pipes between container network namespaces.</li>
+</ul>
+<p>Superusers manage networking using modern <code>iproute2</code> commands:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Inspect link status and MAC addresses</span>
+</span></span><span class="line"><span class="cl">ip link show
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Assign IP addresses</span>
+</span></span><span class="line"><span class="cl">ip addr show
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Inspect kernel routing table and default gateway</span>
+</span></span><span class="line"><span class="cl">ip route show
+</span></span></code></pre></div><h3 id="3-netfilter-packet-filtering--nat">3. Netfilter Packet Filtering &amp; NAT</h3>
+<p>Every packet entering or leaving the system traverses the kernel&rsquo;s <strong>Netfilter</strong> framework across five well-defined hooks:</p>
+<ol>
+<li><strong><code>PREROUTING</code></strong>: Packets immediately after entering the NIC (used for Destination NAT / Port Forwarding).</li>
+<li><strong><code>INPUT</code></strong>: Packets destined for local processes on this machine.</li>
+<li><strong><code>FORWARD</code></strong>: Packets destined for another host (routing/firewall mode).</li>
+<li><strong><code>OUTPUT</code></strong>: Packets generated locally by user-space applications.</li>
+<li><strong><code>POSTROUTING</code></strong>: Packets about to leave the NIC (used for Source NAT / IP Masquerading).</li>
+</ol>
+<p>Modern distributions govern Netfilter rules using <strong><code>nftables</code></strong> (replacing the legacy <code>iptables</code> table/chain system).</p>
+<h3 id="4-napi-new-api-interrupt-mitigation">4. NAPI (New API) Interrupt Mitigation</h3>
 <p>Under high packet load (e.g., 10 million packets per second), generating a hardware CPU interrupt for every incoming packet would lead to <strong>receive livelock</strong>, where the CPU spends 100% of its time processing interrupts and zero time processing data.</p>
 <p>Linux uses <strong>NAPI</strong>:</p>
 <ul>
@@ -466,7 +517,7 @@ Represents an open file instance created in a process when calling <code>open()<
 <li>The kernel handles the interrupt, <strong>disables interrupts on the NIC</strong>, and transitions into a high-speed polling loop via <code>ksoftirqd</code>.</li>
 <li>Once the driver&rsquo;s ring buffer is empty, interrupts are re-enabled.</li>
 </ul>
-<h3 id="3-ebpf--xdp-express-data-path">3. eBPF &amp; XDP (eXpress Data Path)</h3>
+<h3 id="5-ebpf--xdp-express-data-path">5. eBPF &amp; XDP (eXpress Data Path)</h3>
 <p>Modern cloud infrastructure frequently bypasses standard network stack overhead using <strong>XDP (eXpress Data Path)</strong>:</p>
 <ul>
 <li>XDP executes sandboxed eBPF bytecode directly inside the network driver&rsquo;s receive ring buffer, before an <code>sk_buff</code> is even allocated.</li>
@@ -666,12 +717,31 @@ Represents an open file instance created in a process when calling <code>open()<
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">gcc -O2 fd_pass.c -o fd_pass
 </span></span><span class="line"><span class="cl">./fd_pass
 </span></span></code></pre></div><hr>
+<h3 id="lab-53-network-socket-lifecycle--packet-inspection">Lab 5.3: Network Socket Lifecycle &amp; Packet Inspection</h3>
+<p>In <em>How Linux Works</em>, superusers master diagnosing socket states and capturing traffic to verify kernel network routing.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 1. Inspect listening TCP and UDP sockets with process PIDs</span>
+</span></span><span class="line"><span class="cl">ss -tulpn
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 2. Inspect active TCP connections and socket timer states</span>
+</span></span><span class="line"><span class="cl">ss -t -o state established
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 3. Trace kernel DNS resolution query flow</span>
+</span></span><span class="line"><span class="cl">resolvectl status 2&gt;/dev/null <span class="o">||</span> cat /etc/resolv.conf
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 4. Live packet inspection: Capture ICMP ping packets on any interface</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Run this in one terminal:</span>
+</span></span><span class="line"><span class="cl">sudo tcpdump -nn -i any icmp -c <span class="m">4</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># In another terminal:</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># ping -c 2 127.0.0.1</span>
+</span></span></code></pre></div><hr>
 <h2 id="7-summary-checklist">7. Summary Checklist</h2>
 <ul>
 <li><input checked="" disabled="" type="checkbox"> <strong>VFS Structs</strong>: Mastered <code>super_block</code>, <code>inode</code>, <code>dentry</code>, and <code>file</code>.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Memory Management</strong>: Contrasted Buddy Allocator with SLUB, and understood demand paging.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Process Scheduler</strong>: Analyzed CFS Red-Black trees and modern EEVDF lag compensation.</li>
-<li><input checked="" disabled="" type="checkbox"> <strong>Networking Stack</strong>: Explored <code>sk_buff</code>, NAPI polling loops, and eBPF XDP line-rate filtering.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Networking Stack</strong>: Explored <code>sk_buff</code>, NAPI polling loops, Netfilter hooks, and eBPF XDP line-rate filtering.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Network Diagnostics</strong>: Inspected socket tables with <code>ss</code> and captured wire packets with <code>tcpdump</code>.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Hands-on Labs</strong>: Tracked page faults with <code>sar</code> and implemented <code>SCM_RIGHTS</code> fd passing over <code>AF_UNIX</code>.</li>
 </ul>
 
@@ -810,8 +880,10 @@ Represents an open file instance created in a process when calling <code>open()<
     <li><a href="#4-the-networking-subsystem-net">4. The Networking Subsystem (NET)</a>
       <ul>
         <li><a href="#1-struct-sk_buff-socket-buffer">1. <code>struct sk_buff</code> (Socket Buffer)</a></li>
-        <li><a href="#2-napi-new-api-interrupt-mitigation">2. NAPI (New API) Interrupt Mitigation</a></li>
-        <li><a href="#3-ebpf--xdp-express-data-path">3. eBPF &amp; XDP (eXpress Data Path)</a></li>
+        <li><a href="#2-network-interfaces--iproute2-configuration">2. Network Interfaces &amp; <code>iproute2</code> Configuration</a></li>
+        <li><a href="#3-netfilter-packet-filtering--nat">3. Netfilter Packet Filtering &amp; NAT</a></li>
+        <li><a href="#4-napi-new-api-interrupt-mitigation">4. NAPI (New API) Interrupt Mitigation</a></li>
+        <li><a href="#5-ebpf--xdp-express-data-path">5. eBPF &amp; XDP (eXpress Data Path)</a></li>
       </ul>
     </li>
     <li><a href="#5-inter-process-communication-ipc">5. Inter-Process Communication (IPC)</a></li>
@@ -819,6 +891,7 @@ Represents an open file instance created in a process when calling <code>open()<
       <ul>
         <li><a href="#lab-51-analyzing-demand-paging--page-faults">Lab 5.1: Analyzing Demand Paging &amp; Page Faults</a></li>
         <li><a href="#lab-52-zero-permission-file-descriptor-passing-via-af_unix--scm_rights">Lab 5.2: Zero-Permission File Descriptor Passing via <code>AF_UNIX</code> &amp; <code>SCM_RIGHTS</code></a></li>
+        <li><a href="#lab-53-network-socket-lifecycle--packet-inspection">Lab 5.3: Network Socket Lifecycle &amp; Packet Inspection</a></li>
       </ul>
     </li>
     <li><a href="#7-summary-checklist">7. Summary Checklist</a></li>
