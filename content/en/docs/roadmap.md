@@ -30,17 +30,19 @@ A step-by-step path from your first terminal command to writing kernel drivers a
 
 📖 **[Full Guide →](/docs/shell-and-sysadmin/)**
 
-**What you learn:** The Unix philosophy, filesystem hierarchy, file permissions, and shell scripting.
+**What you learn:** The Unix philosophy, filesystem hierarchy, file permissions, device nodes, and shell scripting (inspired by *How Linux Works*, Chapters 1–3).
 
 **Key concepts:**
-- Filesystem Hierarchy Standard — what `/etc`, `/var`, `/proc`, `/sys`, `/dev` are for
-- Permission bits — `rwx` octal notation, SUID (`4000`), SGID (`2000`), Sticky Bit (`1000`)
-- Text processing pipelines — `grep`, `awk`, `sed`, `sort`, `uniq`, `xargs`
-- Shell scripting — exit codes, signals, job control, process substitution
+- **Filesystem Hierarchy Standard (FHS)** — Purpose of `/etc`, `/var`, `/proc`, `/sys`, `/dev`
+- **Device Nodes** — Character vs. block devices, major/minor device numbers (`ls -l /dev`), `sysfs`, `udev`
+- **Permission bits** — `rwx` octal notation, SUID (`4000`), SGID (`2000`), Sticky Bit (`1000`)
+- **Text pipelines** — Standard input/output/error streams, `grep`, `awk`, `sed`, `sort`, `uniq`, `xargs`
+- **Shell scripting** — Environment variables, subshells, exit statuses, signals (`trap`), process substitution
 
 **Labs:**
 - [ ] Write a shell script that parses Nginx logs, counts HTTP 500 errors per IP, and shows the top 10
 - [ ] Create a shared directory with SGID + Sticky Bit so team files inherit group and can't be deleted by others
+- [ ] Inspect `/dev` major/minor device numbers with `ls -l` and write a custom `udev` rule
 
 ---
 
@@ -48,17 +50,19 @@ A step-by-step path from your first terminal command to writing kernel drivers a
 
 📖 **[Full Guide →](/docs/shell-and-sysadmin/)**
 
-**What you learn:** Managing services, disks, networks, and SSH on production Linux servers.
+**What you learn:** Managing services, disks, LVM, networks, and SSH on production Linux servers (inspired by *How Linux Works*, Chapters 4–10).
 
 **Key concepts:**
-- **systemd** — PID 1, unit files (`.service`, `.socket`, `.timer`), sandboxing (`ProtectSystem`, `PrivateTmp`)
-- **Storage** — GPT partitioning, LVM (PV → VG → LV), ext4 vs XFS vs Btrfs
-- **Networking** — `ip link/addr/route`, `ss -tulpn`, nftables firewall rules
-- **SSH** — Ed25519 keys, disabling password auth, agent forwarding
+- **`systemd`** — PID 1, unit files (`.service`, `.socket`, `.timer`), targets, declarative sandboxing (`ProtectSystem`, `PrivateTmp`)
+- **Storage & LVM** — MBR vs. GPT partitions, LVM 3-tier architecture (PV → VG → LV), UUIDs in `/etc/fstab`
+- **Filesystems** — Inodes, directories as name maps, hard links vs. symlinks, ext4 vs. XFS
+- **Networking** — `ip link/addr/route`, socket states with `ss -tulpn`, `nftables` firewalls, DNS in `/etc/resolv.conf`
+- **User management & PAM** — `/etc/passwd`, `/etc/shadow`, Pluggable Authentication Modules (`/etc/pam.d/`)
 
 **Labs:**
 - [ ] Write a `systemd` service with cgroup limits (`MemoryMax=500M`, `CPUQuota=50%`) and security sandboxing
-- [ ] Partition a disk with GPT, create an LVM volume group, format as XFS, and mount via `/etc/fstab`
+- [ ] Partition a loop disk with GPT, create an LVM volume group, format as ext4, and mount via `/etc/fstab`
+- [ ] Audit user login flows through PAM and set up an SSH bastion with Ed25519 keys
 
 ---
 
@@ -224,8 +228,10 @@ A step-by-step path from your first terminal command to writing kernel drivers a
 
 | Book | Author | Best For |
 | :--- | :--- | :--- |
+| **How Linux Works: What Every Superuser Should Know (3rd Ed.)** | Brian Ward | Foundational superuser mechanics (devices, disks, boot sequence, systemd, networks) |
 | **Linux Kernel Development (3rd Ed.)** | Robert Love | Clear kernel architecture introduction |
 | **Understanding the Linux Kernel (3rd Ed.)** | Bovet & Cesati | Deep reference for MM, scheduler, VFS |
 | **Systems Performance (2nd Ed.)** | Brendan Gregg | Performance analysis and eBPF |
 | **The Linux Programming Interface** | Michael Kerrisk | Complete syscall and POSIX API reference |
 | **Linux Device Drivers (3rd Ed.)** | Corbet, Rubini, Kroah-Hartman | Driver and module development |
+

@@ -333,11 +333,11 @@
   <div class="article-meta-bar">
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      5 min read
+      11 min read
     </span>
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      810 words
+      2035 words
     </span>
     
     <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/a0.shell-and-sysadmin.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
@@ -354,8 +354,8 @@
 <p><em>&ldquo;The Unix philosophy is simple: write programs that do one thing and do it well. Write programs to work together. Write programs to handle text streams, because that is a universal interface.&rdquo;</em><br>
 — <strong>Doug McIlroy</strong></p>
 </blockquote>
-<p>Before descending into Ring 0 kernel internals and memory page tables, every systems engineer must master user space: the <strong>Filesystem Hierarchy Standard (FHS)</strong>, POSIX text processing pipelines, security permission bits, and <strong><code>systemd</code></strong> service orchestration.</p>
-<p>In modern production environments, failing to configure a proper <code>systemd</code> sandbox or misunderstanding Linux permission propagation can compromise an entire cluster.</p>
+<p>Before descending into Ring 0 kernel internals and memory page tables, every systems engineer must master user space: the <strong>Filesystem Hierarchy Standard (FHS)</strong>, character and block <strong>devices (<code>/dev</code>)</strong>, <strong><code>udev</code></strong> rule orchestration, <strong>Logical Volume Management (LVM)</strong>, user authentication via <strong>PAM</strong>, and hardened <strong><code>systemd</code></strong> service sandboxing.</p>
+<p>As Brian Ward emphasizes in <em>How Linux Works: What Every Superuser Should Know</em>, a superuser is not merely someone who knows commands—it is someone who understands how user space coordinates with the Linux kernel to manage hardware, processes, and storage.</p>
 <hr>
 <h2 id="1-filesystem-hierarchy-standard-fhs">1. Filesystem Hierarchy Standard (FHS)</h2>
 <p>Linux organizes files according to purpose, permanence, and sharing across systems:</p>
@@ -365,12 +365,88 @@
 ├── usr/         Read-only software packages, libraries (/usr/lib), and headers
 ├── var/         Variable runtime state, persistent spool directories, /var/log
 ├── tmp/         Temporary files cleared upon reboot (often mounted as tmpfs)
-├── dev/         Device nodes created dynamically by systemd-udevd
+├── dev/         Device nodes created dynamically by systemd-udevd (devtmpfs)
 ├── proc/        Virtual pseudo-filesystem exposing kernel data &amp; task structures
 └── sys/         Sysfs pseudo-filesystem exposing unified kernel device model
-</code></pre><hr>
-<h2 id="2-advanced-permissions-suid-sgid--sticky-bit">2. Advanced Permissions: SUID, SGID &amp; Sticky Bit</h2>
-<p>Standard POSIX permissions define Read (<code>4</code>), Write (<code>2</code>), and Execute (<code>1</code>) for User, Group, and Others. However, multi-tenant and secure production systems rely on the three <strong>Special Permission Bits</strong>:</p>
+</code></pre><ul>
+<li><strong>/etc</strong>: Configuration files only. Executable binaries should never reside here.</li>
+<li><strong>/var</strong>: Dynamic data written while the system runs: logs (<code>/var/log</code>), package caches (<code>/var/cache</code>), databases (<code>/var/lib</code>).</li>
+<li><strong>/proc &amp; /sys</strong>: Pure in-memory pseudo-filesystems. They consume 0 bytes of disk storage; reading a file in <code>/proc</code> or <code>/sys</code> triggers kernel C code to inspect internal data structures.</li>
+</ul>
+<hr>
+<h2 id="2-devices-dev-and-dynamic-management-with-udev">2. Devices, <code>/dev</code>, and Dynamic Management with <code>udev</code></h2>
+<p>In Unix and Linux, <em>devices are accessed as special files</em> located under <code>/dev</code>. However, unlike regular files, device files do not contain data on disk; their inodes store a <strong>Major Number</strong> and a <strong>Minor Number</strong>.</p>
+<pre tabindex="0"><code>$ ls -l /dev/sda /dev/tty0 /dev/urandom
+brw-rw---- 1 root disk    8,  0 Oct 14 00:00 /dev/sda
+crw--w---- 1 root tty     4,  0 Oct 14 00:00 /dev/tty0
+crw-rw-rw- 1 root root    1,  9 Oct 14 00:00 /dev/urandom
+</code></pre><h3 id="character-vs-block-devices">Character vs. Block Devices:</h3>
+<ul>
+<li><strong>Character Devices (<code>c</code>)</strong>: Represent streams of bytes that can be read or written sequentially without buffering by the block layer. Examples: terminals (<code>/dev/tty*</code>), serial ports, sound cards, and random number generators (<code>/dev/urandom</code>).</li>
+<li><strong>Block Devices (<code>b</code>)</strong>: Represent random-access storage media organized into fixed-size blocks (sectors). Block devices interact with the kernel&rsquo;s Page Cache and I/O scheduler. Examples: NVMe drives (<code>/dev/nvme0n1</code>), SATA SSDs (<code>/dev/sda</code>), and loopback devices (<code>/dev/loop0</code>).</li>
+</ul>
+<h3 id="major-and-minor-numbers">Major and Minor Numbers:</h3>
+<ul>
+<li><strong>Major Number</strong>: Identifies which <strong>kernel device driver</strong> handles operations for the device (e.g., Major <code>8</code> = SCSI/SATA disk driver, Major <code>1</code> = memory/raw drivers, Major <code>259</code> = NVMe block driver).</li>
+<li><strong>Minor Number</strong>: Passed to the driver to identify the <strong>specific physical device or partition instance</strong> (e.g., <code>/dev/sda</code> has Minor <code>0</code>, while <code>/dev/sda1</code> has Minor <code>1</code>).</li>
+</ul>
+<h3 id="the-udev-system-systemd-udevd">The <code>udev</code> System (<code>systemd-udevd</code>):</h3>
+<p>In modern Linux, <code>/dev</code> is mounted as <code>devtmpfs</code> (a kernel-managed in-memory filesystem). When the kernel detects new hardware (USB plugged in, NVMe identified):</p>
+<ol>
+<li>The kernel emits a <strong><code>uevent</code></strong> netlink message.</li>
+<li>The user-space daemon <strong><code>systemd-udevd</code></strong> receives the event.</li>
+<li><code>udev</code> evaluates rules in <code>/etc/udev/rules.d/</code> and <code>/usr/lib/udev/rules.d/</code>.</li>
+<li>It sets device permissions, triggers helper scripts, and creates persistent descriptive symlinks under <code>/dev/disk/by-uuid/</code>, <code>/dev/disk/by-id/</code>, and <code>/dev/disk/by-path/</code>.</li>
+</ol>
+<hr>
+<h2 id="3-disks-partitions--logical-volume-management-lvm">3. Disks, Partitions &amp; Logical Volume Management (LVM)</h2>
+<h3 id="mbr-vs-gpt-partitioning">MBR vs. GPT Partitioning:</h3>
+<ul>
+<li><strong>MBR (Master Boot Record)</strong>: Legacy standard. Limited to 4 primary partitions and a maximum disk capacity of 2 Terabytes.</li>
+<li><strong>GPT (GUID Partition Table)</strong>: Modern standard required for UEFI booting. Supports 128+ partitions, 64-bit block addressing (up to 9.4 Zettabytes), and includes a secondary backup partition table at the end of the disk for disaster recovery.</li>
+</ul>
+<h3 id="the-3-tier-lvm-architecture">The 3-Tier LVM Architecture:</h3>
+<p>Traditional raw disk partitions are rigid. If <code>/var</code> runs out of disk space, resizing an adjacent partition requires unmounting and moving data. <strong>LVM (Logical Volume Manager)</strong> inserts a virtualization layer between physical storage and filesystems:</p>
+<pre tabindex="0"><code>+-------------------------------------------------------------------------+
+|                  FILESYSTEMS (ext4, XFS, btrfs)                         |
++-------------------------------------------------------------------------+
+                                    |
++-------------------------------------------------------------------------+
+|     LOGICAL VOLUMES (LV): /dev/mapper/vg0-data, /dev/mapper/vg0-var     |
+|     (Can be dynamically resized, snapshotted, or striped at runtime)    |
++-------------------------------------------------------------------------+
+                                    ^
++-------------------------------------------------------------------------+
+|                       VOLUME GROUP (VG): &#34;vg0&#34;                          |
+|                       (Pool of Physical Extents, e.g. 4MB chunks)       |
++-------------------------------------------------------------------------+
+                                    ^
++-------------------------------------------------------------------------+
+|      PHYSICAL VOLUMES (PV): /dev/sda2, /dev/sdb1, /dev/nvme0n1p2        |
++-------------------------------------------------------------------------+
+</code></pre><ol>
+<li><strong>Physical Volumes (PV)</strong>: Initialized storage disks or partitions (<code>pvcreate /dev/sdb</code>).</li>
+<li><strong>Volume Groups (VG)</strong>: A storage pool aggregated from one or more PVs (<code>vgcreate vg0 /dev/sdb /dev/sdc</code>).</li>
+<li><strong>Logical Volumes (LV)</strong>: Virtual partitions carved out of the VG pool (<code>lvcreate -L 50G -n data vg0</code>).</li>
+<li><strong>Online Resizing</strong>: With LVM, storage can be expanded on a live running production system without downtime:
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Add 20 GB to the volume and resize the underlying ext4/xfs filesystem in one command:</span>
+</span></span><span class="line"><span class="cl">sudo lvextend -L +20G -r /dev/vg0/data
+</span></span></code></pre></div></li>
+</ol>
+<h3 id="mounting-and-etcfstab">Mounting and <code>/etc/fstab</code>:</h3>
+<p>The kernel mounts filesystems at boot according to <code>/etc/fstab</code>. Each line specifies:</p>
+<pre tabindex="0"><code>UUID=3a4f6b21-4d92-4e89-a291-0e5d1234abcd  /var  ext4  defaults,noatime,nodev  0  2
+</code></pre><ol>
+<li><strong>Device / UUID</strong>: Always use <code>UUID=</code> instead of <code>/dev/sda1</code> to avoid drive letter reordering upon reboot.</li>
+<li><strong>Mount Point</strong>: Target directory.</li>
+<li><strong>Filesystem Type</strong>: <code>ext4</code>, <code>xfs</code>, <code>btrfs</code>, <code>tmpfs</code>.</li>
+<li><strong>Mount Options</strong>: Performance &amp; security flags (<code>noatime</code> disables write updates on reads; <code>nodev</code> blocks device node creation; <code>nosuid</code> ignores SUID bits).</li>
+<li><strong>Dump Flag</strong>: Backup utility flag (<code>0</code> disables).</li>
+<li><strong>FSCK Pass Order</strong>: <code>1</code> for root (<code>/</code>), <code>2</code> for other local drives, <code>0</code> to skip filesystem checking.</li>
+</ol>
+<hr>
+<h2 id="4-advanced-permissions-suid-sgid--sticky-bit">4. Advanced Permissions: SUID, SGID &amp; Sticky Bit</h2>
+<p>Standard POSIX permissions define Read (<code>4</code>), Write (<code>2</code>), and Execute (<code>1</code>) for User, Group, and Others. Multi-tenant and secure production systems rely on the three <strong>Special Permission Bits</strong>:</p>
 <table>
 	<thead>
 			<tr>
@@ -406,15 +482,47 @@
 	</tbody>
 </table>
 <hr>
-<h2 id="3-systemd-architecture--service-hardening">3. <code>systemd</code> Architecture &amp; Service Hardening</h2>
+<h2 id="5-user-authentication-pam--environment-initialization">5. User Authentication, PAM &amp; Environment Initialization</h2>
+<h3 id="user-databases">User Databases:</h3>
+<ul>
+<li><strong><code>/etc/passwd</code></strong>: World-readable database of user accounts (<code>username:x:UID:GID:GECOS:home:shell</code>). The <code>x</code> indicates that encrypted password hashes reside securely in <code>/etc/shadow</code>.</li>
+<li><strong><code>/etc/shadow</code></strong>: Root-readable only (<code>0640</code> or <code>0600</code>). Stores salted cryptographic password hashes (e.g., <code>$6$</code> for SHA-512, <code>$y$</code> for yescrypt) and password expiration policies.</li>
+<li><strong><code>/etc/group</code></strong>: Group memberships and supplemental GIDs.</li>
+</ul>
+<h3 id="pam-pluggable-authentication-modules">PAM (Pluggable Authentication Modules):</h3>
+<p>Applications like <code>login</code>, <code>sshd</code>, and <code>sudo</code> do not check passwords directly. They delegate authentication to PAM via configuration files in <code>/etc/pam.d/</code>:</p>
+<ul>
+<li><strong><code>auth</code></strong>: Verifies user identity (password prompt, 2FA hardware token).</li>
+<li><strong><code>account</code></strong>: Checks if the account is allowed to log in (password expired? time restrictions?).</li>
+<li><strong><code>password</code></strong>: Enforces password update policies (minimum length, complexity).</li>
+<li><strong><code>session</code></strong>: Prepares user environment (mounting home directory, setting resource limits via <code>pam_limits.so</code>).</li>
+</ul>
+<h3 id="shell-initialization-sequence">Shell Initialization Sequence:</h3>
+<p>When a user logs in, bash executes configuration scripts in a strict deterministic order:</p>
+<ol>
+<li><strong>Login Shell</strong> (SSH login, console login):
+<ul>
+<li><code>/etc/profile</code> (system-wide environment)</li>
+<li>First matching user file: <code>~/.bash_profile</code> → <code>~/.bash_login</code> → <code>~/.profile</code></li>
+</ul>
+</li>
+<li><strong>Interactive Non-Login Shell</strong> (opening a terminal window inside a desktop, <code>tmux</code> window, subshell):
+<ul>
+<li><code>/etc/bash.bashrc</code> (system-wide)</li>
+<li><code>~/.bashrc</code> (user aliases, functions, prompts)</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="6-systemd-architecture--service-hardening">6. <code>systemd</code> Architecture &amp; Service Hardening</h2>
 <p>On modern Linux distributions, <code>systemd</code> is PID 1:</p>
 <ul>
-<li>It handles initial userspace boot orchestration.</li>
+<li>It handles initial userspace boot orchestration and parallel service startup.</li>
 <li>It reaps orphaned zombie processes.</li>
 <li>It supervises background daemons using cgroups.</li>
 <li>It enables <strong>Socket Activation</strong>: <code>systemd</code> binds network listening sockets before the application starts, handing the open file descriptor to the service upon the first incoming TCP connection.</li>
 </ul>
-<h3 id="declarative-security-sandboxing">Declarative Security Sandboxing</h3>
+<h3 id="declarative-security-sandboxing">Declarative Security Sandboxing:</h3>
 <p>Modern <code>systemd</code> units can enforce kernel isolation directly without external container engines:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-ini" data-lang="ini"><span class="line"><span class="cl"><span class="k">[Unit]</span>
 </span></span><span class="line"><span class="cl"><span class="na">Description</span><span class="o">=</span><span class="s">Production Payment Microservice</span>
@@ -447,7 +555,7 @@
 </span></span><span class="line"><span class="cl"><span class="k">[Install]</span>
 </span></span><span class="line"><span class="cl"><span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
 </span></span></code></pre></div><hr>
-<h2 id="4-hands-on-practical-labs">4. Hands-On Practical Labs</h2>
+<h2 id="7-hands-on-practical-labs">7. Hands-On Practical Labs</h2>
 <h3 id="lab-11-high-performance-log-aggregation-pipeline-in-bash">Lab 1.1: High-Performance Log Aggregation Pipeline in Bash</h3>
 <p>Write a POSIX-compliant shell script that parses a multi-gigabyte Nginx access log, filters for HTTP 500 error codes, aggregates the count per client IP, and outputs the top 10 offending clients.</p>
 <h4 id="script-source-top_error_ipssh">Script Source: <code>top_error_ips.sh</code></h4>
@@ -489,7 +597,62 @@
 </span></span><span class="line"><span class="cl">ls -ld /srv/devops_collab
 </span></span><span class="line"><span class="cl"><span class="c1"># Expected output: drwxrws--t 2 root devops 4096 /srv/devops_collab</span>
 </span></span></code></pre></div><hr>
-<h3 id="lab-13-deploying-and-testing-a-sandboxed-systemd-service">Lab 1.3: Deploying and Testing a Sandboxed <code>systemd</code> Service</h3>
+<h3 id="lab-13-inspecting-device-majorminor-numbers-and-writing-a-udev-rule">Lab 1.3: Inspecting Device Major/Minor Numbers and Writing a <code>udev</code> Rule</h3>
+<p>In this lab, we inspect kernel device properties using <code>udevadm</code> and write a custom rule to assign persistent symlinks and permissions.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 1. Inspect properties of disk device /dev/sda or loop0</span>
+</span></span><span class="line"><span class="cl">udevadm info --query<span class="o">=</span>all --name<span class="o">=</span>/dev/loop0 2&gt;/dev/null <span class="o">||</span> udevadm info --query<span class="o">=</span>all --name<span class="o">=</span>/dev/sda
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 2. Monitor kernel uevents live (plug in a USB drive or create a loop device to observe events)</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># udevadm monitor --kernel --udev</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 3. Example udev rule to give non-root developers read/write access to a custom serial device:</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Create /etc/udev/rules.d/99-custom-serial.rules:</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># SUBSYSTEM==&#34;tty&#34;, ATTRS{idVendor}==&#34;0403&#34;, ATTRS{idProduct}==&#34;6001&#34;, MODE=&#34;0666&#34;, SYMLINK+=&#34;custom_serial&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 4. Reload and trigger udev rules</span>
+</span></span><span class="line"><span class="cl">sudo udevadm control --reload-rules
+</span></span><span class="line"><span class="cl">sudo udevadm trigger
+</span></span></code></pre></div><hr>
+<h3 id="lab-14-dynamic-lvm-storage-creation-and-online-expansion">Lab 1.4: Dynamic LVM Storage Creation and Online Expansion</h3>
+<p>In this lab, we build a complete 3-tier LVM storage stack using two ephemeral loopback disk images, format it as <code>ext4</code>, and expand it online while mounted.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 1. Create two 500MB raw disk image files</span>
+</span></span><span class="line"><span class="cl">dd <span class="k">if</span><span class="o">=</span>/dev/zero <span class="nv">of</span><span class="o">=</span>/tmp/disk1.img <span class="nv">bs</span><span class="o">=</span>1M <span class="nv">count</span><span class="o">=</span><span class="m">500</span> <span class="nv">status</span><span class="o">=</span>none
+</span></span><span class="line"><span class="cl">dd <span class="k">if</span><span class="o">=</span>/dev/zero <span class="nv">of</span><span class="o">=</span>/tmp/disk2.img <span class="nv">bs</span><span class="o">=</span>1M <span class="nv">count</span><span class="o">=</span><span class="m">500</span> <span class="nv">status</span><span class="o">=</span>none
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 2. Attach disk images as loop devices</span>
+</span></span><span class="line"><span class="cl"><span class="nv">LOOP1</span><span class="o">=</span><span class="k">$(</span>sudo losetup -f --show /tmp/disk1.img<span class="k">)</span>
+</span></span><span class="line"><span class="cl"><span class="nv">LOOP2</span><span class="o">=</span><span class="k">$(</span>sudo losetup -f --show /tmp/disk2.img<span class="k">)</span>
+</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="s2">&#34;Attached loop devices: </span><span class="nv">$LOOP1</span><span class="s2"> and </span><span class="nv">$LOOP2</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 3. Initialize Physical Volumes (PV)</span>
+</span></span><span class="line"><span class="cl">sudo pvcreate <span class="nv">$LOOP1</span> <span class="nv">$LOOP2</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 4. Create Volume Group (VG) combining both PVs (Total ~1000MB)</span>
+</span></span><span class="line"><span class="cl">sudo vgcreate lab_vg <span class="nv">$LOOP1</span> <span class="nv">$LOOP2</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 5. Create a 400MB Logical Volume (LV)</span>
+</span></span><span class="line"><span class="cl">sudo lvcreate -L 400M -n lab_data lab_vg
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 6. Format as ext4 and mount</span>
+</span></span><span class="line"><span class="cl">sudo mkfs.ext4 /dev/lab_vg/lab_data
+</span></span><span class="line"><span class="cl">sudo mkdir -p /mnt/lvm_lab
+</span></span><span class="line"><span class="cl">sudo mount /dev/lab_vg/lab_data /mnt/lvm_lab
+</span></span><span class="line"><span class="cl">df -h /mnt/lvm_lab
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 7. Perform ONLINE Expansion (Grow to 700MB without unmounting!)</span>
+</span></span><span class="line"><span class="cl">sudo lvextend -L 700M -r /dev/lab_vg/lab_data
+</span></span><span class="line"><span class="cl">df -h /mnt/lvm_lab
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 8. Clean up</span>
+</span></span><span class="line"><span class="cl">sudo umount /mnt/lvm_lab
+</span></span><span class="line"><span class="cl">sudo lvremove -y /dev/lab_vg/lab_data
+</span></span><span class="line"><span class="cl">sudo vgremove -y lab_vg
+</span></span><span class="line"><span class="cl">sudo pvremove -y <span class="nv">$LOOP1</span> <span class="nv">$LOOP2</span>
+</span></span><span class="line"><span class="cl">sudo losetup -d <span class="nv">$LOOP1</span> <span class="nv">$LOOP2</span>
+</span></span><span class="line"><span class="cl">rm -f /tmp/disk1.img /tmp/disk2.img /mnt/lvm_lab
+</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="s2">&#34;[+] LVM lab completed and cleaned up successfully!&#34;</span>
+</span></span></code></pre></div><hr>
+<h3 id="lab-15-deploying-and-testing-a-sandboxed-systemd-service">Lab 1.5: Deploying and Testing a Sandboxed <code>systemd</code> Service</h3>
 <p>In this lab, we build, install, and test a daemon constrained by <code>systemd</code> cgroup limits.</p>
 <h4 id="1-create-a-test-daemon-workerpy">1. Create a Test Daemon: <code>worker.py</code></h4>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="ch">#!/usr/bin/env python3</span>
@@ -530,11 +693,13 @@
 </span></span><span class="line"><span class="cl">systemd-cgls
 </span></span><span class="line"><span class="cl">systemctl show sandboxed-worker.service --property<span class="o">=</span>MemoryMax,CPUQuota
 </span></span></code></pre></div><hr>
-<h2 id="5-summary-checklist">5. Summary Checklist</h2>
+<h2 id="8-summary-checklist">8. Summary Checklist</h2>
 <ul>
 <li><input checked="" disabled="" type="checkbox"> <strong>FHS Standards</strong>: Understood purpose and lifecycle of <code>/etc</code>, <code>/var</code>, <code>/proc</code>, <code>/sys</code>.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Device Nodes &amp; <code>udev</code></strong>: Mastered character vs. block devices, major/minor numbers, and <code>systemd-udevd</code> netlink uevents.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>LVM Architecture</strong>: Traced the 3-tier hierarchy (PV → VG → LV) and executed live filesystem online expansion.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Special Permissions</strong>: Mastered octal masks for SUID (<code>4000</code>), SGID (<code>2000</code>), and Sticky Bit (<code>1000</code>).</li>
-<li><input checked="" disabled="" type="checkbox"> <strong>POSIX Processing</strong>: Built stream analysis pipelines with <code>awk</code>, <code>sort</code>, and <code>uniq</code>.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Authentication &amp; PAM</strong>: Examined <code>/etc/shadow</code>, Pluggable Authentication Modules, and login shell sequence.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong><code>systemd</code> Hardening</strong>: Deployed declarative sandboxing with <code>ProtectSystem</code>, <code>MemoryMax</code>, and <code>PrivateTmp</code>.</li>
 </ul>
 
@@ -584,7 +749,7 @@
 
 <footer id="article-footer">
   <div class="article-footer-top">
-    <time id="article-last-updated" datetime="0001-01-01"><i class="icon icon-calendar"></i>&nbsp;Last updated: 0001-01-01</time>
+    <time id="article-last-updated" datetime="2026-10-14"><i class="icon icon-calendar"></i>&nbsp;Last updated: 2026-10-14</time>
   </div>
 
   <div class="article-pagination">
@@ -611,20 +776,43 @@
     <nav id="TableOfContents">
   <ul>
     <li><a href="#1-filesystem-hierarchy-standard-fhs">1. Filesystem Hierarchy Standard (FHS)</a></li>
-    <li><a href="#2-advanced-permissions-suid-sgid--sticky-bit">2. Advanced Permissions: SUID, SGID &amp; Sticky Bit</a></li>
-    <li><a href="#3-systemd-architecture--service-hardening">3. <code>systemd</code> Architecture &amp; Service Hardening</a>
+    <li><a href="#2-devices-dev-and-dynamic-management-with-udev">2. Devices, <code>/dev</code>, and Dynamic Management with <code>udev</code></a>
       <ul>
-        <li><a href="#declarative-security-sandboxing">Declarative Security Sandboxing</a></li>
+        <li><a href="#character-vs-block-devices">Character vs. Block Devices:</a></li>
+        <li><a href="#major-and-minor-numbers">Major and Minor Numbers:</a></li>
+        <li><a href="#the-udev-system-systemd-udevd">The <code>udev</code> System (<code>systemd-udevd</code>):</a></li>
       </ul>
     </li>
-    <li><a href="#4-hands-on-practical-labs">4. Hands-On Practical Labs</a>
+    <li><a href="#3-disks-partitions--logical-volume-management-lvm">3. Disks, Partitions &amp; Logical Volume Management (LVM)</a>
+      <ul>
+        <li><a href="#mbr-vs-gpt-partitioning">MBR vs. GPT Partitioning:</a></li>
+        <li><a href="#the-3-tier-lvm-architecture">The 3-Tier LVM Architecture:</a></li>
+        <li><a href="#mounting-and-etcfstab">Mounting and <code>/etc/fstab</code>:</a></li>
+      </ul>
+    </li>
+    <li><a href="#4-advanced-permissions-suid-sgid--sticky-bit">4. Advanced Permissions: SUID, SGID &amp; Sticky Bit</a></li>
+    <li><a href="#5-user-authentication-pam--environment-initialization">5. User Authentication, PAM &amp; Environment Initialization</a>
+      <ul>
+        <li><a href="#user-databases">User Databases:</a></li>
+        <li><a href="#pam-pluggable-authentication-modules">PAM (Pluggable Authentication Modules):</a></li>
+        <li><a href="#shell-initialization-sequence">Shell Initialization Sequence:</a></li>
+      </ul>
+    </li>
+    <li><a href="#6-systemd-architecture--service-hardening">6. <code>systemd</code> Architecture &amp; Service Hardening</a>
+      <ul>
+        <li><a href="#declarative-security-sandboxing">Declarative Security Sandboxing:</a></li>
+      </ul>
+    </li>
+    <li><a href="#7-hands-on-practical-labs">7. Hands-On Practical Labs</a>
       <ul>
         <li><a href="#lab-11-high-performance-log-aggregation-pipeline-in-bash">Lab 1.1: High-Performance Log Aggregation Pipeline in Bash</a></li>
         <li><a href="#lab-12-hardened-collaboration-directory-with-sgid--sticky-bit">Lab 1.2: Hardened Collaboration Directory with SGID &amp; Sticky Bit</a></li>
-        <li><a href="#lab-13-deploying-and-testing-a-sandboxed-systemd-service">Lab 1.3: Deploying and Testing a Sandboxed <code>systemd</code> Service</a></li>
+        <li><a href="#lab-13-inspecting-device-majorminor-numbers-and-writing-a-udev-rule">Lab 1.3: Inspecting Device Major/Minor Numbers and Writing a <code>udev</code> Rule</a></li>
+        <li><a href="#lab-14-dynamic-lvm-storage-creation-and-online-expansion">Lab 1.4: Dynamic LVM Storage Creation and Online Expansion</a></li>
+        <li><a href="#lab-15-deploying-and-testing-a-sandboxed-systemd-service">Lab 1.5: Deploying and Testing a Sandboxed <code>systemd</code> Service</a></li>
       </ul>
     </li>
-    <li><a href="#5-summary-checklist">5. Summary Checklist</a></li>
+    <li><a href="#8-summary-checklist">8. Summary Checklist</a></li>
   </ul>
 </nav>
   </div>

@@ -11,11 +11,12 @@ Welcome to **Linux Collective** — a community-driven knowledge base and collab
 
 Linux Collective is an open-source initiative founded by [CloudNativeFolks](https://blog.cloudnativefolks.org) to empower developers, system administrators, and infrastructure engineers with deep-dive technical insights into the Linux operating system.
 
-We bridge the gap between basic shell usage and advanced kernel systems:
-- **Low-Level Fundamentals**: Syscalls, memory virtualization, CPU rings, and hardware interrupts.
-- **Kernel Architecture**: The monolithic kernel design, Linux Kernel Modules (LKM), and device driver models.
-- **Subsystem Mechanics**: The Virtual File System (VFS), page cache, memory management (buddy allocator & slab), IPC, and network packet flow.
-- **Container Primitives**: Namespaces, cgroups (v1/v2), and eBPF tooling powering modern cloud native platforms like Docker and Kubernetes.
+Inspired by Brian Ward's definitive guide *How Linux Works: What Every Superuser Should Know* and Robert Love's *Linux Kernel Development*, we bridge the gap between basic command-line administration and high-performance kernel systems engineering:
+- **Superuser Core**: Device nodes (`/dev`), `udev` rules, `sysfs`, MBR/GPT partitions, LVM architectures, and `systemd` service lifecycle management.
+- **Low-Level Fundamentals**: Syscalls, memory virtualization, CPU protection rings (Ring 0 vs Ring 3), and hardware interrupts.
+- **Kernel Architecture**: The monolithic modular kernel design, Linux Kernel Modules (LKM), and device driver models.
+- **Subsystem Mechanics**: The Virtual File System (VFS), page cache writeback, memory management (buddy allocator & slab), IPC, and the network packet journey.
+- **Container Primitives**: The 7 Linux Namespaces, cgroups (v1/v2), OverlayFS, and eBPF tooling powering modern cloud native engines like Docker and Kubernetes.
 
 ---
 

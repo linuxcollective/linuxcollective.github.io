@@ -333,11 +333,11 @@
   <div class="article-meta-bar">
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      10 min read
+      12 min read
     </span>
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      1878 words
+      2160 words
     </span>
     
     <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/a4.linux-kernel.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
@@ -503,10 +503,11 @@
 </code></pre><h3 id="1-firmware-stage-uefi--bios">1. Firmware Stage (UEFI / BIOS)</h3>
 <p>The motherboard executes firmware stored on non-volatile flash memory. UEFI performs the Power-On Self-Test (POST), checks hardware components, and locates the designated boot device.</p>
 <h3 id="2-bootloader-stage-grub--systemd-boot">2. Bootloader Stage (GRUB / systemd-boot)</h3>
-<p>The bootloader reads its configuration file, displays the operating system menu, and loads two critical files from disk into physical memory:</p>
+<p>The bootloader reads its configuration file (<code>grub.cfg</code>), displays the operating system menu, and loads two critical files from disk into physical memory:</p>
 <ol>
 <li><strong><code>vmlinuz</code></strong>: The compressed Linux kernel binary (a <code>bzImage</code> format containing a decompression stub concatenated with raw <code>vmlinux</code>).</li>
-<li><strong><code>initramfs</code></strong>: An initial root filesystem compressed as a cpio archive.</li>
+<li><strong><code>initramfs</code></strong>: An initial root filesystem compressed as a cpio archive containing minimal kernel drivers and userspace startup scripts.</li>
+<li><strong>Kernel Command-Line Parameters</strong>: The bootloader passes configuration parameters (inspectable live via <code>cat /proc/cmdline</code>), such as <code>root=UUID=...</code>, <code>ro</code>, <code>quiet</code>, and <code>systemd.unified_cgroup_hierarchy=1</code>.</li>
 </ol>
 <h3 id="3-early-kernel--start_kernel">3. Early Kernel &amp; <code>start_kernel()</code></h3>
 <p>The decompression routine runs, switches the CPU into 64-bit Long Mode, and jumps to <code>start_kernel()</code> in <code>init/main.c</code>. Here, the kernel:</p>
@@ -516,9 +517,16 @@
 <li>Initializes the scheduling runqueues and timers.</li>
 <li>Spawns <code>kthreadd</code> (PID 2) to manage background kernel worker threads.</li>
 </ul>
-<h3 id="4-initramfs-and-pivot_root">4. <code>initramfs</code> and <code>pivot_root</code></h3>
-<p>To mount an enterprise root filesystem on an encrypted NVMe array (LUKS) or over an iSCSI network, the kernel needs drivers and user-space utilities that reside on that very filesystem.</p>
-<p>To solve this chicken-and-egg dilemma, the kernel mounts the <strong><code>initramfs</code></strong> in RAM, runs <code>/init</code> to load necessary storage modules and decrypt disks, and then executes <strong><code>pivot_root</code></strong> to switch the temporary RAM root to the real physical storage disk.</p>
+<h3 id="4-initramfs-drivers--switch_root">4. <code>initramfs</code>, Drivers &amp; <code>switch_root</code></h3>
+<p>In <em>How Linux Works</em>, Brian Ward calls the initial RAM filesystem the critical solution to Linux&rsquo;s &ldquo;chicken-and-egg&rdquo; storage paradox: To mount a root filesystem on an encrypted disk (LUKS), LVM volume, or network SAN (iSCSI), the kernel needs drivers and user-space binaries—but those drivers reside on the very storage disk the kernel cannot yet read!</p>
+<p>The kernel resolves this by:</p>
+<ol>
+<li>Unpacking the <strong><code>initramfs</code></strong> image into an in-memory <code>tmpfs</code> root.</li>
+<li>Executing <code>/init</code> (an early shell script or minimal systemd instance).</li>
+<li>Loading necessary storage kernel modules (<code>nvme.ko</code>, <code>dm-mod.ko</code>, <code>ext4.ko</code>) and unlocking encrypted volumes.</li>
+<li>Mounting the real persistent root filesystem at <code>/sysroot</code>.</li>
+<li>Executing <strong><code>switch_root /sysroot /sbin/init</code></strong>: This cleanly deletes everything in the temporary ramdisk to free RAM and pivots root to the real drive before starting PID 1.</li>
+</ol>
 <h3 id="5-executing-pid-1">5. Executing PID 1</h3>
 <p>Finally, the kernel transitions from Ring 0 to Ring 3 by invoking <code>execve()</code> on the init daemon:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="nf">run_init_process</span><span class="p">(</span><span class="s">&#34;/sbin/init&#34;</span><span class="p">);</span>
@@ -624,14 +632,44 @@
 </span></span></span><span class="line"><span class="cl">    -append <span class="s2">&#34;console=ttyS0 panic=1&#34;</span>
 </span></span></code></pre></div><p>Watch the Linux kernel boot in real-time, initialize ACPI tables, set up the memory allocators, and attempt to launch PID 1!</p>
 <hr>
+<h3 id="lab-43-unpacking-and-auditing-an-initramfs-cpio-archive">Lab 4.3: Unpacking and Auditing an <code>initramfs</code> CPIO Archive</h3>
+<p>In this lab, we unpack and audit the real <code>initramfs</code> image used by your distribution bootloader to inspect the early userspace <code>/init</code> environment and pre-loaded drivers.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 1. Create a workspace directory</span>
+</span></span><span class="line"><span class="cl">mkdir -p /tmp/initramfs_inspect <span class="o">&amp;&amp;</span> <span class="nb">cd</span> /tmp/initramfs_inspect
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 2. Locate active distribution initrd image</span>
+</span></span><span class="line"><span class="cl"><span class="nv">INITRD</span><span class="o">=</span><span class="k">$(</span>ls /boot/initrd.img-<span class="k">$(</span>uname -r<span class="k">)</span> 2&gt;/dev/null <span class="o">||</span> ls /boot/initramfs-<span class="k">$(</span>uname -r<span class="k">)</span>.img 2&gt;/dev/null<span class="k">)</span>
+</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="s2">&#34;Inspecting initramfs: </span><span class="nv">$INITRD</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 3. Unpack using unmkinitramfs (Debian/Ubuntu) or zcat/cpio (RHEL/Fedora/Arch)</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="nb">command</span> -v unmkinitramfs &gt;/dev/null 2&gt;<span class="p">&amp;</span>1<span class="p">;</span> <span class="k">then</span>
+</span></span><span class="line"><span class="cl">    unmkinitramfs <span class="s2">&#34;</span><span class="nv">$INITRD</span><span class="s2">&#34;</span> .
+</span></span><span class="line"><span class="cl"><span class="k">elif</span> <span class="nb">command</span> -v lsinitramfs &gt;/dev/null 2&gt;<span class="p">&amp;</span>1<span class="p">;</span> <span class="k">then</span>
+</span></span><span class="line"><span class="cl">    lsinitramfs <span class="s2">&#34;</span><span class="nv">$INITRD</span><span class="s2">&#34;</span> <span class="p">|</span> head -n <span class="m">30</span>
+</span></span><span class="line"><span class="cl"><span class="k">else</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># Raw cpio extraction for uncompressed or gzip cpio archives</span>
+</span></span><span class="line"><span class="cl">    zcat <span class="s2">&#34;</span><span class="nv">$INITRD</span><span class="s2">&#34;</span> 2&gt;/dev/null <span class="p">|</span> cpio -idmv 2&gt;/dev/null <span class="o">||</span> cpio -idmv &lt; <span class="s2">&#34;</span><span class="nv">$INITRD</span><span class="s2">&#34;</span> 2&gt;/dev/null
+</span></span><span class="line"><span class="cl"><span class="k">fi</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 4. Inspect the early /init shell script or systemd binary</span>
+</span></span><span class="line"><span class="cl">ls -la init main/init 2&gt;/dev/null
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 5. Inspect storage and filesystem kernel modules packaged inside initramfs</span>
+</span></span><span class="line"><span class="cl">find . -name <span class="s2">&#34;*.ko*&#34;</span> <span class="p">|</span> grep -E <span class="s1">&#39;ext4|nvme|dm-mod&#39;</span> <span class="p">|</span> head -n <span class="m">10</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 6. Clean up</span>
+</span></span><span class="line"><span class="cl"><span class="nb">cd</span> / <span class="o">&amp;&amp;</span> rm -rf /tmp/initramfs_inspect
+</span></span></code></pre></div><hr>
 <h2 id="7-summary-checklist">7. Summary Checklist</h2>
 <ul>
 <li><input checked="" disabled="" type="checkbox"> <strong>Monolithic vs Microkernel</strong>: Understood single address space efficiency and Loadable Kernel Modules.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Source Tree Anatomy</strong>: Navigated <code>arch/</code>, <code>mm/</code>, <code>fs/</code>, and <code>kernel/</code>.</li>
-<li><input checked="" disabled="" type="checkbox"> <strong>Boot Pipeline</strong>: Traced from firmware POST to <code>start_kernel()</code> and PID 1 execution.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Boot Pipeline</strong>: Traced from firmware POST to <code>start_kernel()</code>, <code>initramfs</code>, <code>switch_root</code>, and PID 1 execution.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Kernel Command Line</strong>: Inspected <code>/proc/cmdline</code> parameters passed by the bootloader.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Preemption Models</strong>: Contrasted <code>CONFIG_PREEMPT_NONE</code> with <code>CONFIG_PREEMPT_RT</code>.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Compiled Custom LKM</strong>: Built a module with sysfs parameters and verified in <code>dmesg</code>.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>QEMU Kernel Boot</strong>: Compiled a vanilla x86-64 kernel and booted <code>bzImage</code>.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>initramfs Auditing</strong>: Unpacked and inspected the cpio early userspace image.</li>
 </ul>
 
       </div>
@@ -712,7 +750,7 @@
 
 <footer id="article-footer">
   <div class="article-footer-top">
-    <time id="article-last-updated" datetime="2023-11-09"><i class="icon icon-calendar"></i>&nbsp;Last updated: 2023-11-09</time>
+    <time id="article-last-updated" datetime="2026-10-14"><i class="icon icon-calendar"></i>&nbsp;Last updated: 2026-10-14</time>
   </div>
 
   <div class="article-pagination">
@@ -756,7 +794,7 @@
         <li><a href="#1-firmware-stage-uefi--bios">1. Firmware Stage (UEFI / BIOS)</a></li>
         <li><a href="#2-bootloader-stage-grub--systemd-boot">2. Bootloader Stage (GRUB / systemd-boot)</a></li>
         <li><a href="#3-early-kernel--start_kernel">3. Early Kernel &amp; <code>start_kernel()</code></a></li>
-        <li><a href="#4-initramfs-and-pivot_root">4. <code>initramfs</code> and <code>pivot_root</code></a></li>
+        <li><a href="#4-initramfs-drivers--switch_root">4. <code>initramfs</code>, Drivers &amp; <code>switch_root</code></a></li>
         <li><a href="#5-executing-pid-1">5. Executing PID 1</a></li>
       </ul>
     </li>
@@ -765,6 +803,7 @@
       <ul>
         <li><a href="#lab-41-writing-and-loading-a-custom-kernel-module-with-parameters">Lab 4.1: Writing and Loading a Custom Kernel Module with Parameters</a></li>
         <li><a href="#lab-42-compiling-vanilla-linux-kernel--booting-in-qemu">Lab 4.2: Compiling Vanilla Linux Kernel &amp; Booting in QEMU</a></li>
+        <li><a href="#lab-43-unpacking-and-auditing-an-initramfs-cpio-archive">Lab 4.3: Unpacking and Auditing an <code>initramfs</code> CPIO Archive</a></li>
       </ul>
     </li>
     <li><a href="#7-summary-checklist">7. Summary Checklist</a></li>

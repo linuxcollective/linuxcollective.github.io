@@ -333,11 +333,11 @@
   <div class="article-meta-bar">
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      9 min read
+      12 min read
     </span>
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      1601 words
+      2236 words
     </span>
     
     <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/a7.storage-and-io.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
@@ -420,7 +420,42 @@
 <li><strong><code>vm.dirty_ratio</code></strong> (Default: ~20%): Hard ceiling. If dirty pages exceed this percentage, <strong>all producing user space threads are blocked</strong> and forced to synchronously flush data to disk.</li>
 </ul>
 <hr>
-<h2 id="3-the-block-layer--struct-bio">3. The Block Layer &amp; <code>struct bio</code></h2>
+<h2 id="3-filesystem-anatomy-inodes-dentries--journaling">3. Filesystem Anatomy: Inodes, Dentries &amp; Journaling</h2>
+<p>In <em>How Linux Works</em>, Brian Ward emphasizes that understanding the difference between an <strong>inode</strong>, a <strong>directory</strong>, and a <strong>data block</strong> is the single most critical concept in storage engineering.</p>
+<pre tabindex="0"><code>+-------------------------------------------------------------------------+
+|    DIRECTORY FILE: &#34;/var/log&#34; (List of filename -&gt; inode_number pairs)  |
+|      &#34;syslog&#34;   -&gt; Inode #1048577                                       |
+|      &#34;messages&#34; -&gt; Inode #1048577  (Hard link! Same inode)              |
+|      &#34;nginx&#34;    -&gt; Inode #2097152                                       |
++-------------------------------------------------------------------------+
+                                    |
+                                    v
++-------------------------------------------------------------------------+
+|    INODE #1048577: File Metadata                                        |
+|      - File type (regular file, directory, socket)                      |
+|      - Permissions (0644), Owner (root:adm)                             |
+|      - Timestamps (atime, mtime, ctime)                                 |
+|      - Size (24,576 bytes)                                              |
+|      - Link Count (i_nlink = 2)                                         |
+|      - Extent Tree -&gt; Pointers to Physical Disk Blocks [1024, 1025...]  |
+|      *(NOTICE: THE INODE DOES NOT STORE THE FILENAME!)*                 |
++-------------------------------------------------------------------------+
+</code></pre><h3 id="inodes-vs-directories">Inodes vs. Directories:</h3>
+<ul>
+<li><strong>Inode</strong>: The fundamental metadata record for a file. It contains ownership, permissions, size, and pointers to storage blocks, but <strong>never the file name</strong>.</li>
+<li><strong>Directory</strong>: A directory is simply a special file containing an array of directory entries (<code>dentry</code>). Each entry maps a human-readable string (e.g. <code>&quot;app.log&quot;</code>) to an integer inode number.</li>
+<li><strong>Hard Links</strong>: A hard link adds another directory entry pointing to an <em>existing</em> inode number, incrementing <code>i_nlink</code>. Both names have identical status.</li>
+<li><strong>File Deletion Mechanics</strong>: When you run <code>rm file</code>, the kernel issues the <code>unlink()</code> system call. The kernel decrements <code>i_nlink</code>. If <code>i_nlink</code> reaches 0, the disk blocks are freed <strong>only after every open file descriptor referencing that inode is closed</strong>. If a running daemon holds the file descriptor open, the disk space remains allocated!</li>
+</ul>
+<h3 id="ext4-journaling-modes">Ext4 Journaling Modes:</h3>
+<p>Ext4 uses a circular write-ahead log (the journal) to prevent filesystem corruption after power loss:</p>
+<ol>
+<li><strong><code>data=journal</code></strong>: Both filesystem metadata and file contents are committed to the journal before touching the filesystem. Maximum integrity, but slowest write throughput (double writes).</li>
+<li><strong><code>data=ordered</code></strong> (Default): File contents are written to their final disk blocks before the associated metadata is committed to the journal. Guarantees that unwritten garbage data is never exposed after an unexpected crash.</li>
+<li><strong><code>data=writeback</code></strong>: Only metadata changes are journaled. File data blocks can be written before or after metadata. Maximum throughput, but crash recovery may leave old deleted data inside newly appended files.</li>
+</ol>
+<hr>
+<h2 id="4-the-block-layer--struct-bio">4. The Block Layer &amp; <code>struct bio</code></h2>
 <p>The Block Layer handles data in units of hardware sectors and filesystem blocks.</p>
 <p>The fundamental unit of block I/O in the Linux kernel is <strong><code>struct bio</code></strong> (defined in <code>include/linux/bio.h</code>):</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">bio</span> <span class="p">{</span>
@@ -440,7 +475,7 @@
 <li><strong>Hardware Dispatch Queues</strong>: Maps 1:1 or N:M with physical NVMe hardware submission queues.</li>
 </ul>
 <hr>
-<h2 id="4-the-asynchronous-io-evolution-why-io_uring">4. The Asynchronous I/O Evolution: Why <code>io_uring</code>?</h2>
+<h2 id="5-the-asynchronous-io-evolution-why-io_uring">5. The Asynchronous I/O Evolution: Why <code>io_uring</code>?</h2>
 <p>For decades, network servers relied on <code>epoll</code> for non-blocking network sockets. However:</p>
 <ol>
 <li><strong><code>epoll</code> does not support regular files</strong>: Regular disk files always report as &ldquo;ready&rdquo; even when reading from cold physical disks will stall the calling thread on a major page fault.</li>
@@ -470,7 +505,7 @@
 +--------------------------------------------------------------------------+
 </code></pre><p>Because both queues reside in shared memory (<code>mmap</code>), submitting and completing requests requires <strong>zero memory copying</strong> and—with <code>IORING_SETUP_SQPOLL</code>—<strong>zero system calls</strong>.</p>
 <hr>
-<h2 id="5-hands-on-practical-labs">5. Hands-On Practical Labs</h2>
+<h2 id="6-hands-on-practical-labs">6. Hands-On Practical Labs</h2>
 <h3 id="lab-71-asynchronous-file-io-with-liburing-in-c">Lab 7.1: Asynchronous File I/O with <code>liburing</code> in C</h3>
 <p>In this lab, we build a compilable C program that initializes an <code>io_uring</code> ring, submits an asynchronous vector read request for a file, and reaps the completion event without blocking.</p>
 <h4 id="prerequisites">Prerequisites</h4>
@@ -623,12 +658,44 @@
 </span></span><span class="line"><span class="cl"><span class="k">done</span>
 </span></span><span class="line"><span class="cl">rm -f /tmp/test_dirty.bin
 </span></span></code></pre></div><hr>
-<h2 id="6-summary-checklist">6. Summary Checklist</h2>
+<h3 id="lab-74-inode-lifecycle-hard-links--unlinked-open-file-space-reclamation">Lab 7.4: Inode Lifecycle, Hard Links &amp; Unlinked Open File Space Reclamation</h3>
+<p>A frequent production dilemma covered in <em>How Linux Works</em> is when a disk partition reports 100% full (<code>df -h</code>), but <code>du -sh *</code> fails to find where the storage went. This occurs when an unlinked (deleted) file remains open by a running background daemon.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 1. Create a 200MB test file and check its inode and link count</span>
+</span></span><span class="line"><span class="cl">dd <span class="k">if</span><span class="o">=</span>/dev/zero <span class="nv">of</span><span class="o">=</span>/tmp/ghost_leak.bin <span class="nv">bs</span><span class="o">=</span>1M <span class="nv">count</span><span class="o">=</span><span class="m">200</span> <span class="nv">status</span><span class="o">=</span>none
+</span></span><span class="line"><span class="cl">ls -l -i /tmp/ghost_leak.bin
+</span></span><span class="line"><span class="cl"><span class="c1"># Notice link count = 1</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 2. Spawn a background process that holds the file open for 60 seconds</span>
+</span></span><span class="line"><span class="cl">python3 -c <span class="s2">&#34;import time; f = open(&#39;/tmp/ghost_leak.bin&#39;, &#39;r&#39;); time.sleep(60)&#34;</span> <span class="p">&amp;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">PY_PID</span><span class="o">=</span><span class="nv">$!</span>
+</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="s2">&#34;Process PID </span><span class="nv">$PY_PID</span><span class="s2"> holds open file descriptor on /tmp/ghost_leak.bin&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 3. Delete the file using rm (issues unlink syscall)</span>
+</span></span><span class="line"><span class="cl">rm /tmp/ghost_leak.bin
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 4. Notice: &#39;ls&#39; shows the file is gone!</span>
+</span></span><span class="line"><span class="cl">ls -l /tmp/ghost_leak.bin 2&gt;/dev/null <span class="o">||</span> <span class="nb">echo</span> <span class="s2">&#34;File no longer visible in directory tree.&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 5. But disk blocks are NOT reclaimed because the kernel inode reference count &gt; 0!</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Find the leaked open unlinked file using lsof:</span>
+</span></span><span class="line"><span class="cl">lsof +L1 <span class="p">|</span> grep <span class="s2">&#34;ghost_leak&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 6. Inspect the file directly via the process file descriptor symlink in /proc:</span>
+</span></span><span class="line"><span class="cl">ls -l /proc/<span class="nv">$PY_PID</span>/fd/
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 7. Terminate the process holding the descriptor:</span>
+</span></span><span class="line"><span class="cl"><span class="nb">kill</span> -9 <span class="nv">$PY_PID</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Now the kernel reclaims the physical disk blocks immediately!</span>
+</span></span></code></pre></div><hr>
+<h2 id="7-summary-checklist">7. Summary Checklist</h2>
 <ul>
 <li><input checked="" disabled="" type="checkbox"> <strong>VFS Abstraction</strong>: Understand <code>struct file</code>, <code>struct inode</code>, and <code>struct dentry</code>.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Filesystem Anatomy</strong>: Mastered how inodes store metadata without filenames, and how directories act as name-to-inode tables.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Ext4 Journaling</strong>: Evaluated trade-offs between <code>data=journal</code>, <code>data=ordered</code>, and <code>data=writeback</code>.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Page Cache &amp; Direct I/O</strong>: Mastered <code>O_DIRECT</code> alignment rules and <code>vm.dirty_*</code> sysctl controls.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Block Layer</strong>: Explored <code>struct bio</code> and <code>blk-mq</code> multi-queue dispatch.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong><code>io_uring</code></strong>: Understood Submission Queues (SQ) and Completion Queues (CQ) mapped via shared memory.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Superuser Troubleshooting</strong>: Diagnosed ghost unlinked disk space leaks using <code>lsof +L1</code> and <code>/proc/&lt;PID&gt;/fd/</code>.</li>
 <li><input checked="" disabled="" type="checkbox"> <strong>Practical Hands-on</strong>: Compiled and executed a real asynchronous <code>io_uring</code> reader in C.</li>
 </ul>
 
@@ -733,7 +800,7 @@
 
 <footer id="article-footer">
   <div class="article-footer-top">
-    <time id="article-last-updated" datetime="0001-01-01"><i class="icon icon-calendar"></i>&nbsp;Last updated: 0001-01-01</time>
+    <time id="article-last-updated" datetime="2026-10-14"><i class="icon icon-calendar"></i>&nbsp;Last updated: 2026-10-14</time>
   </div>
 
   <div class="article-pagination">
@@ -766,24 +833,31 @@
         <li><a href="#2-tuning-page-cache-writeback-ratios">2. Tuning Page Cache Writeback Ratios</a></li>
       </ul>
     </li>
-    <li><a href="#3-the-block-layer--struct-bio">3. The Block Layer &amp; <code>struct bio</code></a>
+    <li><a href="#3-filesystem-anatomy-inodes-dentries--journaling">3. Filesystem Anatomy: Inodes, Dentries &amp; Journaling</a>
+      <ul>
+        <li><a href="#inodes-vs-directories">Inodes vs. Directories:</a></li>
+        <li><a href="#ext4-journaling-modes">Ext4 Journaling Modes:</a></li>
+      </ul>
+    </li>
+    <li><a href="#4-the-block-layer--struct-bio">4. The Block Layer &amp; <code>struct bio</code></a>
       <ul>
         <li><a href="#multi-queue-block-layer-blk-mq">Multi-Queue Block Layer (<code>blk-mq</code>)</a></li>
       </ul>
     </li>
-    <li><a href="#4-the-asynchronous-io-evolution-why-io_uring">4. The Asynchronous I/O Evolution: Why <code>io_uring</code>?</a>
+    <li><a href="#5-the-asynchronous-io-evolution-why-io_uring">5. The Asynchronous I/O Evolution: Why <code>io_uring</code>?</a>
       <ul>
         <li><a href="#enter-io_uring">Enter <code>io_uring</code></a></li>
       </ul>
     </li>
-    <li><a href="#5-hands-on-practical-labs">5. Hands-On Practical Labs</a>
+    <li><a href="#6-hands-on-practical-labs">6. Hands-On Practical Labs</a>
       <ul>
         <li><a href="#lab-71-asynchronous-file-io-with-liburing-in-c">Lab 7.1: Asynchronous File I/O with <code>liburing</code> in C</a></li>
         <li><a href="#lab-72-benchmarking-io_uring-vs-libaio-vs-psync-with-fio">Lab 7.2: Benchmarking <code>io_uring</code> vs <code>libaio</code> vs <code>psync</code> with <code>fio</code></a></li>
         <li><a href="#lab-73-investigating-page-cache-writeback--dirty-pages">Lab 7.3: Investigating Page Cache Writeback &amp; Dirty Pages</a></li>
+        <li><a href="#lab-74-inode-lifecycle-hard-links--unlinked-open-file-space-reclamation">Lab 7.4: Inode Lifecycle, Hard Links &amp; Unlinked Open File Space Reclamation</a></li>
       </ul>
     </li>
-    <li><a href="#6-summary-checklist">6. Summary Checklist</a></li>
+    <li><a href="#7-summary-checklist">7. Summary Checklist</a></li>
   </ul>
 </nav>
   </div>

@@ -333,11 +333,11 @@
   <div class="article-meta-bar">
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      8 min read
+      9 min read
     </span>
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      1481 words
+      1595 words
     </span>
     
     <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/roadmap.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
@@ -369,34 +369,38 @@
 </code></pre><hr>
 <h2 id="tier-01--shell-permissions--posix-basics">Tier 01 — Shell, Permissions &amp; POSIX Basics</h2>
 <p>📖 <strong><a href="/docs/shell-and-sysadmin/">Full Guide →</a></strong></p>
-<p><strong>What you learn:</strong> The Unix philosophy, filesystem hierarchy, file permissions, and shell scripting.</p>
+<p><strong>What you learn:</strong> The Unix philosophy, filesystem hierarchy, file permissions, device nodes, and shell scripting (inspired by <em>How Linux Works</em>, Chapters 1–3).</p>
 <p><strong>Key concepts:</strong></p>
 <ul>
-<li>Filesystem Hierarchy Standard — what <code>/etc</code>, <code>/var</code>, <code>/proc</code>, <code>/sys</code>, <code>/dev</code> are for</li>
-<li>Permission bits — <code>rwx</code> octal notation, SUID (<code>4000</code>), SGID (<code>2000</code>), Sticky Bit (<code>1000</code>)</li>
-<li>Text processing pipelines — <code>grep</code>, <code>awk</code>, <code>sed</code>, <code>sort</code>, <code>uniq</code>, <code>xargs</code></li>
-<li>Shell scripting — exit codes, signals, job control, process substitution</li>
+<li><strong>Filesystem Hierarchy Standard (FHS)</strong> — Purpose of <code>/etc</code>, <code>/var</code>, <code>/proc</code>, <code>/sys</code>, <code>/dev</code></li>
+<li><strong>Device Nodes</strong> — Character vs. block devices, major/minor device numbers (<code>ls -l /dev</code>), <code>sysfs</code>, <code>udev</code></li>
+<li><strong>Permission bits</strong> — <code>rwx</code> octal notation, SUID (<code>4000</code>), SGID (<code>2000</code>), Sticky Bit (<code>1000</code>)</li>
+<li><strong>Text pipelines</strong> — Standard input/output/error streams, <code>grep</code>, <code>awk</code>, <code>sed</code>, <code>sort</code>, <code>uniq</code>, <code>xargs</code></li>
+<li><strong>Shell scripting</strong> — Environment variables, subshells, exit statuses, signals (<code>trap</code>), process substitution</li>
 </ul>
 <p><strong>Labs:</strong></p>
 <ul>
 <li><input disabled="" type="checkbox"> Write a shell script that parses Nginx logs, counts HTTP 500 errors per IP, and shows the top 10</li>
 <li><input disabled="" type="checkbox"> Create a shared directory with SGID + Sticky Bit so team files inherit group and can&rsquo;t be deleted by others</li>
+<li><input disabled="" type="checkbox"> Inspect <code>/dev</code> major/minor device numbers with <code>ls -l</code> and write a custom <code>udev</code> rule</li>
 </ul>
 <hr>
 <h2 id="tier-02--systemd-storage--networking">Tier 02 — systemd, Storage &amp; Networking</h2>
 <p>📖 <strong><a href="/docs/shell-and-sysadmin/">Full Guide →</a></strong></p>
-<p><strong>What you learn:</strong> Managing services, disks, networks, and SSH on production Linux servers.</p>
+<p><strong>What you learn:</strong> Managing services, disks, LVM, networks, and SSH on production Linux servers (inspired by <em>How Linux Works</em>, Chapters 4–10).</p>
 <p><strong>Key concepts:</strong></p>
 <ul>
-<li><strong>systemd</strong> — PID 1, unit files (<code>.service</code>, <code>.socket</code>, <code>.timer</code>), sandboxing (<code>ProtectSystem</code>, <code>PrivateTmp</code>)</li>
-<li><strong>Storage</strong> — GPT partitioning, LVM (PV → VG → LV), ext4 vs XFS vs Btrfs</li>
-<li><strong>Networking</strong> — <code>ip link/addr/route</code>, <code>ss -tulpn</code>, nftables firewall rules</li>
-<li><strong>SSH</strong> — Ed25519 keys, disabling password auth, agent forwarding</li>
+<li><strong><code>systemd</code></strong> — PID 1, unit files (<code>.service</code>, <code>.socket</code>, <code>.timer</code>), targets, declarative sandboxing (<code>ProtectSystem</code>, <code>PrivateTmp</code>)</li>
+<li><strong>Storage &amp; LVM</strong> — MBR vs. GPT partitions, LVM 3-tier architecture (PV → VG → LV), UUIDs in <code>/etc/fstab</code></li>
+<li><strong>Filesystems</strong> — Inodes, directories as name maps, hard links vs. symlinks, ext4 vs. XFS</li>
+<li><strong>Networking</strong> — <code>ip link/addr/route</code>, socket states with <code>ss -tulpn</code>, <code>nftables</code> firewalls, DNS in <code>/etc/resolv.conf</code></li>
+<li><strong>User management &amp; PAM</strong> — <code>/etc/passwd</code>, <code>/etc/shadow</code>, Pluggable Authentication Modules (<code>/etc/pam.d/</code>)</li>
 </ul>
 <p><strong>Labs:</strong></p>
 <ul>
 <li><input disabled="" type="checkbox"> Write a <code>systemd</code> service with cgroup limits (<code>MemoryMax=500M</code>, <code>CPUQuota=50%</code>) and security sandboxing</li>
-<li><input disabled="" type="checkbox"> Partition a disk with GPT, create an LVM volume group, format as XFS, and mount via <code>/etc/fstab</code></li>
+<li><input disabled="" type="checkbox"> Partition a loop disk with GPT, create an LVM volume group, format as ext4, and mount via <code>/etc/fstab</code></li>
+<li><input disabled="" type="checkbox"> Audit user login flows through PAM and set up an SSH bastion with Ed25519 keys</li>
 </ul>
 <hr>
 <h2 id="tier-03--protection-rings-mmu--system-calls">Tier 03 — Protection Rings, MMU &amp; System Calls</h2>
@@ -551,6 +555,11 @@
 	</thead>
 	<tbody>
 			<tr>
+					<td style="text-align: left"><strong>How Linux Works: What Every Superuser Should Know (3rd Ed.)</strong></td>
+					<td style="text-align: left">Brian Ward</td>
+					<td style="text-align: left">Foundational superuser mechanics (devices, disks, boot sequence, systemd, networks)</td>
+			</tr>
+			<tr>
 					<td style="text-align: left"><strong>Linux Kernel Development (3rd Ed.)</strong></td>
 					<td style="text-align: left">Robert Love</td>
 					<td style="text-align: left">Clear kernel architecture introduction</td>
@@ -616,7 +625,7 @@
 
 <footer id="article-footer">
   <div class="article-footer-top">
-    <time id="article-last-updated" datetime="0001-01-01"><i class="icon icon-calendar"></i>&nbsp;Last updated: 0001-01-01</time>
+    <time id="article-last-updated" datetime="2026-10-14"><i class="icon icon-calendar"></i>&nbsp;Last updated: 2026-10-14</time>
   </div>
 
   <div class="article-pagination">
