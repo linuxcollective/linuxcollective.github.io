@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta name="author" content="CloudNativeFolks">
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+
+
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://linuxcollective.github.io/docs/container-primitives/">
+<meta property="og:title" content="Container Primitives: Namespaces, cgroups v2 &amp; OverlayFS · Linux Collective">
+<meta property="og:description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta property="og:image" content="https://linuxcollective.github.io//img/icon/Linux%20Collective.png">
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://linuxcollective.github.io/docs/container-primitives/">
+<meta name="twitter:title" content="Container Primitives: Namespaces, cgroups v2 &amp; OverlayFS · Linux Collective">
+<meta name="twitter:description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta name="twitter:image" content="https://linuxcollective.github.io//img/icon/Linux%20Collective.png">
+
+<title>Container Primitives: Namespaces, cgroups v2 &amp; OverlayFS · Linux Collective</title>
+
+<link rel="canonical" href="https://linuxcollective.github.io/docs/container-primitives/">
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/scss/base.css" integrity="">
+
+
+
+<link rel="stylesheet" href="/scss/theme/default.css" integrity="">
+
+
+
+  
+
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/img/icon/favicon.ico">
+<link rel="icon" href="/img/icon/icon-16.png" sizes="16x16" type="image/png">
+<link rel="icon" href="/img/icon/icon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/img/icon/icon-180.png" sizes="180x180">
+
+
+    <script 
+     src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/quizdown.js">
+  </script>
+  <script 
+      src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/extensions/quizdownKatex.js">
+  </script>
+  <script 
+      src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/extensions/quizdownHighlight.js">
+  </script>
+  <script>quizdown.register(quizdownHighlight).register(quizdownKatex).init()</script> 
+  </head>
+  <body>
+    <header id="site-header">
+  <div class="site-header-inner">
+    
+    <div id="site-header-brand">
+      <a href="/" class="brand-link">
+        <span class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="3" width="20" height="18" rx="4" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-width="1.75"/>
+            <path d="M7 9L10.5 12L7 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.5 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">Linux Collective</span>
+        <span class="brand-badge">Open Source</span>
+      </a>
+    </div>
+
+    
+    <div id="site-header-menu">
+      <nav>
+        <ul>
+          
+          
+          
+            
+            <li>
+              <a href="/"  >
+                <i class='icon icon-home'></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/"  class="active" >
+                <i class='icon icon-book'></i>
+                <span>Docs</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/roadmap/"  >
+                <i class='icon icon-book'></i>
+                <span>Roadmap</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/linux-kernel/"  >
+                <i class='icon icon-kernel'></i>
+                <span>Kernel</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="https://discord.gg/rEvr7vq"   target="_blank" rel="noopener noreferrer">
+                <i class='icon icon-discord'></i>
+                <span>Community</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="https://github.com/linuxcollective/linuxcollective.github.io"   target="_blank" rel="noopener noreferrer">
+                <i class='icon icon-github'></i>
+                <span>GitHub</span>
+              </a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+
+    
+    <div id="site-header-controls">
+      
+      <div id="site-header-search"></div>
+
+      
+      <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="header-action-btn github-btn" title="GitHub Repository" aria-label="GitHub Repository">
+        <i class="icon icon-github"></i>
+        <span class="btn-text">GitHub</span>
+      </a>
+
+      
+      <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" class="header-action-btn discord-btn" title="Join Discord Community" aria-label="Discord Community">
+        <i class="icon icon-discord icon-colored"></i>
+      </a>
+
+      
+      <div class="dropdown theme-dropdown">
+        <button class="dropdown-btn" aria-haspopup="menu" aria-label="Toggle theme">
+          <i class="icon icon-brightness"></i>
+          <i class="icon icon-select"></i>
+        </button>
+        <ul role="menu" class="dropdown-menu">
+          <li role="menuitem"><button class="color-scheme" data-value="light"><i class="icon icon-light-mode"></i> Light</button></li>
+          <li role="menuitem"><button class="color-scheme" data-value="dark"><i class="icon icon-dark-mode"></i> Dark</button></li>
+          <li role="menuitem"><button class="color-scheme" data-value="night"><i class="icon icon-night-mode"></i> Night</button></li>
+        </ul>
+      </div>
+
+      
+      <button id="site-header-mobile-toggle" aria-label="Toggle navigation menu" class="mobile-toggle-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+    
+<div id="site-main-content-wrapper">
+  
+  
+    <aside id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-header-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span>Course Modules</span>
+    </div>
+    <span class="btn-close" aria-label="Close sidebar"><i class="icon icon-close"></i></span>
+  </div>
+
+  <div class="sidebar-nav-container"><div class="sidebar-group">
+        <strong class="sidebar-section">Getting Started</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/overview/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Overview</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/roadmap/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Learning Roadmap</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Linux Foundations &amp; Distros</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/shell-and-sysadmin/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Shell &amp; systemd Admin</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-history/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux History</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-distros/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Distros</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Architecture &amp; Core Subsystems</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/level-layer-abstraction/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Level &amp; Layer Abstraction</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-kernel/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Kernel</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-kernel-subsystem/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Kernel Subsystem</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/process-management/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Process Management</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/storage-and-io/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Storage &amp; io_uring</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Advanced Systems &amp; Kernel Dev</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link current" href="/docs/container-primitives/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Container Primitives</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/ebpf-and-observability/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Performance &amp; eBPF</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/kernel-drivers-and-modules/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Kernel Drivers &amp; LKML</span>
+              </a>
+
+            
+        </div>
+      </div>
+  </div>
+</aside>
+  
+  <main>
+    <article id="article">
+      <nav id="article-nav">
+  <button id="article-nav-menu-btn"><i class="icon icon-menu"></i> On this section</button>
+  <button id="article-nav-toc-btn"><i class="icon icon-toc"></i> On this page</button>
+</nav>
+      <header id="article-header">
+  
+  <nav class="article-breadcrumbs" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/docs/overview/">Documentation</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-current">Container Primitives: Namespaces, cgroups v2 &amp; OverlayFS</span>
+  </nav>
+
+  <h1 class="article-title">Container Primitives: Namespaces, cgroups v2 &amp; OverlayFS</h1>
+
+  <div class="article-meta-bar">
+    <span class="article-meta-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      9 min read
+    </span>
+    <span class="article-meta-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      1623 words
+    </span>
+    
+    <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/a8.container-primitives.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
+      <i class="icon icon-github"></i>
+      <span>Edit on GitHub</span>
+    </a>
+    
+  </div>
+</header>
+      <div id="article-content">
+        
+        
+        <blockquote>
+<p><em>&ldquo;Containers are an illusion. There is no such thing as a &lsquo;container&rsquo; object in the Linux kernel. A container is simply a standard Linux process that has been isolated using Namespaces and throttled using Control Groups.&rdquo;</em><br>
+— <strong>Linus Torvalds</strong></p>
+</blockquote>
+<p>Engineers often discuss Docker, Podman, and Kubernetes as if they were virtualization hypervisors like VMware or KVM. In reality, every single container running in a production Kubernetes cluster is an ordinary Linux process running directly on the host kernel.</p>
+<p>What makes a process a &ldquo;container&rdquo; is the clever combination of three core Linux kernel technologies:</p>
+<ol>
+<li><strong>Namespaces</strong> (Virtualizing what a process can <strong>SEE</strong>).</li>
+<li><strong>Control Groups / cgroups v2</strong> (Restricting what a process can <strong>USE</strong>).</li>
+<li><strong>Union Filesystems / OverlayFS &amp; <code>pivot_root</code></strong> (Isolating the <strong>FILESYSTEM ROOT</strong>).</li>
+</ol>
+<p>In this guide, we demystify container engines by building a container runtime from scratch using raw Linux kernel primitives.</p>
+<hr>
+<h2 id="1-the-anatomy-of-a-container">1. The Anatomy of a Container</h2>
+<pre tabindex="0"><code>+=============================================================================+
+|                               HOST LINUX KERNEL                             |
+|  Single Shared Kernel: Memory Manager, Scheduler, VFS, Drivers (Ring 0)     |
++=============================================================================+
+        |                                                 |
+        v                                                 v
++-------------------------------+       +------------------------------------+
+| HOST PROCESSES                |       | &#34;CONTAINERIZED&#34; PROCESS            |
+|                               |       |                                    |
+| PID: 1 (systemd)              |       | Host PID: 18290                    |
+| PID: 842 (dockerd)            |       | Container PID: 1 (via CLONE_NEWPID)|
+|                               |       |                                    |
+| View: Global host filesystem  |       | View: OverlayFS mount (via pivot_root)
+| Network: Host eth0 / 10.0.0.5 |       | Network: veth0 / 172.17.0.2        |
+| Resource: Uncapped CPU/RAM    |       | Resource: Capped at 512MB RAM      |
+| Capabilities: Full root       |       | Capabilities: Dropped CAP_SYS_ADMIN|
++-------------------------------+       +------------------------------------+
+</code></pre><hr>
+<h2 id="2-the-7-linux-namespaces">2. The 7 Linux Namespaces</h2>
+<p>Namespaces partition global system resources so that a group of processes observes an independent, virtualized instance. When a process inspects its namespaces, it can view them in <code>/proc/[PID]/ns/</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ls -l /proc/self/ns/
+</span></span></code></pre></div><table>
+	<thead>
+			<tr>
+					<th style="text-align: left">Namespace</th>
+					<th style="text-align: left">Clone Flag</th>
+					<th style="text-align: left">Kernel Version</th>
+					<th style="text-align: left">What It Virtualizes</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: left"><strong>PID</strong></td>
+					<td style="text-align: left"><code>CLONE_NEWPID</code></td>
+					<td style="text-align: left">2.6.24</td>
+					<td style="text-align: left">Process ID space. The first process spawned in the namespace becomes <strong>PID 1</strong> inside the container. When PID 1 inside exits, all child processes in that namespace receive <code>SIGKILL</code>.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>NET</strong></td>
+					<td style="text-align: left"><code>CLONE_NEWNET</code></td>
+					<td style="text-align: left">2.6.29</td>
+					<td style="text-align: left">Network stack: independent loopback <code>lo</code>, network interfaces (<code>veth</code>), routing tables, firewall (<code>nftables</code>), and port space (<code>0-65535</code>).</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>MNT</strong></td>
+					<td style="text-align: left"><code>CLONE_NEWNS</code></td>
+					<td style="text-align: left">2.4.19</td>
+					<td style="text-align: left">Mount table. Changes to mounts inside the namespace do not propagate to the host when mount propagation is set to <code>MS_PRIVATE</code>.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>UTS</strong></td>
+					<td style="text-align: left"><code>CLONE_NEWUTS</code></td>
+					<td style="text-align: left">2.6.19</td>
+					<td style="text-align: left">Hostname and NIS domain name (<code>sethostname</code>).</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>IPC</strong></td>
+					<td style="text-align: left"><code>CLONE_NEWIPC</code></td>
+					<td style="text-align: left">2.6.19</td>
+					<td style="text-align: left">Inter-Process Communication resources: System V IPC message queues, semaphores, and POSIX shared memory.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>USER</strong></td>
+					<td style="text-align: left"><code>CLONE_NEWUSER</code></td>
+					<td style="text-align: left">3.8</td>
+					<td style="text-align: left">User and Group ID mappings. Allows an unprivileged user on the host (e.g. UID 1000) to act as root (UID 0) inside the container (<strong>Rootless Containers</strong>).</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>CGROUP</strong></td>
+					<td style="text-align: left"><code>CLONE_NEWCGROUP</code></td>
+					<td style="text-align: left">4.6</td>
+					<td style="text-align: left">Virtualizes <code>/proc/self/cgroup</code> and hides host cgroup hierarchy.</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="3-resource-limiting-control-groups-v2-cgroups-v2">3. Resource Limiting: Control Groups v2 (cgroups v2)</h2>
+<p>While namespaces isolate visibility, <strong>Control Groups (cgroups)</strong> constrain resource consumption to prevent runaway processes from starving host resources.</p>
+<p>In Linux 4.5+, <strong>cgroups v2</strong> introduced a single unified hierarchy mounted at <code>/sys/fs/cgroup</code>. Every process belongs to exactly one cgroup in the tree.</p>
+<h3 id="core-controllers-in-cgroups-v2">Core Controllers in cgroups v2:</h3>
+<ul>
+<li><strong><code>memory.max</code></strong>: Hard physical memory boundary. When memory usage exceeds this value, the kernel attempts page reclamation. If memory remains exhausted, the kernel <strong>cgroup OOM Killer</strong> terminates processes inside the cgroup.</li>
+<li><strong><code>cpu.max</code></strong>: Bandwidth limit defined as <code>$QUOTA $PERIOD</code> in microseconds. For example, <code>200000 100000</code> allows the cgroup to consume at most 200ms of CPU time per 100ms wall-clock interval (equivalent to 2.0 CPU cores).</li>
+<li><strong><code>io.max</code></strong>: Throttles read and write IOPS and bytes-per-second on specified block devices (e.g., <code>8:0 rbps=10485760</code> limits major:minor device 8:0 to 10MB/s read).</li>
+<li><strong><code>pids.max</code></strong>: Caps the number of active tasks/threads to protect against fork-bombs.</li>
+</ul>
+<hr>
+<h2 id="4-layered-filesystems-overlayfs--pivot_root">4. Layered Filesystems: OverlayFS &amp; <code>pivot_root</code></h2>
+<p>Containers achieve instant startup times and low disk footprints through <strong>OverlayFS</strong>, a union mount filesystem:</p>
+<pre tabindex="0"><code>+--------------------------------------------------------------------------+
+| MERGED VIEW (/merged) -&gt; What the running container sees                 |
++--------------------------------------------------------------------------+
+       ^                                            ^
+       | (Modifications go here)                    | (Read-only base layers)
++----------------------------------+   +------------------------------------+
+| UPPER DIR (/upper)               |   | LOWER DIR (/lower - e.g., Ubuntu)  |
+| Read-Write container layer       |   | Immutable read-only Docker image   |
++----------------------------------+   +------------------------------------+
+</code></pre><h3 id="pivot_root-vs-chroot"><code>pivot_root</code> vs. <code>chroot</code></h3>
+<p>Historically, programs used <code>chroot()</code>. However, <code>chroot()</code> does not truly isolate the filesystem—a privileged process can escape a chroot jail via relative path traversing (<code>../../</code>).</p>
+<p>Containers use <strong><code>pivot_root()</code></strong>:</p>
+<ul>
+<li>It swaps the root filesystem of the calling process with a new directory.</li>
+<li>It moves the old host root to a temporary sub-directory, which is then unmounted with <code>umount -l /old_root</code> and deleted.</li>
+<li>Escaping a properly configured <code>pivot_root</code> mount namespace is cryptographically and architecturally impossible without breaking kernel memory isolation.</li>
+</ul>
+<hr>
+<h2 id="5-hands-on-practical-labs">5. Hands-On Practical Labs</h2>
+<h3 id="lab-81-building-a-complete-container-from-scratch-in-shell">Lab 8.1: Building a Complete Container from Scratch in Shell</h3>
+<p>In this lab, we construct an isolated container runtime using raw Linux command-line utilities without Docker or containerd.</p>
+<h4 id="step-1-create-a-minimal-rootfs">Step 1: Create a Minimal Rootfs</h4>
+<p>Download and extract an Alpine Linux root filesystem:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">mkdir -p /tmp/mycontainer/rootfs
+</span></span><span class="line"><span class="cl"><span class="nb">cd</span> /tmp/mycontainer
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Download minimal Alpine rootfs tarball</span>
+</span></span><span class="line"><span class="cl">curl -sSL -o alpine.tar.gz https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/x86_64/alpine-minirootfs-3.20.0-x86_64.tar.gz
+</span></span><span class="line"><span class="cl">tar -xzf alpine.tar.gz -C rootfs/
+</span></span></code></pre></div><h4 id="step-2-write-the-container-launch-script-run_containersh">Step 2: Write the Container Launch Script: <code>run_container.sh</code></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="cp">#!/bin/bash
+</span></span></span><span class="line"><span class="cl"><span class="nb">set</span> -e
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nv">CONTAINER_DIR</span><span class="o">=</span><span class="s2">&#34;/tmp/mycontainer&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">ROOTFS</span><span class="o">=</span><span class="s2">&#34;</span><span class="nv">$CONTAINER_DIR</span><span class="s2">/rootfs&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="s2">&#34;[*] Step 1: Configuring Mount Namespace and Private Propagation...&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Unshare namespaces: PID, Mount, UTS, IPC, Network</span>
+</span></span><span class="line"><span class="cl"><span class="nb">exec</span> unshare --mount --uts --ipc --pid --net --fork /bin/bash <span class="s">&lt;&lt; &#39;EOF&#39;
+</span></span></span><span class="line"><span class="cl"><span class="s">
+</span></span></span><span class="line"><span class="cl"><span class="s"># 1. Set hostname inside container UTS namespace
+</span></span></span><span class="line"><span class="cl"><span class="s">hostname my-isolated-container
+</span></span></span><span class="line"><span class="cl"><span class="s">
+</span></span></span><span class="line"><span class="cl"><span class="s"># 2. Prevent mount events from leaking to host
+</span></span></span><span class="line"><span class="cl"><span class="s">mount --make-rprivate /
+</span></span></span><span class="line"><span class="cl"><span class="s">
+</span></span></span><span class="line"><span class="cl"><span class="s"># 3. Mount proc inside container rootfs
+</span></span></span><span class="line"><span class="cl"><span class="s">mkdir -p /tmp/mycontainer/rootfs/proc
+</span></span></span><span class="line"><span class="cl"><span class="s">mount -t proc proc /tmp/mycontainer/rootfs/proc
+</span></span></span><span class="line"><span class="cl"><span class="s">
+</span></span></span><span class="line"><span class="cl"><span class="s"># 4. Mount sysfs inside container rootfs
+</span></span></span><span class="line"><span class="cl"><span class="s">mkdir -p /tmp/mycontainer/rootfs/sys
+</span></span></span><span class="line"><span class="cl"><span class="s">mount -t sysfs sys /tmp/mycontainer/rootfs/sys
+</span></span></span><span class="line"><span class="cl"><span class="s">
+</span></span></span><span class="line"><span class="cl"><span class="s"># 5. Pivot root into the new rootfs
+</span></span></span><span class="line"><span class="cl"><span class="s">cd /tmp/mycontainer/rootfs
+</span></span></span><span class="line"><span class="cl"><span class="s">mkdir -p old_root
+</span></span></span><span class="line"><span class="cl"><span class="s">pivot_root . old_root
+</span></span></span><span class="line"><span class="cl"><span class="s">
+</span></span></span><span class="line"><span class="cl"><span class="s"># 6. Unmount old host root
+</span></span></span><span class="line"><span class="cl"><span class="s">umount -l /old_root
+</span></span></span><span class="line"><span class="cl"><span class="s">rmdir /old_root
+</span></span></span><span class="line"><span class="cl"><span class="s">
+</span></span></span><span class="line"><span class="cl"><span class="s"># 7. Launch isolated shell as PID 1
+</span></span></span><span class="line"><span class="cl"><span class="s">echo &#34;[+] Successfully entered isolated container environment!&#34;
+</span></span></span><span class="line"><span class="cl"><span class="s">echo &#34;[+] Hostname: $(hostname)&#34;
+</span></span></span><span class="line"><span class="cl"><span class="s">echo &#34;[+] Active processes inside container:&#34;
+</span></span></span><span class="line"><span class="cl"><span class="s">ps aux
+</span></span></span><span class="line"><span class="cl"><span class="s">
+</span></span></span><span class="line"><span class="cl"><span class="s"># Start interactive shell
+</span></span></span><span class="line"><span class="cl"><span class="s">exec /bin/sh
+</span></span></span><span class="line"><span class="cl"><span class="s">EOF</span>
+</span></span></code></pre></div><h4 id="step-3-run-and-verify-isolation">Step 3: Run and Verify Isolation</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">chmod +x run_container.sh
+</span></span><span class="line"><span class="cl">sudo ./run_container.sh
+</span></span></code></pre></div><p>Inside the container shell, verify:</p>
+<ul>
+<li>Run <code>ps aux</code>: You will see only <code>/bin/sh</code> running as <strong>PID 1</strong>!</li>
+<li>Run <code>hostname</code>: Shows <code>my-isolated-container</code>.</li>
+<li>Run <code>ls /</code>: Shows only the Alpine root filesystem.</li>
+</ul>
+<hr>
+<h3 id="lab-82-enforcing-memory-limits--triggering-cgroups-v2-oom-killer">Lab 8.2: Enforcing Memory Limits &amp; Triggering cgroups v2 OOM Killer</h3>
+<p>In this lab, we restrict a process using pure cgroups v2 and observe the kernel terminate it when it exceeds memory thresholds.</p>
+<h4 id="step-1-verify-cgroups-v2-mount">Step 1: Verify cgroups v2 Mount</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">mount -t cgroup2
+</span></span><span class="line"><span class="cl"><span class="c1"># Should output: cgroup2 on /sys/fs/cgroup type cgroup2 (rw,nosuid,nodev,noexec,relatime)</span>
+</span></span></code></pre></div><h4 id="step-2-create-a-sandbox-cgroup-slice">Step 2: Create a Sandbox cgroup Slice</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo mkdir /sys/fs/cgroup/sandbox_demo
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Set memory ceiling to 50 Megabytes</span>
+</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="s2">&#34;50M&#34;</span> <span class="p">|</span> sudo tee /sys/fs/cgroup/sandbox_demo/memory.max
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Ensure swap does not mask the limit</span>
+</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="s2">&#34;0&#34;</span> <span class="p">|</span> sudo tee /sys/fs/cgroup/sandbox_demo/memory.swap.max
+</span></span></code></pre></div><h4 id="step-3-write-a-python-memory-allocator-alloc_testpy">Step 3: Write a Python Memory Allocator: <code>alloc_test.py</code></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">sys</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">time</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nb">print</span><span class="p">(</span><span class="s2">&#34;[+] Allocating memory in 10MB chunks...&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl"><span class="k">try</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;Allocating chunk </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">i</span> <span class="o">*</span> <span class="mi">10</span><span class="si">}</span><span class="s2"> MB total&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># Allocate 10MB and write to it to force physical page allocation</span>
+</span></span><span class="line"><span class="cl">        <span class="n">chunk</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;Exception: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+</span></span></code></pre></div><h4 id="step-4-run-allocator-inside-cgroup">Step 4: Run Allocator Inside cgroup</h4>
+<p>Attach the subshell to the cgroup and execute:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Add current shell PID to cgroup tasks</span>
+</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="nv">$$</span> <span class="p">|</span> sudo tee /sys/fs/cgroup/sandbox_demo/cgroup.procs
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Run allocator (will exceed 50MB and be terminated!)</span>
+</span></span><span class="line"><span class="cl">python3 alloc_test.py
+</span></span></code></pre></div><h4 id="step-5-verify-the-oom-event">Step 5: Verify the OOM Event</h4>
+<p>Check kernel ring buffer logs:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">dmesg <span class="p">|</span> tail -n <span class="m">25</span> <span class="p">|</span> grep -E <span class="s1">&#39;oom_reaper|Killed process|Memory cgroup out of memory&#39;</span>
+</span></span></code></pre></div><p>Inspect cgroup v2 event counters:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">cat /sys/fs/cgroup/sandbox_demo/memory.events
+</span></span></code></pre></div><p>Output will confirm:</p>
+<pre tabindex="0"><code>low 0
+high 0
+max 1
+oom 1
+oom_kill 1
+</code></pre><hr>
+<h3 id="lab-83-system-call-sandboxing-with-seccomp-bpf-in-c">Lab 8.3: System Call Sandboxing with Seccomp-BPF in C</h3>
+<p><strong>Seccomp</strong> (Secure Computing Mode) uses the in-kernel BPF bytecode engine to filter system calls before they are executed. If a sandboxed process invokes a forbidden syscall, the kernel immediately halts or kills it with <code>SIGSYS</code>.</p>
+<h4 id="source-code-seccomp_filterc">Source Code: <code>seccomp_filter.c</code></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/prctl.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/seccomp.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/filter.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/audit.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/syscall.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">install_seccomp_filter</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * Seccomp BPF Filter:
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * 1. Validate architecture (x86_64)
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * 2. Inspect syscall number
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * 3. If syscall is __NR_mkdir, KILL the process!
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * 4. Otherwise, ALLOW all other syscalls.
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">sock_filter</span> <span class="n">filter</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* [0] Load architecture into accumulator */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">BPF_STMT</span><span class="p">(</span><span class="n">BPF_LD</span> <span class="o">|</span> <span class="n">BPF_W</span> <span class="o">|</span> <span class="n">BPF_ABS</span><span class="p">,</span> <span class="p">(</span><span class="nf">offsetof</span><span class="p">(</span><span class="k">struct</span> <span class="n">seccomp_data</span><span class="p">,</span> <span class="n">arch</span><span class="p">))),</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">BPF_JUMP</span><span class="p">(</span><span class="n">BPF_JMP</span> <span class="o">|</span> <span class="n">BPF_JEQ</span> <span class="o">|</span> <span class="n">BPF_K</span><span class="p">,</span> <span class="n">AUDIT_ARCH_X86_64</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">BPF_STMT</span><span class="p">(</span><span class="n">BPF_RET</span> <span class="o">|</span> <span class="n">BPF_K</span><span class="p">,</span> <span class="n">SECCOMP_RET_KILL</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* [1] Load syscall number into accumulator */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">BPF_STMT</span><span class="p">(</span><span class="n">BPF_LD</span> <span class="o">|</span> <span class="n">BPF_W</span> <span class="o">|</span> <span class="n">BPF_ABS</span><span class="p">,</span> <span class="p">(</span><span class="nf">offsetof</span><span class="p">(</span><span class="k">struct</span> <span class="n">seccomp_data</span><span class="p">,</span> <span class="n">nr</span><span class="p">))),</span>
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">        <span class="cm">/* [2] If syscall is mkdir (sys_mkdir), KILL */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">BPF_JUMP</span><span class="p">(</span><span class="n">BPF_JMP</span> <span class="o">|</span> <span class="n">BPF_JEQ</span> <span class="o">|</span> <span class="n">BPF_K</span><span class="p">,</span> <span class="n">__NR_mkdir</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">BPF_STMT</span><span class="p">(</span><span class="n">BPF_RET</span> <span class="o">|</span> <span class="n">BPF_K</span><span class="p">,</span> <span class="n">SECCOMP_RET_KILL_PROCESS</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* [3] Allow all other system calls */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">BPF_STMT</span><span class="p">(</span><span class="n">BPF_RET</span> <span class="o">|</span> <span class="n">BPF_K</span><span class="p">,</span> <span class="n">SECCOMP_RET_ALLOW</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">sock_fprog</span> <span class="n">prog</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">len</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">short</span><span class="p">)(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">filter</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">filter</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">filter</span> <span class="o">=</span> <span class="n">filter</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* Prohibit child processes from regaining privileges via execve */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nf">prctl</span><span class="p">(</span><span class="n">PR_SET_NO_NEW_PRIVS</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">perror</span><span class="p">(</span><span class="s">&#34;prctl(PR_SET_NO_NEW_PRIVS) failed&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* Install seccomp filter */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nf">prctl</span><span class="p">(</span><span class="n">PR_SET_SECCOMP</span><span class="p">,</span> <span class="n">SECCOMP_MODE_FILTER</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">prog</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">perror</span><span class="p">(</span><span class="s">&#34;prctl(PR_SET_SECCOMP) failed&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[+] Installing Seccomp-BPF policy to block mkdir syscall...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">install_seccomp_filter</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[+] Policy active. Attempting allowed syscall: write()... SUCCESS!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[+] Attempting FORBIDDEN syscall: mkdir(&#39;test_dir&#39;)...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">fflush</span><span class="p">(</span><span class="n">stdout</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* This will be trapped and killed immediately by the kernel */</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">syscall</span><span class="p">(</span><span class="n">__NR_mkdir</span><span class="p">,</span> <span class="s">&#34;test_dir&#34;</span><span class="p">,</span> <span class="mo">0755</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[-] This line will NEVER be reached!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h4 id="compilation--execution">Compilation &amp; Execution</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">gcc -O2 seccomp_filter.c -o seccomp_filter
+</span></span><span class="line"><span class="cl">./seccomp_filter
+</span></span></code></pre></div><p>Output:</p>
+<pre tabindex="0"><code>[+] Installing Seccomp-BPF policy to block mkdir syscall...
+[+] Policy active. Attempting allowed syscall: write()... SUCCESS!
+[+] Attempting FORBIDDEN syscall: mkdir(&#39;test_dir&#39;)...
+Bad system call (core dumped)
+</code></pre><hr>
+<h2 id="6-summary-checklist">6. Summary Checklist</h2>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> <strong>Namespaces Demystified</strong>: Understood the 7 Linux namespaces and verified them in <code>/proc/self/ns/</code>.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>cgroups v2 Mastery</strong>: Created custom cgroup slices, set <code>memory.max</code>, and inspected <code>memory.events</code>.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>OverlayFS &amp; <code>pivot_root</code></strong>: Contrasted <code>chroot</code> with <code>pivot_root</code> for secure filesystem root isolation.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Built a Container</strong>: Assembled a fully isolated runtime using standard shell and kernel primitives.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Syscall Filtering</strong>: Implemented a real Seccomp-BPF filter in C.</li>
+</ul>
+
+      </div>
+      
+
+
+
+
+
+
+
+
+  
+  
+  
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+      
+    
+        
+
+        
+          
+        
+
+        
+        
+
+
+<footer id="article-footer">
+  <div class="article-footer-top">
+    <time id="article-last-updated" datetime="0001-01-01"><i class="icon icon-calendar"></i>&nbsp;Last updated: 0001-01-01</time>
+  </div>
+
+  <div class="article-pagination">
+    
+      <a id="article-prev-link" class="pagination-card pagination-prev" href="/docs/storage-and-io/">
+        <span class="pagination-sub">&larr; Previous</span>
+        <span class="pagination-title">Storage &amp; io_uring</span>
+      </a>
+    
+
+    
+      <a id="article-next-link" class="pagination-card pagination-next" href="/docs/ebpf-and-observability/">
+        <span class="pagination-sub">Next &rarr;</span>
+        <span class="pagination-title">Performance &amp; eBPF</span>
+      </a>
+    
+  </div>
+</footer>
+    </article>
+    <aside id="toc">
+  <span class="btn-close"><i class="icon icon-close"></i></span>
+  <div class="sticky">
+    <strong><i class="icon icon-toc"></i> On this page</strong>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-the-anatomy-of-a-container">1. The Anatomy of a Container</a></li>
+    <li><a href="#2-the-7-linux-namespaces">2. The 7 Linux Namespaces</a></li>
+    <li><a href="#3-resource-limiting-control-groups-v2-cgroups-v2">3. Resource Limiting: Control Groups v2 (cgroups v2)</a>
+      <ul>
+        <li><a href="#core-controllers-in-cgroups-v2">Core Controllers in cgroups v2:</a></li>
+      </ul>
+    </li>
+    <li><a href="#4-layered-filesystems-overlayfs--pivot_root">4. Layered Filesystems: OverlayFS &amp; <code>pivot_root</code></a>
+      <ul>
+        <li><a href="#pivot_root-vs-chroot"><code>pivot_root</code> vs. <code>chroot</code></a></li>
+      </ul>
+    </li>
+    <li><a href="#5-hands-on-practical-labs">5. Hands-On Practical Labs</a>
+      <ul>
+        <li><a href="#lab-81-building-a-complete-container-from-scratch-in-shell">Lab 8.1: Building a Complete Container from Scratch in Shell</a></li>
+        <li><a href="#lab-82-enforcing-memory-limits--triggering-cgroups-v2-oom-killer">Lab 8.2: Enforcing Memory Limits &amp; Triggering cgroups v2 OOM Killer</a></li>
+        <li><a href="#lab-83-system-call-sandboxing-with-seccomp-bpf-in-c">Lab 8.3: System Call Sandboxing with Seccomp-BPF in C</a></li>
+      </ul>
+    </li>
+    <li><a href="#6-summary-checklist">6. Summary Checklist</a></li>
+  </ul>
+</nav>
+  </div>
+</aside>
+  </main>
+</div>
+
+    <footer id="site-footer">
+  <div class="site-footer-container">
+    <div class="site-footer-grid">
+      
+      <div class="footer-col footer-col-brand">
+        <div class="footer-brand">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="3" width="20" height="18" rx="4" fill="currentColor" fill-opacity="0.12" stroke="currentColor" stroke-width="1.75"/>
+            <path d="M7 9L10.5 12L7 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.5 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span class="footer-brand-title">Linux Collective</span>
+        </div>
+        <p class="footer-tagline">
+          An open-source knowledge hub and community deep-dive initiative exploring Linux architecture, kernel internals, and modern systems engineering.
+        </p>
+        <div class="footer-social-links">
+          
+          <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon-link">
+            <i class="icon icon-github"></i>
+          </a>
+          
+          
+          <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" aria-label="Discord" class="social-icon-link">
+            <i class="icon icon-discord icon-colored"></i>
+          </a>
+          
+          
+          <a href="https://www.youtube.com/@CloudNativeFolks" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="social-icon-link">
+            <i class="icon icon-youtube icon-colored"></i>
+          </a>
+          
+          
+          <a href="https://twitter.com/i/communities/1499311438745468931" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" class="social-icon-link">
+            <i class="icon icon-twitter icon-colored"></i>
+          </a>
+          
+        </div>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Documentation</h4>
+        <ul class="footer-links">
+          <li><a href="/docs/overview/">Getting Started</a></li>
+          <li><a href="/docs/roadmap/">Engineering Roadmap</a></li>
+          <li><a href="/docs/linux-history/">Linux History</a></li>
+          <li><a href="/docs/linux-distros/">Linux Distributions</a></li>
+          <li><a href="/docs/level-layer-abstraction/">Levels & Abstractions</a></li>
+          <li><a href="/docs/linux-kernel/">Linux Kernel Internals</a></li>
+          <li><a href="/docs/linux-kernel-subsystem/">Kernel Subsystems</a></li>
+          <li><a href="/docs/process-management/">Process Management</a></li>
+        </ul>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Community</h4>
+        <ul class="footer-links">
+          <li><a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer">CloudNativeFolks Discord</a></li>
+          <li><a href="https://blog.cloudnativefolks.org" target="_blank" rel="noopener noreferrer">Community Blog</a></li>
+          <li><a href="https://www.youtube.com/@CloudNativeFolks" target="_blank" rel="noopener noreferrer">YouTube Channel</a></li>
+          <li><a href="https://twitter.com/i/communities/1499311438745468931" target="_blank" rel="noopener noreferrer">Twitter / X Community</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/graphs/contributors" target="_blank" rel="noopener noreferrer">Contributors Showcase</a></li>
+        </ul>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Open Source</h4>
+        <ul class="footer-links">
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/issues" target="_blank" rel="noopener noreferrer">Report an Issue</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/pulls" target="_blank" rel="noopener noreferrer">Submit Contribution</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License (MIT)</a></li>
+        </ul>
+        <div class="footer-badge-wrapper">
+          <a href="https://visitorbadge.io/status?path=https%3A%2F%2Flinuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="visitor-badge-link">
+            <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Flinuxcollective.github.io&label=VISITORS&countColor=%232563eb&style=flat-square" alt="Visitor Counter" loading="lazy" />
+          </a>
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="site-footer-bottom">
+      <div class="footer-bottom-copy">
+        &copy; 2022-2026 <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer">CloudNativeFolks</a>. Built for the open source community.
+      </div>
+      <div class="footer-bottom-love">
+        Engineered with <i class="icon icon-love icon-colored"></i> by <a href="https://blog.cloudnativefolks.org" target="_blank" rel="noopener noreferrer">@CloudNativeFolks</a>
+      </div>
+    </div>
+  </div>
+</footer>
+    
+
+
+
+
+
+
+<script type="text/javascript" src="/js/base.min.js"></script>
+
+
+
+  
+  <script src="/js/component/docsearch.min.js"></script>
+  <script type="application/javascript">
+      docsearch({
+          container: '#site-header-search',
+          appId: '',
+          indexName: '',
+          apiKey: '',
+      });
+  </script>
+
+  </body>
+</html>

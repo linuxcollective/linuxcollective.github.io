@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta name="author" content="CloudNativeFolks">
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+
+
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://linuxcollective.github.io/docs/ebpf-and-observability/">
+<meta property="og:title" content="Performance Engineering, Observability &amp; eBPF · Linux Collective">
+<meta property="og:description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta property="og:image" content="https://linuxcollective.github.io//img/icon/Linux%20Collective.png">
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://linuxcollective.github.io/docs/ebpf-and-observability/">
+<meta name="twitter:title" content="Performance Engineering, Observability &amp; eBPF · Linux Collective">
+<meta name="twitter:description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta name="twitter:image" content="https://linuxcollective.github.io//img/icon/Linux%20Collective.png">
+
+<title>Performance Engineering, Observability &amp; eBPF · Linux Collective</title>
+
+<link rel="canonical" href="https://linuxcollective.github.io/docs/ebpf-and-observability/">
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/scss/base.css" integrity="">
+
+
+
+<link rel="stylesheet" href="/scss/theme/default.css" integrity="">
+
+
+
+  
+
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/img/icon/favicon.ico">
+<link rel="icon" href="/img/icon/icon-16.png" sizes="16x16" type="image/png">
+<link rel="icon" href="/img/icon/icon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/img/icon/icon-180.png" sizes="180x180">
+
+
+    <script 
+     src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/quizdown.js">
+  </script>
+  <script 
+      src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/extensions/quizdownKatex.js">
+  </script>
+  <script 
+      src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/extensions/quizdownHighlight.js">
+  </script>
+  <script>quizdown.register(quizdownHighlight).register(quizdownKatex).init()</script> 
+  </head>
+  <body>
+    <header id="site-header">
+  <div class="site-header-inner">
+    
+    <div id="site-header-brand">
+      <a href="/" class="brand-link">
+        <span class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="3" width="20" height="18" rx="4" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-width="1.75"/>
+            <path d="M7 9L10.5 12L7 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.5 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">Linux Collective</span>
+        <span class="brand-badge">Open Source</span>
+      </a>
+    </div>
+
+    
+    <div id="site-header-menu">
+      <nav>
+        <ul>
+          
+          
+          
+            
+            <li>
+              <a href="/"  >
+                <i class='icon icon-home'></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/"  class="active" >
+                <i class='icon icon-book'></i>
+                <span>Docs</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/roadmap/"  >
+                <i class='icon icon-book'></i>
+                <span>Roadmap</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/linux-kernel/"  >
+                <i class='icon icon-kernel'></i>
+                <span>Kernel</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="https://discord.gg/rEvr7vq"   target="_blank" rel="noopener noreferrer">
+                <i class='icon icon-discord'></i>
+                <span>Community</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="https://github.com/linuxcollective/linuxcollective.github.io"   target="_blank" rel="noopener noreferrer">
+                <i class='icon icon-github'></i>
+                <span>GitHub</span>
+              </a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+
+    
+    <div id="site-header-controls">
+      
+      <div id="site-header-search"></div>
+
+      
+      <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="header-action-btn github-btn" title="GitHub Repository" aria-label="GitHub Repository">
+        <i class="icon icon-github"></i>
+        <span class="btn-text">GitHub</span>
+      </a>
+
+      
+      <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" class="header-action-btn discord-btn" title="Join Discord Community" aria-label="Discord Community">
+        <i class="icon icon-discord icon-colored"></i>
+      </a>
+
+      
+      <div class="dropdown theme-dropdown">
+        <button class="dropdown-btn" aria-haspopup="menu" aria-label="Toggle theme">
+          <i class="icon icon-brightness"></i>
+          <i class="icon icon-select"></i>
+        </button>
+        <ul role="menu" class="dropdown-menu">
+          <li role="menuitem"><button class="color-scheme" data-value="light"><i class="icon icon-light-mode"></i> Light</button></li>
+          <li role="menuitem"><button class="color-scheme" data-value="dark"><i class="icon icon-dark-mode"></i> Dark</button></li>
+          <li role="menuitem"><button class="color-scheme" data-value="night"><i class="icon icon-night-mode"></i> Night</button></li>
+        </ul>
+      </div>
+
+      
+      <button id="site-header-mobile-toggle" aria-label="Toggle navigation menu" class="mobile-toggle-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+    
+<div id="site-main-content-wrapper">
+  
+  
+    <aside id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-header-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span>Course Modules</span>
+    </div>
+    <span class="btn-close" aria-label="Close sidebar"><i class="icon icon-close"></i></span>
+  </div>
+
+  <div class="sidebar-nav-container"><div class="sidebar-group">
+        <strong class="sidebar-section">Getting Started</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/overview/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Overview</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/roadmap/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Learning Roadmap</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Linux Foundations &amp; Distros</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/shell-and-sysadmin/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Shell &amp; systemd Admin</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-history/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux History</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-distros/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Distros</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Architecture &amp; Core Subsystems</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/level-layer-abstraction/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Level &amp; Layer Abstraction</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-kernel/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Kernel</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-kernel-subsystem/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Kernel Subsystem</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/process-management/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Process Management</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/storage-and-io/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Storage &amp; io_uring</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Advanced Systems &amp; Kernel Dev</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/container-primitives/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Container Primitives</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link current" href="/docs/ebpf-and-observability/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Performance &amp; eBPF</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/kernel-drivers-and-modules/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Kernel Drivers &amp; LKML</span>
+              </a>
+
+            
+        </div>
+      </div>
+  </div>
+</aside>
+  
+  <main>
+    <article id="article">
+      <nav id="article-nav">
+  <button id="article-nav-menu-btn"><i class="icon icon-menu"></i> On this section</button>
+  <button id="article-nav-toc-btn"><i class="icon icon-toc"></i> On this page</button>
+</nav>
+      <header id="article-header">
+  
+  <nav class="article-breadcrumbs" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/docs/overview/">Documentation</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-current">Performance Engineering, Observability &amp; eBPF</span>
+  </nav>
+
+  <h1 class="article-title">Performance Engineering, Observability &amp; eBPF</h1>
+
+  <div class="article-meta-bar">
+    <span class="article-meta-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      8 min read
+    </span>
+    <span class="article-meta-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      1392 words
+    </span>
+    
+    <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/a9.ebpf-and-observability.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
+      <i class="icon icon-github"></i>
+      <span>Edit on GitHub</span>
+    </a>
+    
+  </div>
+</header>
+      <div id="article-content">
+        
+        
+        <blockquote>
+<p><em>&ldquo;If you cannot measure it with low overhead, you cannot optimize it. eBPF is to the Linux kernel what JavaScript was to the web browser: it allows you to safely run custom, sandboxed code at event boundaries without modifying the kernel source or rebooting the machine.&rdquo;</em><br>
+— <strong>Linus Torvalds</strong></p>
+</blockquote>
+<p>In high-throughput distributed systems, performance issues rarely manifest as simple CPU spikes. Instead, they appear as p99 tail latency outliers, lock contention in Ring 0, storage queue saturation, or scheduling delays.</p>
+<p>Historically, debugging these issues required either:</p>
+<ol>
+<li>Adding printks and recompiling the kernel (slow, disruptive).</li>
+<li>Using heavy debuggers like <code>gdb</code> (which halt execution and crush production throughput).</li>
+<li>Using crude sampling tools that guess what occurred.</li>
+</ol>
+<p>With the advent of the <strong>Extended Berkeley Packet Filter (eBPF)</strong> and Linux performance tracing infrastructure (<code>perf</code>, <code>ftrace</code>, <code>bpftrace</code>), Linux engineers can safely execute sandboxed, verified code directly in the kernel upon every packet arrival, disk request, context switch, or function invocation.</p>
+<hr>
+<h2 id="1-brendan-greggs-performance-methodologies">1. Brendan Gregg&rsquo;s Performance Methodologies</h2>
+<p>Before touching tracing tools, an engineer must apply structured methodology to avoid falling into the &ldquo;random metric guessing&rdquo; trap.</p>
+<h3 id="1-the-use-method-for-physical--virtual-resources">1. The USE Method (For Physical &amp; Virtual Resources)</h3>
+<p>For <strong>every resource</strong> (CPUs, Memory buses, NVMe drives, Network interfaces):</p>
+<ul>
+<li><strong>Utilization</strong>: The percentage of time the resource was actively servicing work (e.g., CPU % busy, disk %util).</li>
+<li><strong>Saturation</strong>: The degree to which extra work was queued waiting for the resource (e.g., CPU runqueue length, disk queue depth).</li>
+<li><strong>Errors</strong>: Count of hardware and driver error events (e.g., PCIe bus errors, network CRC drops).</li>
+</ul>
+<h3 id="2-the-red-method-for-request-driven-services">2. The RED Method (For Request-Driven Services)</h3>
+<p>For <strong>every software endpoint or service</strong>:</p>
+<ul>
+<li><strong>Rate</strong>: Requests processed per second.</li>
+<li><strong>Errors</strong>: Number of failing requests.</li>
+<li><strong>Duration</strong>: Latency distribution (p50, p90, p99, p99.9).</li>
+</ul>
+<hr>
+<h2 id="2-linux-tracing-hook-points">2. Linux Tracing Hook Points</h2>
+<p>Linux provides four distinct categories of probe points:</p>
+<pre tabindex="0"><code>+--------------------------------------------------------------------------+
+| USER SPACE: glibc, Nginx, PostgreSQL, Python, Go Runtime                 |
++--------------------------------------------------------------------------+
+       |                                           |
+       v (uprobes: dynamic user function hook)     v (USDT: static user probe)
++--------------------------------------------------------------------------+
+| KERNEL BOUNDARY: System Call Interface (sys_enter / sys_exit)            |
++--------------------------------------------------------------------------+
+       |                                           |
+       v (kprobes / kretprobes: dynamic kernel)    v (Tracepoints: static API)
++--------------------------------------------------------------------------+
+| KERNEL INTERNALS: Scheduler, VFS, Network Stack, MMU Paging              |
++--------------------------------------------------------------------------+
+       |
+       v (perf_events: Hardware PMU counters)
++--------------------------------------------------------------------------+
+| HARDWARE SILICON: L1/L3 Cache Misses, Branch Mispredictions, CPU Cycles  |
++--------------------------------------------------------------------------+
+</code></pre><ol>
+<li><strong>Tracepoints (Static)</strong>: Hard-coded, stable instrumentation points maintained by kernel developers (located under <code>/sys/kernel/tracing/events/</code>). Guaranteed not to break across kernel releases.</li>
+<li><strong>kprobes &amp; kretprobes (Dynamic Kernel)</strong>: Dynamically injects a breakpoint instruction (e.g. <code>int3</code> on x86-64) into the prologue or epilogue of <em>any</em> kernel function. Enables arbitrary kernel tracing with near-zero overhead when disabled.</li>
+<li><strong>uprobes &amp; uretprobes (Dynamic User Space)</strong>: Dynamically hooks functions inside user-space ELF binaries (e.g., tracing <code>SSL_read()</code> in <code>libssl.so</code> to inspect decrypted TLS payloads without holding private keys).</li>
+<li><strong>PMU Hardware Counters</strong>: Physical performance monitoring units inside modern Intel/AMD/ARM CPUs that count hardware events (instructions, cycles, cache misses) without software code modifications.</li>
+</ol>
+<hr>
+<h2 id="3-the-ebpf-architecture">3. The eBPF Architecture</h2>
+<p>eBPF is a register-based virtual machine running directly inside the Linux kernel.</p>
+<pre tabindex="0"><code>+--------------------------------------------------------------------------+
+| 1. C Source Code (my_probe.bpf.c)                                        |
++--------------------------------------------------------------------------+
+       |
+       v (clang -target bpf -O2)
++--------------------------------------------------------------------------+
+| 2. ELF Bytecode (.o)                                                     |
++--------------------------------------------------------------------------+
+       |
+       v (bpf() system call with BPF_PROG_LOAD)
++==========================================================================+
+| KERNEL SPACE                                                             |
+|                                                                          |
+|   +------------------------------------------------------------------+   |
+|   | 3. IN-KERNEL VERIFIER                                            |   |
+|   |    - Simulates all code paths via Directed Acyclic Graph (DAG)   |   |
+|   |    - Proves memory safety (no out-of-bounds pointers)            |   |
+|   |    - Proves termination (limits loops, prevents kernel hangs)    |   |
+|   +------------------------------------------------------------------+   |
+|                                      |                                   |
+|                                      v                                   |
+|   +------------------------------------------------------------------+   |
+|   | 4. JIT (JUST-IN-TIME) COMPILER                                   |   |
+|   |    Translates BPF bytecode into native x86-64 / ARM64 assembly   |   |
+|   +------------------------------------------------------------------+   |
+|                                      |                                   |
+|                                      v                                   |
+|   +------------------------------------------------------------------+   |
+|   | 5. ATTACH TO EVENT (Tracepoint, kprobe, XDP, TC, cgroup)         |   |
+|   +------------------------------------------------------------------+   |
+|                                      |                                   |
+|                                      v                                   |
+|   +------------------------------------------------------------------+   |
+|   | 6. BPF MAPS (Ring Buffer, Hash Maps, Per-CPU Maps)               |   |
+|   +------------------------------------------------------------------+   |
++==========================================================================+
+       |
+       v (bpf_ring_buffer__poll / mmap)
++--------------------------------------------------------------------------+
+| USER SPACE OBSERVABILITY AGENT                                           |
++--------------------------------------------------------------------------+
+</code></pre><h3 id="the-in-kernel-verifier">The In-Kernel Verifier</h3>
+<p>The verifier is the security barrier that prevents eBPF programs from crashing the kernel:</p>
+<ul>
+<li>Enforces that no register is read before being initialized.</li>
+<li>Validates that every memory dereference stays strictly within allocated boundaries.</li>
+<li>Rejects unbounded loops that could monopolize a CPU core.</li>
+</ul>
+<h3 id="bpf-maps">BPF Maps</h3>
+<p>eBPF programs cannot call standard C library functions or allocate dynamic heap memory via <code>malloc()</code>. To share state between the kernel and user space, eBPF uses <strong>BPF Maps</strong>:</p>
+<ul>
+<li><code>BPF_MAP_TYPE_HASH</code>: Key-value lookup table.</li>
+<li><code>BPF_MAP_TYPE_RINGBUF</code>: Lockless high-throughput ring buffer for streaming events to user space.</li>
+<li><code>BPF_MAP_TYPE_PERF_EVENT_ARRAY</code>: Per-CPU event buffer.</li>
+</ul>
+<hr>
+<h2 id="4-hands-on-practical-labs">4. Hands-On Practical Labs</h2>
+<h3 id="lab-91-writing-a-standalone-ebpf-program-with-libbpf-in-c">Lab 9.1: Writing a Standalone eBPF Program with libbpf in C</h3>
+<p>In this lab, we write a real eBPF kernel program that hooks into the <code>sys_enter_execve</code> tracepoint to capture every new command executed on the operating system in real-time.</p>
+<h4 id="1-the-kernel-ebpf-code-exec_tracebpfc">1. The Kernel eBPF Code: <code>exec_trace.bpf.c</code></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&#34;vmlinux.h&#34;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;bpf/bpf_helpers.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;bpf/bpf_tracing.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;bpf/bpf_core_read.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/* Structure defining the event emitted to user space */</span>
+</span></span><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">event</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">u32</span> <span class="n">pid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">u32</span> <span class="n">uid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="n">comm</span><span class="p">[</span><span class="mi">16</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="n">filename</span><span class="p">[</span><span class="mi">128</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/* BPF Ring Buffer Map */</span>
+</span></span><span class="line"><span class="cl"><span class="k">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">__uint</span><span class="p">(</span><span class="n">type</span><span class="p">,</span> <span class="n">BPF_MAP_TYPE_RINGBUF</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">__uint</span><span class="p">(</span><span class="n">max_entries</span><span class="p">,</span> <span class="mi">256</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">);</span> <span class="cm">/* 256 KB ring buffer */</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="n">events</span> <span class="nf">SEC</span><span class="p">(</span><span class="s">&#34;.maps&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/* Tracepoint: sys_enter_execve */</span>
+</span></span><span class="line"><span class="cl"><span class="nf">SEC</span><span class="p">(</span><span class="s">&#34;tracepoint/syscalls/sys_enter_execve&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">trace_sys_enter_execve</span><span class="p">(</span><span class="k">struct</span> <span class="n">trace_event_raw_sys_enter</span> <span class="o">*</span><span class="n">ctx</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">event</span> <span class="o">*</span><span class="n">e</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">u64</span> <span class="n">id</span> <span class="o">=</span> <span class="nf">bpf_get_current_pid_tgid</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="n">u32</span> <span class="n">pid</span> <span class="o">=</span> <span class="n">id</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* Reserve space in the ring buffer */</span>
+</span></span><span class="line"><span class="cl">    <span class="n">e</span> <span class="o">=</span> <span class="nf">bpf_ringbuf_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">events</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="o">*</span><span class="n">e</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span> <span class="cm">/* Ring buffer is full, drop event */</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">e</span><span class="o">-&gt;</span><span class="n">pid</span> <span class="o">=</span> <span class="n">pid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">e</span><span class="o">-&gt;</span><span class="n">uid</span> <span class="o">=</span> <span class="nf">bpf_get_current_uid_gid</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">bpf_get_current_comm</span><span class="p">(</span><span class="o">&amp;</span><span class="n">e</span><span class="o">-&gt;</span><span class="n">comm</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">e</span><span class="o">-&gt;</span><span class="n">comm</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* Read the binary path argument passed to execve (arg0) */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">filename_ptr</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">bpf_probe_read_user_str</span><span class="p">(</span><span class="o">&amp;</span><span class="n">e</span><span class="o">-&gt;</span><span class="n">filename</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">e</span><span class="o">-&gt;</span><span class="n">filename</span><span class="p">),</span> <span class="n">filename_ptr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* Submit event to user space */</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">bpf_ringbuf_submit</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">char</span> <span class="n">LICENSE</span><span class="p">[]</span> <span class="nf">SEC</span><span class="p">(</span><span class="s">&#34;license&#34;</span><span class="p">)</span> <span class="o">=</span> <span class="s">&#34;GPL&#34;</span><span class="p">;</span>
+</span></span></code></pre></div><h4 id="2-compiling-the-ebpf-program">2. Compiling the eBPF Program</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">clang -g -O2 -target bpf -D__TARGET_ARCH_x86 -I/usr/include/x86_64-linux-gnu -c exec_trace.bpf.c -o exec_trace.bpf.o
+</span></span></code></pre></div><hr>
+<h3 id="lab-92-production-bpftrace-one-liners--latency-histograms">Lab 9.2: Production <code>bpftrace</code> One-Liners &amp; Latency Histograms</h3>
+<p><code>bpftrace</code> provides a high-level domain-specific language for rapid ad-hoc kernel investigations.</p>
+<h4 id="1-measure-vfs-read-latency-as-an-ascii-histogram">1. Measure VFS Read Latency as an ASCII Histogram</h4>
+<p>Measures the duration (in microseconds) of every <code>vfs_read()</code> invocation across the entire system:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo bpftrace -e <span class="s1">&#39;
+</span></span></span><span class="line"><span class="cl"><span class="s1">kprobe:vfs_read {
+</span></span></span><span class="line"><span class="cl"><span class="s1">    @start[tid] = nsecs;
+</span></span></span><span class="line"><span class="cl"><span class="s1">}
+</span></span></span><span class="line"><span class="cl"><span class="s1">
+</span></span></span><span class="line"><span class="cl"><span class="s1">kretprobe:vfs_read /@start[tid]/ {
+</span></span></span><span class="line"><span class="cl"><span class="s1">    $duration_us = (nsecs - @start[tid]) / 1000;
+</span></span></span><span class="line"><span class="cl"><span class="s1">    @vfs_read_latency_us = hist($duration_us);
+</span></span></span><span class="line"><span class="cl"><span class="s1">    delete(@start[tid]);
+</span></span></span><span class="line"><span class="cl"><span class="s1">}
+</span></span></span><span class="line"><span class="cl"><span class="s1">&#39;</span>
+</span></span></code></pre></div><p>Output:</p>
+<pre tabindex="0"><code>@vfs_read_latency_us: 
+[1]                 45 |@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                    |
+[2, 4)             120 |@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|
+[4, 8)              75 |@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                    |
+[8, 16)             18 |@@@@@@@                                             |
+[16, 32)             4 |@                                                   |
+[32, 64)             1 |                                                    |
+</code></pre><h4 id="2-trace-failed-tcp-connections">2. Trace Failed TCP Connections</h4>
+<p>Identifies which processes are experiencing network connection failures in real-time:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo bpftrace -e <span class="s1">&#39;
+</span></span></span><span class="line"><span class="cl"><span class="s1">kretprobe:tcp_v4_connect {
+</span></span></span><span class="line"><span class="cl"><span class="s1">    $ret = retval;
+</span></span></span><span class="line"><span class="cl"><span class="s1">    if ($ret &lt; 0) {
+</span></span></span><span class="line"><span class="cl"><span class="s1">        printf(&#34;PID %d (%s) failed tcp_connect: error %d\n&#34;, pid, comm, $ret);
+</span></span></span><span class="line"><span class="cl"><span class="s1">    }
+</span></span></span><span class="line"><span class="cl"><span class="s1">}
+</span></span></span><span class="line"><span class="cl"><span class="s1">&#39;</span>
+</span></span></code></pre></div><h4 id="3-measure-scheduler-runqueue-latency-cpu-starvation">3. Measure Scheduler Runqueue Latency (CPU Starvation)</h4>
+<p>Identifies how long tasks sit in the runqueue before receiving a CPU core:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo bpftrace -e <span class="s1">&#39;
+</span></span></span><span class="line"><span class="cl"><span class="s1">tracepoint:sched:sched_wakeup {
+</span></span></span><span class="line"><span class="cl"><span class="s1">    @queued[args-&gt;pid] = nsecs;
+</span></span></span><span class="line"><span class="cl"><span class="s1">}
+</span></span></span><span class="line"><span class="cl"><span class="s1">
+</span></span></span><span class="line"><span class="cl"><span class="s1">tracepoint:sched:sched_switch {
+</span></span></span><span class="line"><span class="cl"><span class="s1">    if (@queued[args-&gt;next_pid]) {
+</span></span></span><span class="line"><span class="cl"><span class="s1">        $delay_us = (nsecs - @queued[args-&gt;next_pid]) / 1000;
+</span></span></span><span class="line"><span class="cl"><span class="s1">        @runqueue_latency_us = hist($delay_us);
+</span></span></span><span class="line"><span class="cl"><span class="s1">        delete(@queued[args-&gt;next_pid]);
+</span></span></span><span class="line"><span class="cl"><span class="s1">    }
+</span></span></span><span class="line"><span class="cl"><span class="s1">}
+</span></span></span><span class="line"><span class="cl"><span class="s1">&#39;</span>
+</span></span></code></pre></div><hr>
+<h3 id="lab-93-cpu-profiling--flame-graph-generation-with-linux-perf">Lab 9.3: CPU Profiling &amp; Flame Graph Generation with Linux <code>perf</code></h3>
+<p>A <strong>Flame Graph</strong> (invented by Brendan Gregg) visualizes call stacks where the x-axis represents the proportion of CPU time spent and the y-axis shows stack depth.</p>
+<h4 id="step-1-install-linux-tools">Step 1: Install <code>linux-tools</code></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt-get install -y linux-tools-common linux-tools-generic linux-tools-<span class="k">$(</span>uname -r<span class="k">)</span>
+</span></span></code></pre></div><h4 id="step-2-sample-call-stacks-on-a-busy-system">Step 2: Sample Call Stacks on a Busy System</h4>
+<p>Sample all CPU cores at 99 Hertz for 30 seconds with stack traces:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo perf record -F <span class="m">99</span> -a -g -- sleep <span class="m">30</span>
+</span></span></code></pre></div><h4 id="step-3-process-the-profile-into-a-flame-graph">Step 3: Process the Profile into a Flame Graph</h4>
+<p>Clone the canonical FlameGraph toolkit:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">git clone https://github.com/brendangregg/FlameGraph /tmp/FlameGraph
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Convert perf data to folded stacks</span>
+</span></span><span class="line"><span class="cl">sudo perf script <span class="p">|</span> /tmp/FlameGraph/stackcollapse-perf.pl &gt; /tmp/perf_folded.txt
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Render interactive SVG Flame Graph</span>
+</span></span><span class="line"><span class="cl">/tmp/FlameGraph/flamegraph.pl /tmp/perf_folded.txt &gt; /tmp/cpu_flamegraph.svg
+</span></span></code></pre></div><p>Open <code>/tmp/cpu_flamegraph.svg</code> in any browser:</p>
+<ul>
+<li>Wide plateaus indicate functions consuming the most CPU cycles.</li>
+<li>Click on any frame to zoom in and pinpoint exact performance bottlenecks.</li>
+</ul>
+<hr>
+<h2 id="5-summary-checklist">5. Summary Checklist</h2>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> <strong>Methodology First</strong>: Applied Brendan Gregg&rsquo;s USE and RED methods to systems diagnosis.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Instrumentation Map</strong>: Mastered Tracepoints, kprobes, uprobes, and PMU counters.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>eBPF Mechanics</strong>: Understood the in-kernel verifier, JIT compilation, and BPF maps.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Compiled eBPF in C</strong>: Built an execution tracer using <code>libbpf</code> and BPF ring buffers.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong><code>bpftrace</code> Mastery</strong>: Generated real-time latency histograms for VFS reads and scheduling runqueues.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Generated Flame Graphs</strong>: Profiled call stacks and visualized CPU execution hotspots.</li>
+</ul>
+
+      </div>
+      
+
+
+
+
+
+
+
+
+  
+  
+  
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+      
+    
+        
+
+        
+          
+        
+
+        
+        
+
+
+<footer id="article-footer">
+  <div class="article-footer-top">
+    <time id="article-last-updated" datetime="0001-01-01"><i class="icon icon-calendar"></i>&nbsp;Last updated: 0001-01-01</time>
+  </div>
+
+  <div class="article-pagination">
+    
+      <a id="article-prev-link" class="pagination-card pagination-prev" href="/docs/container-primitives/">
+        <span class="pagination-sub">&larr; Previous</span>
+        <span class="pagination-title">Container Primitives</span>
+      </a>
+    
+
+    
+      <a id="article-next-link" class="pagination-card pagination-next" href="/docs/kernel-drivers-and-modules/">
+        <span class="pagination-sub">Next &rarr;</span>
+        <span class="pagination-title">Kernel Drivers &amp; LKML</span>
+      </a>
+    
+  </div>
+</footer>
+    </article>
+    <aside id="toc">
+  <span class="btn-close"><i class="icon icon-close"></i></span>
+  <div class="sticky">
+    <strong><i class="icon icon-toc"></i> On this page</strong>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-brendan-greggs-performance-methodologies">1. Brendan Gregg&rsquo;s Performance Methodologies</a>
+      <ul>
+        <li><a href="#1-the-use-method-for-physical--virtual-resources">1. The USE Method (For Physical &amp; Virtual Resources)</a></li>
+        <li><a href="#2-the-red-method-for-request-driven-services">2. The RED Method (For Request-Driven Services)</a></li>
+      </ul>
+    </li>
+    <li><a href="#2-linux-tracing-hook-points">2. Linux Tracing Hook Points</a></li>
+    <li><a href="#3-the-ebpf-architecture">3. The eBPF Architecture</a>
+      <ul>
+        <li><a href="#the-in-kernel-verifier">The In-Kernel Verifier</a></li>
+        <li><a href="#bpf-maps">BPF Maps</a></li>
+      </ul>
+    </li>
+    <li><a href="#4-hands-on-practical-labs">4. Hands-On Practical Labs</a>
+      <ul>
+        <li><a href="#lab-91-writing-a-standalone-ebpf-program-with-libbpf-in-c">Lab 9.1: Writing a Standalone eBPF Program with libbpf in C</a></li>
+        <li><a href="#lab-92-production-bpftrace-one-liners--latency-histograms">Lab 9.2: Production <code>bpftrace</code> One-Liners &amp; Latency Histograms</a></li>
+        <li><a href="#lab-93-cpu-profiling--flame-graph-generation-with-linux-perf">Lab 9.3: CPU Profiling &amp; Flame Graph Generation with Linux <code>perf</code></a></li>
+      </ul>
+    </li>
+    <li><a href="#5-summary-checklist">5. Summary Checklist</a></li>
+  </ul>
+</nav>
+  </div>
+</aside>
+  </main>
+</div>
+
+    <footer id="site-footer">
+  <div class="site-footer-container">
+    <div class="site-footer-grid">
+      
+      <div class="footer-col footer-col-brand">
+        <div class="footer-brand">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="3" width="20" height="18" rx="4" fill="currentColor" fill-opacity="0.12" stroke="currentColor" stroke-width="1.75"/>
+            <path d="M7 9L10.5 12L7 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.5 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span class="footer-brand-title">Linux Collective</span>
+        </div>
+        <p class="footer-tagline">
+          An open-source knowledge hub and community deep-dive initiative exploring Linux architecture, kernel internals, and modern systems engineering.
+        </p>
+        <div class="footer-social-links">
+          
+          <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon-link">
+            <i class="icon icon-github"></i>
+          </a>
+          
+          
+          <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" aria-label="Discord" class="social-icon-link">
+            <i class="icon icon-discord icon-colored"></i>
+          </a>
+          
+          
+          <a href="https://www.youtube.com/@CloudNativeFolks" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="social-icon-link">
+            <i class="icon icon-youtube icon-colored"></i>
+          </a>
+          
+          
+          <a href="https://twitter.com/i/communities/1499311438745468931" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" class="social-icon-link">
+            <i class="icon icon-twitter icon-colored"></i>
+          </a>
+          
+        </div>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Documentation</h4>
+        <ul class="footer-links">
+          <li><a href="/docs/overview/">Getting Started</a></li>
+          <li><a href="/docs/roadmap/">Engineering Roadmap</a></li>
+          <li><a href="/docs/linux-history/">Linux History</a></li>
+          <li><a href="/docs/linux-distros/">Linux Distributions</a></li>
+          <li><a href="/docs/level-layer-abstraction/">Levels & Abstractions</a></li>
+          <li><a href="/docs/linux-kernel/">Linux Kernel Internals</a></li>
+          <li><a href="/docs/linux-kernel-subsystem/">Kernel Subsystems</a></li>
+          <li><a href="/docs/process-management/">Process Management</a></li>
+        </ul>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Community</h4>
+        <ul class="footer-links">
+          <li><a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer">CloudNativeFolks Discord</a></li>
+          <li><a href="https://blog.cloudnativefolks.org" target="_blank" rel="noopener noreferrer">Community Blog</a></li>
+          <li><a href="https://www.youtube.com/@CloudNativeFolks" target="_blank" rel="noopener noreferrer">YouTube Channel</a></li>
+          <li><a href="https://twitter.com/i/communities/1499311438745468931" target="_blank" rel="noopener noreferrer">Twitter / X Community</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/graphs/contributors" target="_blank" rel="noopener noreferrer">Contributors Showcase</a></li>
+        </ul>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Open Source</h4>
+        <ul class="footer-links">
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/issues" target="_blank" rel="noopener noreferrer">Report an Issue</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/pulls" target="_blank" rel="noopener noreferrer">Submit Contribution</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License (MIT)</a></li>
+        </ul>
+        <div class="footer-badge-wrapper">
+          <a href="https://visitorbadge.io/status?path=https%3A%2F%2Flinuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="visitor-badge-link">
+            <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Flinuxcollective.github.io&label=VISITORS&countColor=%232563eb&style=flat-square" alt="Visitor Counter" loading="lazy" />
+          </a>
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="site-footer-bottom">
+      <div class="footer-bottom-copy">
+        &copy; 2022-2026 <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer">CloudNativeFolks</a>. Built for the open source community.
+      </div>
+      <div class="footer-bottom-love">
+        Engineered with <i class="icon icon-love icon-colored"></i> by <a href="https://blog.cloudnativefolks.org" target="_blank" rel="noopener noreferrer">@CloudNativeFolks</a>
+      </div>
+    </div>
+  </div>
+</footer>
+    
+
+
+
+
+
+
+<script type="text/javascript" src="/js/base.min.js"></script>
+
+
+
+  
+  <script src="/js/component/docsearch.min.js"></script>
+  <script type="application/javascript">
+      docsearch({
+          container: '#site-header-search',
+          appId: '',
+          indexName: '',
+          apiKey: '',
+      });
+  </script>
+
+  </body>
+</html>

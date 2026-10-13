@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta name="author" content="CloudNativeFolks">
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+
+
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://linuxcollective.github.io/docs/roadmap/">
+<meta property="og:title" content="Linux Systems Engineering Roadmap · Linux Collective">
+<meta property="og:description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta property="og:image" content="https://linuxcollective.github.io//img/icon/Linux%20Collective.png">
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://linuxcollective.github.io/docs/roadmap/">
+<meta name="twitter:title" content="Linux Systems Engineering Roadmap · Linux Collective">
+<meta name="twitter:description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta name="twitter:image" content="https://linuxcollective.github.io//img/icon/Linux%20Collective.png">
+
+<title>Linux Systems Engineering Roadmap · Linux Collective</title>
+
+<link rel="canonical" href="https://linuxcollective.github.io/docs/roadmap/">
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/scss/base.css" integrity="">
+
+
+
+<link rel="stylesheet" href="/scss/theme/default.css" integrity="">
+
+
+
+  
+
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/img/icon/favicon.ico">
+<link rel="icon" href="/img/icon/icon-16.png" sizes="16x16" type="image/png">
+<link rel="icon" href="/img/icon/icon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/img/icon/icon-180.png" sizes="180x180">
+
+
+    <script 
+     src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/quizdown.js">
+  </script>
+  <script 
+      src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/extensions/quizdownKatex.js">
+  </script>
+  <script 
+      src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/extensions/quizdownHighlight.js">
+  </script>
+  <script>quizdown.register(quizdownHighlight).register(quizdownKatex).init()</script> 
+  </head>
+  <body>
+    <header id="site-header">
+  <div class="site-header-inner">
+    
+    <div id="site-header-brand">
+      <a href="/" class="brand-link">
+        <span class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="3" width="20" height="18" rx="4" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-width="1.75"/>
+            <path d="M7 9L10.5 12L7 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.5 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">Linux Collective</span>
+        <span class="brand-badge">Open Source</span>
+      </a>
+    </div>
+
+    
+    <div id="site-header-menu">
+      <nav>
+        <ul>
+          
+          
+          
+            
+            <li>
+              <a href="/"  >
+                <i class='icon icon-home'></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/"  class="active" >
+                <i class='icon icon-book'></i>
+                <span>Docs</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/roadmap/"  class="active" >
+                <i class='icon icon-book'></i>
+                <span>Roadmap</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/linux-kernel/"  >
+                <i class='icon icon-kernel'></i>
+                <span>Kernel</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="https://discord.gg/rEvr7vq"   target="_blank" rel="noopener noreferrer">
+                <i class='icon icon-discord'></i>
+                <span>Community</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="https://github.com/linuxcollective/linuxcollective.github.io"   target="_blank" rel="noopener noreferrer">
+                <i class='icon icon-github'></i>
+                <span>GitHub</span>
+              </a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+
+    
+    <div id="site-header-controls">
+      
+      <div id="site-header-search"></div>
+
+      
+      <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="header-action-btn github-btn" title="GitHub Repository" aria-label="GitHub Repository">
+        <i class="icon icon-github"></i>
+        <span class="btn-text">GitHub</span>
+      </a>
+
+      
+      <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" class="header-action-btn discord-btn" title="Join Discord Community" aria-label="Discord Community">
+        <i class="icon icon-discord icon-colored"></i>
+      </a>
+
+      
+      <div class="dropdown theme-dropdown">
+        <button class="dropdown-btn" aria-haspopup="menu" aria-label="Toggle theme">
+          <i class="icon icon-brightness"></i>
+          <i class="icon icon-select"></i>
+        </button>
+        <ul role="menu" class="dropdown-menu">
+          <li role="menuitem"><button class="color-scheme" data-value="light"><i class="icon icon-light-mode"></i> Light</button></li>
+          <li role="menuitem"><button class="color-scheme" data-value="dark"><i class="icon icon-dark-mode"></i> Dark</button></li>
+          <li role="menuitem"><button class="color-scheme" data-value="night"><i class="icon icon-night-mode"></i> Night</button></li>
+        </ul>
+      </div>
+
+      
+      <button id="site-header-mobile-toggle" aria-label="Toggle navigation menu" class="mobile-toggle-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+    
+<div id="site-main-content-wrapper">
+  
+  
+    <aside id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-header-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span>Course Modules</span>
+    </div>
+    <span class="btn-close" aria-label="Close sidebar"><i class="icon icon-close"></i></span>
+  </div>
+
+  <div class="sidebar-nav-container"><div class="sidebar-group">
+        <strong class="sidebar-section">Getting Started</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/overview/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Overview</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link current" href="/docs/roadmap/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Learning Roadmap</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Linux Foundations &amp; Distros</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/shell-and-sysadmin/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Shell &amp; systemd Admin</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-history/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux History</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-distros/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Distros</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Architecture &amp; Core Subsystems</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/level-layer-abstraction/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Level &amp; Layer Abstraction</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-kernel/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Kernel</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-kernel-subsystem/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Kernel Subsystem</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/process-management/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Process Management</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/storage-and-io/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Storage &amp; io_uring</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Advanced Systems &amp; Kernel Dev</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/container-primitives/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Container Primitives</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/ebpf-and-observability/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Performance &amp; eBPF</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/kernel-drivers-and-modules/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Kernel Drivers &amp; LKML</span>
+              </a>
+
+            
+        </div>
+      </div>
+  </div>
+</aside>
+  
+  <main>
+    <article id="article">
+      <nav id="article-nav">
+  <button id="article-nav-menu-btn"><i class="icon icon-menu"></i> On this section</button>
+  <button id="article-nav-toc-btn"><i class="icon icon-toc"></i> On this page</button>
+</nav>
+      <header id="article-header">
+  
+  <nav class="article-breadcrumbs" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/docs/overview/">Documentation</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-current">Linux Systems Engineering Roadmap</span>
+  </nav>
+
+  <h1 class="article-title">Linux Systems Engineering Roadmap</h1>
+
+  <div class="article-meta-bar">
+    <span class="article-meta-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      8 min read
+    </span>
+    <span class="article-meta-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      1481 words
+    </span>
+    
+    <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/roadmap.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
+      <i class="icon icon-github"></i>
+      <span>Edit on GitHub</span>
+    </a>
+    
+  </div>
+</header>
+      <div id="article-content">
+        
+        
+        <blockquote>
+<p><em>&ldquo;Talk is cheap. Show me the code.&rdquo;</em> — <strong>Linus Torvalds</strong></p>
+</blockquote>
+<p>A step-by-step path from your first terminal command to writing kernel drivers and submitting patches upstream. Each tier builds on the previous one — follow them in order.</p>
+<hr>
+<h2 id="the-10-tier-learning-path">The 10-Tier Learning Path</h2>
+<pre tabindex="0"><code> Tier 10 ─ Kernel Drivers &amp; Upstream Patches        ← You write kernel code
+ Tier 09 ─ Performance Engineering &amp; eBPF            ← You trace the kernel live
+ Tier 08 ─ Containers from Scratch                   ← You build Docker by hand
+ Tier 07 ─ Storage, Filesystems &amp; io_uring           ← You master disk I/O
+ Tier 06 ─ Processes, Threads &amp; Context Switching    ← You understand task_struct
+ Tier 05 ─ Kernel Subsystems (VFS, MM, Sched, Net)   ← You read kernel source
+ Tier 04 ─ Kernel Architecture &amp; Boot Sequence       ← You compile a kernel
+ Tier 03 ─ Protection Rings, MMU &amp; System Calls      ← You cross the Ring 0 boundary
+ Tier 02 ─ systemd, Storage &amp; Networking             ← You administer servers
+ Tier 01 ─ Shell, Permissions &amp; POSIX Basics         ← You start here
+</code></pre><hr>
+<h2 id="tier-01--shell-permissions--posix-basics">Tier 01 — Shell, Permissions &amp; POSIX Basics</h2>
+<p>📖 <strong><a href="/docs/shell-and-sysadmin/">Full Guide →</a></strong></p>
+<p><strong>What you learn:</strong> The Unix philosophy, filesystem hierarchy, file permissions, and shell scripting.</p>
+<p><strong>Key concepts:</strong></p>
+<ul>
+<li>Filesystem Hierarchy Standard — what <code>/etc</code>, <code>/var</code>, <code>/proc</code>, <code>/sys</code>, <code>/dev</code> are for</li>
+<li>Permission bits — <code>rwx</code> octal notation, SUID (<code>4000</code>), SGID (<code>2000</code>), Sticky Bit (<code>1000</code>)</li>
+<li>Text processing pipelines — <code>grep</code>, <code>awk</code>, <code>sed</code>, <code>sort</code>, <code>uniq</code>, <code>xargs</code></li>
+<li>Shell scripting — exit codes, signals, job control, process substitution</li>
+</ul>
+<p><strong>Labs:</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Write a shell script that parses Nginx logs, counts HTTP 500 errors per IP, and shows the top 10</li>
+<li><input disabled="" type="checkbox"> Create a shared directory with SGID + Sticky Bit so team files inherit group and can&rsquo;t be deleted by others</li>
+</ul>
+<hr>
+<h2 id="tier-02--systemd-storage--networking">Tier 02 — systemd, Storage &amp; Networking</h2>
+<p>📖 <strong><a href="/docs/shell-and-sysadmin/">Full Guide →</a></strong></p>
+<p><strong>What you learn:</strong> Managing services, disks, networks, and SSH on production Linux servers.</p>
+<p><strong>Key concepts:</strong></p>
+<ul>
+<li><strong>systemd</strong> — PID 1, unit files (<code>.service</code>, <code>.socket</code>, <code>.timer</code>), sandboxing (<code>ProtectSystem</code>, <code>PrivateTmp</code>)</li>
+<li><strong>Storage</strong> — GPT partitioning, LVM (PV → VG → LV), ext4 vs XFS vs Btrfs</li>
+<li><strong>Networking</strong> — <code>ip link/addr/route</code>, <code>ss -tulpn</code>, nftables firewall rules</li>
+<li><strong>SSH</strong> — Ed25519 keys, disabling password auth, agent forwarding</li>
+</ul>
+<p><strong>Labs:</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Write a <code>systemd</code> service with cgroup limits (<code>MemoryMax=500M</code>, <code>CPUQuota=50%</code>) and security sandboxing</li>
+<li><input disabled="" type="checkbox"> Partition a disk with GPT, create an LVM volume group, format as XFS, and mount via <code>/etc/fstab</code></li>
+</ul>
+<hr>
+<h2 id="tier-03--protection-rings-mmu--system-calls">Tier 03 — Protection Rings, MMU &amp; System Calls</h2>
+<p>📖 <strong><a href="/docs/level-layer-abstraction/">Full Guide →</a></strong></p>
+<p><strong>What you learn:</strong> How CPU hardware enforces isolation between user programs and the kernel.</p>
+<p><strong>Key concepts:</strong></p>
+<ul>
+<li><strong>CPU rings</strong> — Ring 0 (kernel) vs Ring 3 (user). ARM: EL0/EL1/EL2/EL3</li>
+<li><strong>Virtual address space</strong> — 128 TB user / 128 TB kernel split, non-canonical hole</li>
+<li><strong>Page tables</strong> — PGD → P4D → PUD → PMD → PTE, TLB cache, KPTI</li>
+<li><strong>System calls</strong> — <code>syscall</code> instruction, register conventions (<code>%rax</code>, <code>%rdi</code>, <code>%rsi</code>&hellip;), vDSO</li>
+</ul>
+<p><strong>Labs:</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Write a C program using raw inline assembly <code>syscall</code> (no glibc) to print a message to stdout</li>
+<li><input disabled="" type="checkbox"> Inspect <code>/proc/self/maps</code> and identify <code>.text</code>, <code>[heap]</code>, <code>[stack]</code>, and <code>[vdso]</code> regions</li>
+</ul>
+<hr>
+<h2 id="tier-04--kernel-architecture--boot-sequence">Tier 04 — Kernel Architecture &amp; Boot Sequence</h2>
+<p>📖 <strong><a href="/docs/linux-kernel/">Full Guide →</a></strong></p>
+<p><strong>What you learn:</strong> How the Linux kernel is structured and how a machine boots from power-on to PID 1.</p>
+<p><strong>Key concepts:</strong></p>
+<ul>
+<li><strong>Monolithic kernel</strong> — All subsystems in one address space; modularity via Loadable Kernel Modules</li>
+<li><strong>Source tree</strong> — <code>arch/</code>, <code>mm/</code>, <code>fs/</code>, <code>net/</code>, <code>drivers/</code>, <code>kernel/</code>, <code>init/</code>, <code>rust/</code></li>
+<li><strong>LKM basics</strong> — <code>module_init()</code>, <code>module_exit()</code>, <code>EXPORT_SYMBOL_GPL</code>, <code>/proc/kallsyms</code></li>
+<li><strong>Boot pipeline</strong> — UEFI → GRUB → <code>vmlinuz</code> decompress → <code>start_kernel()</code> → initramfs → <code>pivot_root</code> → PID 1</li>
+<li><strong>Preemption</strong> — <code>PREEMPT_NONE</code> (servers) → <code>PREEMPT_VOLUNTARY</code> (desktop) → <code>PREEMPT_RT</code> (real-time)</li>
+</ul>
+<p><strong>Labs:</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Write a kernel module with configurable parameters, insert it with <code>insmod</code>, verify output in <code>dmesg</code></li>
+<li><input disabled="" type="checkbox"> Download kernel source from kernel.org, configure with <code>make defconfig</code>, compile, and boot in QEMU</li>
+</ul>
+<hr>
+<h2 id="tier-05--kernel-subsystems-vfs-mm-scheduler-net-ipc">Tier 05 — Kernel Subsystems (VFS, MM, Scheduler, Net, IPC)</h2>
+<p>📖 <strong><a href="/docs/linux-kernel-subsystem/">Full Guide →</a></strong></p>
+<p><strong>What you learn:</strong> The five core engines inside the Linux kernel and how they cooperate.</p>
+<p><strong>Key concepts:</strong></p>
+<ol>
+<li><strong>VFS</strong> — <code>super_block</code>, <code>inode</code>, <code>dentry</code>, <code>file</code>; page cache and dirty writeback</li>
+<li><strong>Memory Manager</strong> — Buddy allocator (page frames), SLUB allocator (kernel objects), demand paging, OOM killer</li>
+<li><strong>Scheduler</strong> — <code>SCHED_NORMAL</code>, <code>SCHED_FIFO</code>, <code>SCHED_DEADLINE</code>; CFS → EEVDF (Linux 6.6+); SMP load balancing</li>
+<li><strong>Networking</strong> — <code>sk_buff</code> lifecycle, NAPI polling, Netfilter hooks, eBPF XDP</li>
+<li><strong>IPC</strong> — Signals, pipes, Unix sockets (<code>SCM_RIGHTS</code> fd passing), shared memory + futex</li>
+</ol>
+<p><strong>Labs:</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Monitor page faults with <code>vmstat 1</code> and <code>sar -B</code> while a program allocates and touches 128 MB of memory</li>
+<li><input disabled="" type="checkbox"> Write a C program that passes an open file descriptor over a Unix socket using <code>sendmsg()</code> and <code>SCM_RIGHTS</code></li>
+</ul>
+<hr>
+<h2 id="tier-06--processes-threads--context-switching">Tier 06 — Processes, Threads &amp; Context Switching</h2>
+<p>📖 <strong><a href="/docs/process-management/">Full Guide →</a></strong></p>
+<p><strong>What you learn:</strong> How the kernel represents, creates, and switches between running programs.</p>
+<p><strong>Key concepts:</strong></p>
+<ul>
+<li><strong><code>task_struct</code></strong> — <code>pid</code> vs <code>tgid</code>, process states (<code>RUNNING</code>, <code>INTERRUPTIBLE</code>, <code>ZOMBIE</code>)</li>
+<li><strong><code>clone()</code> flags</strong> — <code>CLONE_VM</code> (share memory = thread), <code>CLONE_FILES</code>, <code>CLONE_NEWPID</code> (container)</li>
+<li><strong>Copy-On-Write</strong> — <code>fork()</code> shares pages read-only, write triggers page fault → <code>do_wp_page()</code> allocates new frame</li>
+<li><strong><code>execve()</code></strong> — Validates ELF magic (<code>7F 45 4C 46</code>), maps <code>.text</code>/<code>.data</code>/<code>.bss</code>, sets up stack</li>
+<li><strong>Context switch</strong> — Timer interrupt → <code>schedule()</code> → <code>switch_mm()</code> (new CR3) → <code>switch_to()</code> (swap <code>%rsp</code>)</li>
+<li><strong>Zombies</strong> — Why they exist, why <code>kill -9</code> doesn&rsquo;t work on them, how PID 1 reaps orphans</li>
+</ul>
+<p><strong>Labs:</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Write a C program that creates a zombie process, verify it shows state <code>Z</code> in <code>ps</code>, then reap it with <code>waitpid()</code></li>
+<li><input disabled="" type="checkbox"> Use <code>strace -f</code> on a multi-threaded program and observe the <code>clone()</code> flags</li>
+</ul>
+<hr>
+<h2 id="tier-07--storage-filesystems--io_uring">Tier 07 — Storage, Filesystems &amp; io_uring</h2>
+<p>📖 <strong><a href="/docs/storage-and-io/">Full Guide →</a></strong></p>
+<p><strong>What you learn:</strong> How data flows from <code>write()</code> to physical disk, and how <code>io_uring</code> eliminates syscall overhead.</p>
+<p><strong>Key concepts:</strong></p>
+<ul>
+<li><strong>Block layer</strong> — <code>struct bio</code>, multi-queue <code>blk-mq</code>, I/O schedulers (<code>mq-deadline</code>, <code>bfq</code>, <code>none</code>)</li>
+<li><strong>Direct I/O</strong> — <code>O_DIRECT</code> bypasses page cache; requires aligned buffers</li>
+<li><strong>Filesystems</strong> — Ext4 (journaling modes), XFS (allocation groups), Btrfs (COW snapshots)</li>
+<li><strong>Page cache tuning</strong> — <code>vm.dirty_ratio</code>, <code>vm.dirty_background_ratio</code>, <code>[kworker]</code> flusher threads</li>
+<li><strong><code>io_uring</code></strong> — Shared-memory SQ/CQ ring buffers, zero-copy I/O, <code>SQPOLL</code> mode for zero-syscall I/O</li>
+</ul>
+<p><strong>Labs:</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Write a C program using <code>liburing</code> to read a file asynchronously via submission/completion queues</li>
+<li><input disabled="" type="checkbox"> Benchmark <code>io_uring</code> vs <code>libaio</code> vs <code>psync</code> using <code>fio</code> with varying queue depths</li>
+</ul>
+<hr>
+<h2 id="tier-08--containers-from-scratch">Tier 08 — Containers from Scratch</h2>
+<p>📖 <strong><a href="/docs/container-primitives/">Full Guide →</a></strong></p>
+<p><strong>What you learn:</strong> Containers are just processes. You&rsquo;ll build one from raw kernel primitives — no Docker needed.</p>
+<p><strong>Key concepts:</strong></p>
+<ul>
+<li><strong>Namespaces</strong> — The 7 isolation boundaries: PID, NET, MNT, UTS, IPC, USER, CGROUP</li>
+<li><strong>cgroups v2</strong> — Unified hierarchy at <code>/sys/fs/cgroup</code>; <code>memory.max</code>, <code>cpu.max</code>, <code>pids.max</code>, <code>io.max</code></li>
+<li><strong>OverlayFS</strong> — Layered filesystem (read-only lower + read-write upper = merged view)</li>
+<li><strong><code>pivot_root</code></strong> — Secure root filesystem swap (vs. escapable <code>chroot</code>)</li>
+<li><strong>Security</strong> — Linux capabilities, Seccomp-BPF syscall filtering, AppArmor/SELinux</li>
+</ul>
+<p><strong>Labs:</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Build a container runtime using <code>unshare</code>, <code>pivot_root</code>, and an Alpine rootfs in a shell script</li>
+<li><input disabled="" type="checkbox"> Create a cgroup with <code>memory.max=50M</code>, run a process that allocates 100 MB, and observe the OOM kill in <code>dmesg</code></li>
+<li><input disabled="" type="checkbox"> Write a Seccomp-BPF filter in C that kills a process when it attempts <code>mkdir()</code></li>
+</ul>
+<hr>
+<h2 id="tier-09--performance-engineering--ebpf">Tier 09 — Performance Engineering &amp; eBPF</h2>
+<p>📖 <strong><a href="/docs/ebpf-and-observability/">Full Guide →</a></strong></p>
+<p><strong>What you learn:</strong> How to find and fix performance bottlenecks using kernel tracing and eBPF programs.</p>
+<p><strong>Key concepts:</strong></p>
+<ul>
+<li><strong>Methodology</strong> — Brendan Gregg&rsquo;s USE (Utilization/Saturation/Errors) and RED (Rate/Errors/Duration)</li>
+<li><strong>Probe types</strong> — Tracepoints (stable/static), kprobes (dynamic kernel), uprobes (dynamic userspace), PMU counters</li>
+<li><strong>eBPF</strong> — In-kernel VM with verifier + JIT; BPF maps (hash, ringbuf, per-CPU); attach to any hook point</li>
+<li><strong>Tools</strong> — <code>perf record/script</code>, <code>bpftrace</code> one-liners, BCC tools (<code>execsnoop</code>, <code>biolatency</code>, <code>tcpconnect</code>)</li>
+<li><strong>Flame Graphs</strong> — Visualize CPU call stacks; wide plateaus = hotspots</li>
+</ul>
+<p><strong>Labs:</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Write a <code>bpftrace</code> one-liner that histograms <code>vfs_read()</code> latency in microseconds:
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">bpftrace -e <span class="s1">&#39;kprobe:vfs_read { @start[tid] = nsecs; } kretprobe:vfs_read /@start[tid]/ { @us = hist((nsecs - @start[tid]) / 1000); delete(@start[tid]); }&#39;</span>
+</span></span></code></pre></div></li>
+<li><input disabled="" type="checkbox"> Profile a process with <code>perf record -F 99 -a -g -- sleep 30</code>, then generate an SVG flame graph</li>
+<li><input disabled="" type="checkbox"> Write a standalone eBPF program in C that traces every <code>execve()</code> and logs PID + binary path</li>
+</ul>
+<hr>
+<h2 id="tier-10--kernel-drivers--upstream-patches">Tier 10 — Kernel Drivers &amp; Upstream Patches</h2>
+<p>📖 <strong><a href="/docs/kernel-drivers-and-modules/">Full Guide →</a></strong></p>
+<p><strong>What you learn:</strong> Writing code that runs in Ring 0 and getting it accepted into the Linux kernel.</p>
+<p><strong>Key concepts:</strong></p>
+<ul>
+<li><strong>Character drivers</strong> — <code>alloc_chrdev_region</code>, <code>struct cdev</code>, <code>struct file_operations</code> (<code>open</code>, <code>read</code>, <code>write</code>)</li>
+<li><strong>User↔Kernel boundary</strong> — <code>copy_to_user()</code> / <code>copy_from_user()</code> (never dereference user pointers directly!)</li>
+<li><strong>Synchronization</strong> — Spinlocks (never sleep!), Mutexes (can sleep), RCU (lockless reads, deferred reclaim)</li>
+<li><strong>Rust in the kernel</strong> — Memory-safe drivers via the <code>kernel</code> crate (<code>rust/kernel/</code>)</li>
+<li><strong>Patch workflow</strong> — <code>scripts/checkpatch.pl</code>, <code>git format-patch</code>, <code>git send-email</code> to LKML</li>
+</ul>
+<p><strong>Labs:</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Write a character device driver (<code>/dev/ringbuf</code>) with a circular buffer, mutex locking, and <code>copy_to_user()</code></li>
+<li><input disabled="" type="checkbox"> Test your driver: <code>echo &quot;hello&quot; &gt; /dev/ringbuf</code> then <code>cat /dev/ringbuf</code></li>
+<li><input disabled="" type="checkbox"> Format a patch with <code>git format-patch</code>, validate with <code>checkpatch.pl --strict</code></li>
+</ul>
+<hr>
+<h2 id="recommended-reading">Recommended Reading</h2>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: left">Book</th>
+					<th style="text-align: left">Author</th>
+					<th style="text-align: left">Best For</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: left"><strong>Linux Kernel Development (3rd Ed.)</strong></td>
+					<td style="text-align: left">Robert Love</td>
+					<td style="text-align: left">Clear kernel architecture introduction</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Understanding the Linux Kernel (3rd Ed.)</strong></td>
+					<td style="text-align: left">Bovet &amp; Cesati</td>
+					<td style="text-align: left">Deep reference for MM, scheduler, VFS</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Systems Performance (2nd Ed.)</strong></td>
+					<td style="text-align: left">Brendan Gregg</td>
+					<td style="text-align: left">Performance analysis and eBPF</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>The Linux Programming Interface</strong></td>
+					<td style="text-align: left">Michael Kerrisk</td>
+					<td style="text-align: left">Complete syscall and POSIX API reference</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Linux Device Drivers (3rd Ed.)</strong></td>
+					<td style="text-align: left">Corbet, Rubini, Kroah-Hartman</td>
+					<td style="text-align: left">Driver and module development</td>
+			</tr>
+	</tbody>
+</table>
+
+      </div>
+      
+
+
+
+
+
+
+
+
+  
+  
+  
+        
+
+        
+          
+        
+
+      
+    
+        
+
+      
+    
+        
+
+        
+          
+        
+
+        
+        
+      
+
+
+<footer id="article-footer">
+  <div class="article-footer-top">
+    <time id="article-last-updated" datetime="0001-01-01"><i class="icon icon-calendar"></i>&nbsp;Last updated: 0001-01-01</time>
+  </div>
+
+  <div class="article-pagination">
+    
+      <a id="article-prev-link" class="pagination-card pagination-prev" href="/docs/overview/">
+        <span class="pagination-sub">&larr; Previous</span>
+        <span class="pagination-title">Overview</span>
+      </a>
+    
+
+    
+      <a id="article-next-link" class="pagination-card pagination-next" href="/docs/shell-and-sysadmin/">
+        <span class="pagination-sub">Next &rarr;</span>
+        <span class="pagination-title">Shell &amp; systemd Admin</span>
+      </a>
+    
+  </div>
+</footer>
+    </article>
+    <aside id="toc">
+  <span class="btn-close"><i class="icon icon-close"></i></span>
+  <div class="sticky">
+    <strong><i class="icon icon-toc"></i> On this page</strong>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#the-10-tier-learning-path">The 10-Tier Learning Path</a></li>
+    <li><a href="#tier-01--shell-permissions--posix-basics">Tier 01 — Shell, Permissions &amp; POSIX Basics</a></li>
+    <li><a href="#tier-02--systemd-storage--networking">Tier 02 — systemd, Storage &amp; Networking</a></li>
+    <li><a href="#tier-03--protection-rings-mmu--system-calls">Tier 03 — Protection Rings, MMU &amp; System Calls</a></li>
+    <li><a href="#tier-04--kernel-architecture--boot-sequence">Tier 04 — Kernel Architecture &amp; Boot Sequence</a></li>
+    <li><a href="#tier-05--kernel-subsystems-vfs-mm-scheduler-net-ipc">Tier 05 — Kernel Subsystems (VFS, MM, Scheduler, Net, IPC)</a></li>
+    <li><a href="#tier-06--processes-threads--context-switching">Tier 06 — Processes, Threads &amp; Context Switching</a></li>
+    <li><a href="#tier-07--storage-filesystems--io_uring">Tier 07 — Storage, Filesystems &amp; io_uring</a></li>
+    <li><a href="#tier-08--containers-from-scratch">Tier 08 — Containers from Scratch</a></li>
+    <li><a href="#tier-09--performance-engineering--ebpf">Tier 09 — Performance Engineering &amp; eBPF</a></li>
+    <li><a href="#tier-10--kernel-drivers--upstream-patches">Tier 10 — Kernel Drivers &amp; Upstream Patches</a></li>
+    <li><a href="#recommended-reading">Recommended Reading</a></li>
+  </ul>
+</nav>
+  </div>
+</aside>
+  </main>
+</div>
+
+    <footer id="site-footer">
+  <div class="site-footer-container">
+    <div class="site-footer-grid">
+      
+      <div class="footer-col footer-col-brand">
+        <div class="footer-brand">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="3" width="20" height="18" rx="4" fill="currentColor" fill-opacity="0.12" stroke="currentColor" stroke-width="1.75"/>
+            <path d="M7 9L10.5 12L7 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.5 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span class="footer-brand-title">Linux Collective</span>
+        </div>
+        <p class="footer-tagline">
+          An open-source knowledge hub and community deep-dive initiative exploring Linux architecture, kernel internals, and modern systems engineering.
+        </p>
+        <div class="footer-social-links">
+          
+          <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon-link">
+            <i class="icon icon-github"></i>
+          </a>
+          
+          
+          <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" aria-label="Discord" class="social-icon-link">
+            <i class="icon icon-discord icon-colored"></i>
+          </a>
+          
+          
+          <a href="https://www.youtube.com/@CloudNativeFolks" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="social-icon-link">
+            <i class="icon icon-youtube icon-colored"></i>
+          </a>
+          
+          
+          <a href="https://twitter.com/i/communities/1499311438745468931" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" class="social-icon-link">
+            <i class="icon icon-twitter icon-colored"></i>
+          </a>
+          
+        </div>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Documentation</h4>
+        <ul class="footer-links">
+          <li><a href="/docs/overview/">Getting Started</a></li>
+          <li><a href="/docs/roadmap/">Engineering Roadmap</a></li>
+          <li><a href="/docs/linux-history/">Linux History</a></li>
+          <li><a href="/docs/linux-distros/">Linux Distributions</a></li>
+          <li><a href="/docs/level-layer-abstraction/">Levels & Abstractions</a></li>
+          <li><a href="/docs/linux-kernel/">Linux Kernel Internals</a></li>
+          <li><a href="/docs/linux-kernel-subsystem/">Kernel Subsystems</a></li>
+          <li><a href="/docs/process-management/">Process Management</a></li>
+        </ul>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Community</h4>
+        <ul class="footer-links">
+          <li><a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer">CloudNativeFolks Discord</a></li>
+          <li><a href="https://blog.cloudnativefolks.org" target="_blank" rel="noopener noreferrer">Community Blog</a></li>
+          <li><a href="https://www.youtube.com/@CloudNativeFolks" target="_blank" rel="noopener noreferrer">YouTube Channel</a></li>
+          <li><a href="https://twitter.com/i/communities/1499311438745468931" target="_blank" rel="noopener noreferrer">Twitter / X Community</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/graphs/contributors" target="_blank" rel="noopener noreferrer">Contributors Showcase</a></li>
+        </ul>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Open Source</h4>
+        <ul class="footer-links">
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/issues" target="_blank" rel="noopener noreferrer">Report an Issue</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/pulls" target="_blank" rel="noopener noreferrer">Submit Contribution</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License (MIT)</a></li>
+        </ul>
+        <div class="footer-badge-wrapper">
+          <a href="https://visitorbadge.io/status?path=https%3A%2F%2Flinuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="visitor-badge-link">
+            <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Flinuxcollective.github.io&label=VISITORS&countColor=%232563eb&style=flat-square" alt="Visitor Counter" loading="lazy" />
+          </a>
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="site-footer-bottom">
+      <div class="footer-bottom-copy">
+        &copy; 2022-2026 <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer">CloudNativeFolks</a>. Built for the open source community.
+      </div>
+      <div class="footer-bottom-love">
+        Engineered with <i class="icon icon-love icon-colored"></i> by <a href="https://blog.cloudnativefolks.org" target="_blank" rel="noopener noreferrer">@CloudNativeFolks</a>
+      </div>
+    </div>
+  </div>
+</footer>
+    
+
+
+
+
+
+
+<script type="text/javascript" src="/js/base.min.js"></script>
+
+
+
+  
+  <script src="/js/component/docsearch.min.js"></script>
+  <script type="application/javascript">
+      docsearch({
+          container: '#site-header-search',
+          appId: '',
+          indexName: '',
+          apiKey: '',
+      });
+  </script>
+
+  </body>
+</html>

@@ -1,52 +1,83 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>Docs on Linux Collective</title>
-    <link>https://linuxcollective.github.io/docs/</link>
-    <description>Recent content in Docs on Linux Collective</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en</language><atom:link href="https://linuxcollective.github.io/docs/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>level &amp; Layer abstraction</title>
-      <link>https://linuxcollective.github.io/docs/level-layer-abstraction/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://linuxcollective.github.io/docs/level-layer-abstraction/</guid>
-      <description>Using abstraction to split computing systems into components makes things easier to understand, but it doesn’t work without organization.
-We arrange components into layers or levels, classifications (or groupings) of components according to where the components sit between the user and the hardware. Web browsers, games, and such sit at the top layer; at the bottom layer we have the memory in the computer hardware—the 0s and 1s. The operating system occupies many of the layers in between.</description>
-    </item>
-    
-    <item>
-      <title>Linux Distros</title>
-      <link>https://linuxcollective.github.io/docs/linux-distros/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://linuxcollective.github.io/docs/linux-distros/</guid>
-      <description>Linux Distributions or Distros are operating systems with different software packages built on the Linux kernel. There are hundreds of distros built to serve one or more needs of its user. This diversity is what makes Linux the perfect tinkerer operating system.
-Common Linux Distributions Ubuntu - A user-friendly and widely-adopted distribution backed by Canonical. Fedora - Red Hat&amp;rsquo;s community-driven distribution, known for cutting-edge features. Debian - A universal operating system and the base for many other distributions.</description>
-    </item>
-    
-    <item>
-      <title>Linux History</title>
-      <link>https://linuxcollective.github.io/docs/linux-history/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://linuxcollective.github.io/docs/linux-history/</guid>
-      <description>here&amp;rsquo;s a summarized overview of the history of Linux broken down by years:
-1991: Linus Torvalds, a Finnish student, releases the first version of the Linux kernel (0.01) as an open-source project. This marks the beginning of the Linux operating system.
-1992: The second version of the Linux kernel (0.12) is released, and the first Linux-related newsgroup is created. The concept of &amp;ldquo;Linux distributions&amp;rdquo; starts to emerge as various individuals and groups package the kernel with different software packages.</description>
-    </item>
-    
-    <item>
-      <title>Overview</title>
-      <link>https://linuxcollective.github.io/docs/overview/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://linuxcollective.github.io/docs/overview/</guid>
-      <description>Welcome To linux collective
-What is Linux Collective? Linux Collective is a community of Linux users, developers, and enthusiasts. We are a group of people who love Linux and want to help others use it better. We provide support for Linux users, developers, and enthusiasts. We also provide resources for people who want to learn more about Linux or get involved with the community.
-What is Linux? Linux is an operating system that was created by Linus Torvalds in 1991.</description>
-    </item>
-    
-  </channel>
-</rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Docs on Linux Collective</title><link>https://linuxcollective.github.io/docs/</link><description>Recent content in Docs on Linux Collective</description><generator>Hugo</generator><language>en-US</language><atom:link href="https://linuxcollective.github.io/docs/index.xml" rel="self" type="application/rss+xml"/><item><title>Container Primitives: Namespaces, cgroups v2 &amp; OverlayFS</title><link>https://linuxcollective.github.io/docs/container-primitives/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/container-primitives/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&amp;ldquo;Containers are an illusion. There is no such thing as a &amp;lsquo;container&amp;rsquo; object in the Linux kernel. A container is simply a standard Linux process that has been isolated using Namespaces and throttled using Control Groups.&amp;rdquo;&lt;/em&gt;&lt;br&gt;
+— &lt;strong&gt;Linus Torvalds&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Engineers often discuss Docker, Podman, and Kubernetes as if they were virtualization hypervisors like VMware or KVM. In reality, every single container running in a production Kubernetes cluster is an ordinary Linux process running directly on the host kernel.&lt;/p&gt;</description></item><item><title>Kernel Drivers, Concurrency &amp; LKML Development</title><link>https://linuxcollective.github.io/docs/kernel-drivers-and-modules/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/kernel-drivers-and-modules/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&amp;ldquo;If you want to write kernel code, you need to understand that the kernel is an unforgiving environment. You have no libc, no dynamic stack growth, no memory protection from yourself, and if you corrupt a pointer or deadlock a spinlock, you bring down the entire operating system.&amp;rdquo;&lt;/em&gt;&lt;br&gt;
+— &lt;strong&gt;Linus Torvalds&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Developing code inside Ring 0 requires a fundamental shift in programming mindset. In user space, a segmentation fault (&lt;code&gt;SIGSEGV&lt;/code&gt;) terminates a single offending process. In kernel space:&lt;/p&gt;</description></item><item><title>Level &amp; Layer Abstraction</title><link>https://linuxcollective.github.io/docs/level-layer-abstraction/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/level-layer-abstraction/</guid><description>&lt;p&gt;&lt;img src="https://linuxcollective.github.io/img/icon/level-Layers-Abstraction.png" alt=""&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&amp;ldquo;Abstraction without hardware enforcement is just an illusion. The entire stability, security, and multitasking capability of Linux rests on physical CPU privilege boundaries and memory management hardware.&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;At the heart of Linux engineering lies a fundamental requirement: &lt;strong&gt;how does the operating system allow thousands of arbitrary, untrusted, or buggy user programs to execute on physical silicon without corrupting the machine, crashing other programs, or taking over the hardware?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The answer is &lt;strong&gt;hierarchical abstraction&lt;/strong&gt;, enforced by physical hardware mechanisms: CPU protection rings, the Memory Management Unit (MMU), and the system call boundary.&lt;/p&gt;</description></item><item><title>Linux Distributions</title><link>https://linuxcollective.github.io/docs/linux-distros/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/linux-distros/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&amp;ldquo;The kernel by itself is just an engine. Without a chassis, wheels, fuel injection, and an instrument cluster, you cannot drive it down the highway. A distribution is the complete vehicle built around that engine.&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;A common misconception among beginners is that &amp;ldquo;Linux&amp;rdquo; is a single operating system. Strictly speaking, &lt;strong&gt;Linux is only the kernel&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;A &lt;strong&gt;Linux Distribution (Distro)&lt;/strong&gt; is a complete, cohesive operating system constructed by packaging the upstream Linux kernel with a system C library (libc), an initialization daemon (PID 1), core user-space command utilities (GNU coreutils or BusyBox), a package management engine, system configuration tooling, and application suites.&lt;/p&gt;</description></item><item><title>Linux Foundations, Shell Mastery &amp; systemd</title><link>https://linuxcollective.github.io/docs/shell-and-sysadmin/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/shell-and-sysadmin/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&amp;ldquo;The Unix philosophy is simple: write programs that do one thing and do it well. Write programs to work together. Write programs to handle text streams, because that is a universal interface.&amp;rdquo;&lt;/em&gt;&lt;br&gt;
+— &lt;strong&gt;Doug McIlroy&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Before descending into Ring 0 kernel internals and memory page tables, every systems engineer must master user space: the &lt;strong&gt;Filesystem Hierarchy Standard (FHS)&lt;/strong&gt;, POSIX text processing pipelines, security permission bits, and &lt;strong&gt;&lt;code&gt;systemd&lt;/code&gt;&lt;/strong&gt; service orchestration.&lt;/p&gt;
+&lt;p&gt;In modern production environments, failing to configure a proper &lt;code&gt;systemd&lt;/code&gt; sandbox or misunderstanding Linux permission propagation can compromise an entire cluster.&lt;/p&gt;</description></item><item><title>Linux History &amp; Evolution</title><link>https://linuxcollective.github.io/docs/linux-history/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/linux-history/</guid><description>&lt;div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;"&gt;
+ &lt;iframe src="https://www.youtube.com/embed/o8NPllzkFhE" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen title="YouTube Video"&gt;&lt;/iframe&gt;
+&lt;/div&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&amp;ldquo;I&amp;rsquo;m doing a (free) operating system (just a hobby, won&amp;rsquo;t be big and professional like gnu) for 386(486) AT clones.&amp;rdquo;&lt;/em&gt;&lt;br&gt;
+— &lt;strong&gt;Linus Torvalds&lt;/strong&gt;, August 25, 1991 (comp.os.minix)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;What began in a University of Helsinki apartment in 1991 as an ambitious student project targeting the Intel 80386 processor evolved into the most ubiquitous, mission-critical software engine on Earth. Today, Linux powers over 96% of the top million web servers, 100% of the world&amp;rsquo;s 500 fastest supercomputers, billions of Android smartphones, mission-critical Mars rovers, and virtually the entirety of modern cloud infrastructure.&lt;/p&gt;</description></item><item><title>Linux Kernel Architecture</title><link>https://linuxcollective.github.io/docs/linux-kernel/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/linux-kernel/</guid><description>&lt;p&gt;&lt;img src="https://linuxcollective.github.io/img/icon/mono-micro-os.png" alt=""&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&amp;ldquo;Linux is a monolithic kernel. However, it is a modular monolithic kernel. Those who criticize monolithic architectures as inflexible usually confuse the logical structure of code with its physical address space execution model.&amp;rdquo;&lt;/em&gt;&lt;br&gt;
+— &lt;strong&gt;Linus Torvalds&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The &lt;strong&gt;Linux Kernel&lt;/strong&gt; is the foundational core of the operating system. It sits between physical silicon and user applications, acting as the ultimate arbiter of system resources: CPU time, virtual memory, storage controllers, network packet flows, and hardware interrupts.&lt;/p&gt;</description></item><item><title>Linux Kernel Subsystems</title><link>https://linuxcollective.github.io/docs/linux-kernel-subsystem/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/linux-kernel-subsystem/</guid><description>&lt;p&gt;&lt;img src="https://linuxcollective.github.io/img/icon/linux-components.png" alt=""&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&amp;ldquo;In good software engineering, subsystems should not be arbitrary silos. They must interlock cleanly: the file system relies on the memory manager, the network stack passes buffers through the socket layer, and the scheduler orchestrates them all without deadlock.&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;While the Linux kernel compiles into a single unified binary executing in Ring 0, its internal codebase is partitioned into &lt;strong&gt;five tightly integrated core subsystems&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Understanding how these subsystems collaborate under the hood reveals why Linux achieves near-zero latency, immense I/O bandwidth, and high-density virtualization.&lt;/p&gt;</description></item><item><title>Linux Systems Engineering Roadmap</title><link>https://linuxcollective.github.io/docs/roadmap/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/roadmap/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&amp;ldquo;Talk is cheap. Show me the code.&amp;rdquo;&lt;/em&gt; — &lt;strong&gt;Linus Torvalds&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;A step-by-step path from your first terminal command to writing kernel drivers and submitting patches upstream. Each tier builds on the previous one — follow them in order.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="the-10-tier-learning-path"&gt;The 10-Tier Learning Path&lt;/h2&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt; Tier 10 ─ Kernel Drivers &amp;amp; Upstream Patches ← You write kernel code
+ Tier 09 ─ Performance Engineering &amp;amp; eBPF ← You trace the kernel live
+ Tier 08 ─ Containers from Scratch ← You build Docker by hand
+ Tier 07 ─ Storage, Filesystems &amp;amp; io_uring ← You master disk I/O
+ Tier 06 ─ Processes, Threads &amp;amp; Context Switching ← You understand task_struct
+ Tier 05 ─ Kernel Subsystems (VFS, MM, Sched, Net) ← You read kernel source
+ Tier 04 ─ Kernel Architecture &amp;amp; Boot Sequence ← You compile a kernel
+ Tier 03 ─ Protection Rings, MMU &amp;amp; System Calls ← You cross the Ring 0 boundary
+ Tier 02 ─ systemd, Storage &amp;amp; Networking ← You administer servers
+ Tier 01 ─ Shell, Permissions &amp;amp; POSIX Basics ← You start here
+&lt;/code&gt;&lt;/pre&gt;&lt;hr&gt;
+&lt;h2 id="tier-01--shell-permissions--posix-basics"&gt;Tier 01 — Shell, Permissions &amp;amp; POSIX Basics&lt;/h2&gt;
+&lt;p&gt;📖 &lt;strong&gt;&lt;a href="https://linuxcollective.github.io/docs/shell-and-sysadmin/"&gt;Full Guide →&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;</description></item><item><title>Overview</title><link>https://linuxcollective.github.io/docs/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/overview/</guid><description>&lt;p&gt;Welcome to &lt;strong&gt;Linux Collective&lt;/strong&gt; — a community-driven knowledge base and collaborative initiative dedicated to Linux systems, kernel engineering, and cloud native architectures.&lt;/p&gt;
+&lt;h2 id="what-is-linux-collective"&gt;What is Linux Collective?&lt;/h2&gt;
+&lt;p&gt;Linux Collective is an open-source initiative founded by &lt;a href="https://blog.cloudnativefolks.org"&gt;CloudNativeFolks&lt;/a&gt; to empower developers, system administrators, and infrastructure engineers with deep-dive technical insights into the Linux operating system.&lt;/p&gt;
+&lt;p&gt;We bridge the gap between basic shell usage and advanced kernel systems:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Low-Level Fundamentals&lt;/strong&gt;: Syscalls, memory virtualization, CPU rings, and hardware interrupts.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Kernel Architecture&lt;/strong&gt;: The monolithic kernel design, Linux Kernel Modules (LKM), and device driver models.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Subsystem Mechanics&lt;/strong&gt;: The Virtual File System (VFS), page cache, memory management (buddy allocator &amp;amp; slab), IPC, and network packet flow.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Container Primitives&lt;/strong&gt;: Namespaces, cgroups (v1/v2), and eBPF tooling powering modern cloud native platforms like Docker and Kubernetes.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id="learning-curriculum--modules"&gt;Learning Curriculum &amp;amp; Modules&lt;/h2&gt;
+&lt;p&gt;Explore our step-by-step documentation curriculum:&lt;/p&gt;</description></item><item><title>Performance Engineering, Observability &amp; eBPF</title><link>https://linuxcollective.github.io/docs/ebpf-and-observability/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/ebpf-and-observability/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&amp;ldquo;If you cannot measure it with low overhead, you cannot optimize it. eBPF is to the Linux kernel what JavaScript was to the web browser: it allows you to safely run custom, sandboxed code at event boundaries without modifying the kernel source or rebooting the machine.&amp;rdquo;&lt;/em&gt;&lt;br&gt;
+— &lt;strong&gt;Linus Torvalds&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;In high-throughput distributed systems, performance issues rarely manifest as simple CPU spikes. Instead, they appear as p99 tail latency outliers, lock contention in Ring 0, storage queue saturation, or scheduling delays.&lt;/p&gt;</description></item><item><title>Process &amp; Thread Management</title><link>https://linuxcollective.github.io/docs/process-management/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/process-management/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&amp;ldquo;There are no &amp;rsquo;threads&amp;rsquo; in the Linux kernel. There are only tasks that happen to share an address space and file descriptors, and tasks that do not. The distinction between a process and a thread is a user-space abstraction.&amp;rdquo;&lt;/em&gt;&lt;br&gt;
+— &lt;strong&gt;Linus Torvalds&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;In traditional operating system textbooks, a &lt;strong&gt;Process&lt;/strong&gt; is taught as an isolated program execution unit, while a &lt;strong&gt;Thread&lt;/strong&gt; is taught as a lightweight execution unit inside a process.&lt;/p&gt;</description></item><item><title>Storage Architecture, Filesystems &amp; io_uring</title><link>https://linuxcollective.github.io/docs/storage-and-io/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/storage-and-io/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&amp;ldquo;The fastest I/O is the I/O you don&amp;rsquo;t do. The second fastest is the I/O that doesn&amp;rsquo;t trap into the kernel with a system call on every single buffer.&amp;rdquo;&lt;/em&gt;&lt;br&gt;
+— &lt;strong&gt;Linus Torvalds&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Modern NVMe solid-state storage can execute millions of Input/Output Operations Per Second (IOPS) with microsecond latencies. However, traditional POSIX system call interfaces—such as &lt;code&gt;read()&lt;/code&gt;, &lt;code&gt;write()&lt;/code&gt;, and even multiplexers like &lt;code&gt;epoll&lt;/code&gt;—were architected in an era of rotational magnetic disks where rotational latency (milliseconds) dwarfed the CPU overhead of system calls and context switches.&lt;/p&gt;</description></item></channel></rss>

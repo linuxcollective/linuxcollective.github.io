@@ -1,0 +1,30 @@
+{{ define "main" }}
+<div id="site-main-content-wrapper">
+  {{ $dataLocale := index .Site.Data .Site.Language.Lang }}
+  {{ if isset $dataLocale .Section }}
+    {{ partial "sidebar" . }}
+  {{ end }}
+  <main>
+    <article id="article">
+      {{ partial "article-nav" . }}
+      {{ partial "article-header" . }}
+      <div id="article-content">
+        {{ $content := .Content }}
+        {{ if not $content }}
+          <p>Welcome to {{ .Title }}. Please choose a topic from the sidebar or explore the learning tracks below:</p>
+          <ul>
+            {{ range .Pages }}
+              <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+            {{ end }}
+          </ul>
+        {{ else }}
+          {{ $content = replaceRE `<a href="(https?://.+)">` `<a href="$1" target="_blank">` $content | safeHTML }}
+          {{ $content | safeHTML }}
+        {{ end }}
+      </div>
+      {{ partial "article-footer" . }}
+    </article>
+    {{ partial "toc" . }}
+  </main>
+</div>
+{{ end }}

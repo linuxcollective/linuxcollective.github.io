@@ -1,49 +1,226 @@
+/* ==========================================================================
+   Site Header Component Styles
+   ========================================================================== */
+
 #site-header-brand {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--color2);
+  transition: opacity 0.2s ease;
+}
+
+.brand-link:hover {
+  opacity: 0.85;
+}
+
+.brand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-anchor);
+}
+
+.brand-text {
   font-family: var(--font-family-brand);
-  font-size: 1.4em;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--color2);
 }
 
-#site-header-brand a {
-  padding: 12px;
+.brand-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--badge-text);
+  background: var(--badge-bg);
+  border: 1px solid var(--badge-border);
+  padding: 2px 7px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
+/* --------------------------------------------------------------------------
+   Navigation Menu
+   -------------------------------------------------------------------------- */
 #site-header-menu {
-  width: 100%;
-  overflow: auto;
-  padding: 0 12px;
   display: flex;
   align-items: center;
+  flex: 1;
+  justify-content: center;
 }
 
-#site-header-menu ul {
+#site-header-menu nav ul {
   display: flex;
-  height: 100%;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-#site-header-menu a {
+#site-header-menu nav ul li a {
   display: flex;
-  padding: 12px 6px;
-  gap: 3px;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--color3);
+  transition: all 0.2s ease;
 }
 
-#site-header-menu a:focus, #site-header-menu a:hover, #site-header-menu a.active {
-  border-bottom: 3px solid;
+#site-header-menu nav ul li a:hover {
+  color: var(--color2);
+  background: var(--background-fg2);
 }
 
+#site-header-menu nav ul li a.active {
+  color: var(--color-anchor);
+  background: var(--badge-bg);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   Header Controls & Action Buttons
+   -------------------------------------------------------------------------- */
 #site-header-controls {
   display: flex;
   align-items: center;
-  padding-right: 12px;
-  justify-content: flex-end;
-  gap: 12px
+  gap: 10px;
+  flex-shrink: 0;
 }
 
-#site-header-search {
+.header-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--color2);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.header-action-btn:hover {
+  border-color: var(--color-anchor);
+  color: var(--color-anchor);
+  transform: translateY(-1px);
+}
+
+.discord-btn {
+  padding: 6px 10px;
+}
+
+.mobile-toggle-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px;
+  color: var(--color2);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-toggle-btn:hover {
+  background: var(--background-fg2);
+}
+
+/* Theme selector styling */
+.theme-dropdown .dropdown-btn {
   display: flex;
   align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-dropdown .dropdown-btn:hover {
+  border-color: var(--color-anchor);
+}
+
+/* --------------------------------------------------------------------------
+   Mobile Header & Responsive Navigation
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .header-action-btn .btn-text {
+    display: none;
+  }
+
+  .header-action-btn {
+    padding: 6px 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-toggle-btn {
+    display: flex;
+  }
+
+  .brand-badge {
+    display: none;
+  }
+
+  #site-header-menu {
+    position: fixed;
+    top: var(--site-header-height);
+    left: 0;
+    right: 0;
+    background: var(--header-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 20px;
+    display: none;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+    z-index: 999;
+  }
+
+  #site-header.mobile-open #site-header-menu {
+    display: block;
+    animation: menu-slide-down 0.25s ease forwards;
+  }
+
+  #site-header-menu nav ul {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  #site-header-menu nav ul li a {
+    padding: 10px 14px;
+    font-size: 1rem;
+  }
+}
+
+@keyframes menu-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

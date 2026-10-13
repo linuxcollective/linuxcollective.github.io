@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta name="author" content="CloudNativeFolks">
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+
+
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://linuxcollective.github.io/docs/linux-kernel-subsystem/">
+<meta property="og:title" content="Linux Kernel Subsystems · Linux Collective">
+<meta property="og:description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta property="og:image" content="https://linuxcollective.github.io//img/icon/Linux%20Collective.png">
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://linuxcollective.github.io/docs/linux-kernel-subsystem/">
+<meta name="twitter:title" content="Linux Kernel Subsystems · Linux Collective">
+<meta name="twitter:description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta name="twitter:image" content="https://linuxcollective.github.io//img/icon/Linux%20Collective.png">
+
+<title>Linux Kernel Subsystems · Linux Collective</title>
+
+<link rel="canonical" href="https://linuxcollective.github.io/docs/linux-kernel-subsystem/">
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/scss/base.css" integrity="">
+
+
+
+<link rel="stylesheet" href="/scss/theme/default.css" integrity="">
+
+
+
+  
+
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/img/icon/favicon.ico">
+<link rel="icon" href="/img/icon/icon-16.png" sizes="16x16" type="image/png">
+<link rel="icon" href="/img/icon/icon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/img/icon/icon-180.png" sizes="180x180">
+
+
+    <script 
+     src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/quizdown.js">
+  </script>
+  <script 
+      src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/extensions/quizdownKatex.js">
+  </script>
+  <script 
+      src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/extensions/quizdownHighlight.js">
+  </script>
+  <script>quizdown.register(quizdownHighlight).register(quizdownKatex).init()</script> 
+  </head>
+  <body>
+    <header id="site-header">
+  <div class="site-header-inner">
+    
+    <div id="site-header-brand">
+      <a href="/" class="brand-link">
+        <span class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="3" width="20" height="18" rx="4" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-width="1.75"/>
+            <path d="M7 9L10.5 12L7 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.5 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">Linux Collective</span>
+        <span class="brand-badge">Open Source</span>
+      </a>
+    </div>
+
+    
+    <div id="site-header-menu">
+      <nav>
+        <ul>
+          
+          
+          
+            
+            <li>
+              <a href="/"  >
+                <i class='icon icon-home'></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/"  class="active" >
+                <i class='icon icon-book'></i>
+                <span>Docs</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/roadmap/"  >
+                <i class='icon icon-book'></i>
+                <span>Roadmap</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/linux-kernel/"  >
+                <i class='icon icon-kernel'></i>
+                <span>Kernel</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="https://discord.gg/rEvr7vq"   target="_blank" rel="noopener noreferrer">
+                <i class='icon icon-discord'></i>
+                <span>Community</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="https://github.com/linuxcollective/linuxcollective.github.io"   target="_blank" rel="noopener noreferrer">
+                <i class='icon icon-github'></i>
+                <span>GitHub</span>
+              </a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+
+    
+    <div id="site-header-controls">
+      
+      <div id="site-header-search"></div>
+
+      
+      <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="header-action-btn github-btn" title="GitHub Repository" aria-label="GitHub Repository">
+        <i class="icon icon-github"></i>
+        <span class="btn-text">GitHub</span>
+      </a>
+
+      
+      <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" class="header-action-btn discord-btn" title="Join Discord Community" aria-label="Discord Community">
+        <i class="icon icon-discord icon-colored"></i>
+      </a>
+
+      
+      <div class="dropdown theme-dropdown">
+        <button class="dropdown-btn" aria-haspopup="menu" aria-label="Toggle theme">
+          <i class="icon icon-brightness"></i>
+          <i class="icon icon-select"></i>
+        </button>
+        <ul role="menu" class="dropdown-menu">
+          <li role="menuitem"><button class="color-scheme" data-value="light"><i class="icon icon-light-mode"></i> Light</button></li>
+          <li role="menuitem"><button class="color-scheme" data-value="dark"><i class="icon icon-dark-mode"></i> Dark</button></li>
+          <li role="menuitem"><button class="color-scheme" data-value="night"><i class="icon icon-night-mode"></i> Night</button></li>
+        </ul>
+      </div>
+
+      
+      <button id="site-header-mobile-toggle" aria-label="Toggle navigation menu" class="mobile-toggle-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+    
+<div id="site-main-content-wrapper">
+  
+  
+    <aside id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-header-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span>Course Modules</span>
+    </div>
+    <span class="btn-close" aria-label="Close sidebar"><i class="icon icon-close"></i></span>
+  </div>
+
+  <div class="sidebar-nav-container"><div class="sidebar-group">
+        <strong class="sidebar-section">Getting Started</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/overview/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Overview</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/roadmap/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Learning Roadmap</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Linux Foundations &amp; Distros</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/shell-and-sysadmin/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Shell &amp; systemd Admin</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-history/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux History</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-distros/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Distros</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Architecture &amp; Core Subsystems</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/level-layer-abstraction/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Level &amp; Layer Abstraction</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-kernel/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Kernel</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link current" href="/docs/linux-kernel-subsystem/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Kernel Subsystem</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/process-management/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Process Management</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/storage-and-io/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Storage &amp; io_uring</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Advanced Systems &amp; Kernel Dev</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/container-primitives/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Container Primitives</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/ebpf-and-observability/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Performance &amp; eBPF</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/kernel-drivers-and-modules/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Kernel Drivers &amp; LKML</span>
+              </a>
+
+            
+        </div>
+      </div>
+  </div>
+</aside>
+  
+  <main>
+    <article id="article">
+      <nav id="article-nav">
+  <button id="article-nav-menu-btn"><i class="icon icon-menu"></i> On this section</button>
+  <button id="article-nav-toc-btn"><i class="icon icon-toc"></i> On this page</button>
+</nav>
+      <header id="article-header">
+  
+  <nav class="article-breadcrumbs" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/docs/overview/">Documentation</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-current">Linux Kernel Subsystems</span>
+  </nav>
+
+  <h1 class="article-title">Linux Kernel Subsystems</h1>
+
+  <div class="article-meta-bar">
+    <span class="article-meta-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      12 min read
+    </span>
+    <span class="article-meta-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      2107 words
+    </span>
+    
+    <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/a5.kernel-subsystem.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
+      <i class="icon icon-github"></i>
+      <span>Edit on GitHub</span>
+    </a>
+    
+  </div>
+</header>
+      <div id="article-content">
+        
+        
+        <p><img src="/img/icon/linux-components.png" alt=""></p>
+<blockquote>
+<p><em>&ldquo;In good software engineering, subsystems should not be arbitrary silos. They must interlock cleanly: the file system relies on the memory manager, the network stack passes buffers through the socket layer, and the scheduler orchestrates them all without deadlock.&rdquo;</em></p>
+</blockquote>
+<p>While the Linux kernel compiles into a single unified binary executing in Ring 0, its internal codebase is partitioned into <strong>five tightly integrated core subsystems</strong>.</p>
+<p>Understanding how these subsystems collaborate under the hood reveals why Linux achieves near-zero latency, immense I/O bandwidth, and high-density virtualization.</p>
+<pre tabindex="0"><code>+-------------------------------------------------------------------------------+
+|                        System Call Interface (syscall)                        |
++-------------------+-------------------+-------------------+-------------------+
+|   Process         |   Memory          |   Virtual File    |   Networking      |
+|   Scheduler       |   Management      |   System (VFS)    |   Stack (NET)     |
+|   (SCHED / EEVDF) |   (MM / SLUB)     |   (inodes/dcache) |   (sk_buff / XDP) |
++-------------------+-------------------+-------------------+-------------------+
+|                        Inter-Process Communication (IPC)                      |
+|                  Signals | Pipes | Sockets (AF_UNIX) | Futexes                |
++===============================================================================+
+|                                PHYSICAL HARDWARE                              |
+|                    CPU Cores | RAM | NVMe Storage | Network Cards             |
++-------------------------------------------------------------------------------+
+</code></pre><hr>
+<h2 id="1-virtual-file-system-vfs-everything-is-a-file">1. Virtual File System (VFS): &ldquo;Everything is a File&rdquo;</h2>
+<p>The <strong>Virtual File System (VFS)</strong> is the kernel abstraction layer that allows client programs to interact with dozens of wildly different storage systems—ext4, XFS, Btrfs, NFS, FAT32, overlayfs, and pseudo-filesystems like <code>/proc</code>—using an identical, unified set of POSIX system calls (<code>open()</code>, <code>read()</code>, <code>write()</code>, <code>close()</code>, <code>ioctl()</code>).</p>
+<p><img src="/img/icon/linux-subsystem.png" alt=""></p>
+<h3 id="the-four-primary-vfs-data-structures-includelinuxfsh">The Four Primary VFS Data Structures (<code>include/linux/fs.h</code>):</h3>
+<ol>
+<li><strong><code>struct super_block</code> (The Filesystem Instance)</strong>:
+Represents a mounted filesystem on a block device. Holds metadata about the filesystem: block size, max file size, dirty flags, and a pointer table to filesystem operations (<code>super_operations</code>).</li>
+<li><strong><code>struct inode</code> (The Metadata Object)</strong>:
+Represents a specific, unique file or directory object on disk. Contains file metadata: size, permissions (<code>mode</code>), owner (<code>uid</code>/<code>gid</code>), timestamps, access control lists, and pointers to the physical blocks on disk. <strong>Critically, an inode contains no filename.</strong> Multiple filenames can point to the same inode (hard links).</li>
+<li><strong><code>struct dentry</code> (Directory Entry &amp; The dcache)</strong>:
+Represents a path component (e.g., in <code>/usr/bin/python</code>, <code>usr</code>, <code>bin</code>, and <code>python</code> each have a <code>dentry</code>). Dentries connect human-readable string pathnames to their underlying numerical <code>inode</code>. The kernel caches dentries in the <strong>dcache</strong>, using Read-Copy-Update (RCU) locks to achieve near-instantaneous path resolution without reading storage disks.</li>
+<li><strong><code>struct file</code> (The Open File Descriptor)</strong>:
+Represents an open file instance created in a process when calling <code>open()</code>. Tracks the current read/write byte offset (<code>f_pos</code>), access flags (<code>O_RDONLY</code>, <code>O_NONBLOCK</code>), and a pointer to the driver&rsquo;s function table (<code>file_operations</code>).</li>
+</ol>
+<h3 id="the-linux-page-cache--dirty-writeback">The Linux Page Cache &amp; Dirty Writeback:</h3>
+<p>When a program calls <code>read()</code> on a file, the kernel does not read directly from the NVMe or SSD. Instead:</p>
+<ul>
+<li>It checks if the requested 4KB data page is already cached in physical RAM within the <strong>Page Cache</strong>.</li>
+<li>If cached (<strong>Page Cache Hit</strong>), the read returns in <strong>nanoseconds</strong> without touching disk silicon.</li>
+<li>When writing data via <code>write()</code>, the kernel writes to RAM, marks the memory pages as <strong>&ldquo;dirty&rdquo;</strong>, and returns immediately. Background kernel flusher threads (<code>[kworker]</code> threads) flush dirty pages to physical persistent storage asynchronously.</li>
+</ul>
+<hr>
+<h2 id="2-memory-management-mm">2. Memory Management (MM)</h2>
+<p>The Linux <strong>Memory Management Subsystem</strong> is responsible for allocating, freeing, and mapping physical RAM across all running tasks while preserving strict process isolation.</p>
+<h3 id="1-the-buddy-allocator-physical-page-allocation">1. The Buddy Allocator (Physical Page Allocation)</h3>
+<p>The Buddy Allocator manages physical memory in chunks of contiguous page frames ($2^0, 2^1, 2^2, \dots, 2^{10}$ pages).</p>
+<ul>
+<li>Standard page size on x86-64 is <strong>4 KB</strong> (<code>PAGE_SIZE = 4096</code>).</li>
+<li>When the kernel needs an 8 KB block, it splits a 16 KB block into two 8 KB &ldquo;buddies&rdquo;.</li>
+<li>When memory is freed, adjacent buddy blocks automatically coalesce back into larger contiguous blocks, mitigating <strong>external fragmentation</strong>.</li>
+</ul>
+<h3 id="2-the-slub-allocator-kernel-object-caching">2. The SLUB Allocator (Kernel Object Caching)</h3>
+<p>While the Buddy Allocator works in 4KB page multiples, the kernel constantly allocates small objects (e.g., a 200-byte <code>task_struct</code> or an 80-byte <code>inode</code>). Allocating a whole 4KB page for an 80-byte struct would waste memory (<strong>internal fragmentation</strong>).</p>
+<p>The <strong>SLUB allocator</strong> pre-allocates pools (caches) of fixed-size kernel objects:</p>
+<ul>
+<li><code>kmem_cache_create()</code> sets up dedicated object pools.</li>
+<li><code>kmalloc()</code> provides general-purpose byte-level kernel memory allocation.</li>
+</ul>
+<h3 id="3-demand-paging--page-faults">3. Demand Paging &amp; Page Faults</h3>
+<p>When an application calls <code>malloc()</code> or <code>mmap()</code> to request 100 Megabytes of memory, the kernel does <strong>not</strong> allocate physical RAM immediately. It merely updates the process&rsquo;s Virtual Memory Area (VMA) tree.</p>
+<p>Physical memory is allocated on-demand via <strong>Page Faults (<code>#PF</code>)</strong>:</p>
+<ul>
+<li><strong>Minor Page Fault</strong>: The virtual address is accessed for the first time. The MMU raises a page fault; the kernel intercepts it in <code>do_page_fault()</code>, grabs a physical page from the Buddy Allocator, populates the MMU page table entry, and resumes the process.</li>
+<li><strong>Major Page Fault</strong>: The requested data is not present in RAM and must be read from disk or swapped in from NVMe storage. The process is put to sleep until the I/O transfer completes.</li>
+<li><strong>Invalid Fault (SIGSEGV)</strong>: The virtual address is outside any valid VMA or violates access permissions (e.g., writing to read-only code). The kernel sends <code>SIGSEGV</code> (Segmentation Fault) to terminate the process.</li>
+</ul>
+<h3 id="4-the-out-of-memory-oom-killer">4. The Out-Of-Memory (OOM) Killer</h3>
+<p>When physical memory and swap space are completely exhausted, the kernel cannot fulfill allocations. To prevent a catastrophic total system freeze, the kernel invokes the <strong>OOM Killer</strong>:</p>
+<ul>
+<li>It evaluates all processes using an algorithm that scores their memory usage and runtime impact.</li>
+<li>It selects the process with the highest &ldquo;badness score&rdquo; and sends an uncatchable <code>SIGKILL</code> to reclaim its address space.</li>
+<li>Engineers can protect mission-critical daemons by tuning <code>/proc/[pid]/oom_score_adj</code> (setting it to <code>-1000</code> immunizes a process from the OOM killer).</li>
+</ul>
+<hr>
+<h2 id="3-the-process-scheduler-sched">3. The Process Scheduler (SCHED)</h2>
+<p>The scheduler decides which runnable task executes on which CPU core, for how long, and when.</p>
+<h3 id="scheduler-evolution">Scheduler Evolution:</h3>
+<ol>
+<li><strong>Linux 2.4 $O(n)$ Scheduler</strong>: Scanned every runnable process in a linear loop on every tick. Stalled when process counts scaled past thousands.</li>
+<li><strong>Linux 2.6 $O(1)$ Scheduler</strong>: Authored by Ingo Molnar. Used priority-based active/expired bitmasks, guaranteeing constant-time selection regardless of process count. However, interactive heuristics were fragile.</li>
+<li><strong>CFS (Completely Fair Scheduler, 2007–2023)</strong>: Modeled an ideal multi-tasking CPU on hardware. Tracked each process&rsquo;s virtual runtime (<code>vruntime</code>) using a balanced <strong>Red-Black Tree</strong>. The task with the lowest <code>vruntime</code> was always scheduled next.</li>
+<li><strong>EEVDF (Earliest Eligible Virtual Deadline First, Linux 6.6+)</strong>: Replaced CFS. Decouples task latency requirements from compute throughput. Tasks with short latency deadlines preempt throughput-heavy batch jobs without requiring hacky priority tweaks.</li>
+</ol>
+<pre tabindex="0"><code>       EEVDF Runqueue (Sorted by virtual runtime &amp; deadline)
+             
+                    [Task B: vruntime=120ms]
+                           /         \
+   [Task A: vruntime=90ms]             [Task C: vruntime=150ms]
+             |
+             v
+   *Always picks lowest vruntime / earliest eligible deadline*
+</code></pre><h3 id="scheduling-policies-includeuapilinuxschedh">Scheduling Policies (<code>include/uapi/linux/sched.h</code>):</h3>
+<ul>
+<li><strong><code>SCHED_NORMAL</code> (or <code>SCHED_OTHER</code>)</strong>: Standard time-sharing policy used by virtually all general processes.</li>
+<li><strong><code>SCHED_BATCH</code></strong>: For CPU-intensive background batch jobs; penalizes wake-up latency in favor of cache throughput.</li>
+<li><strong><code>SCHED_FIFO</code> (First-In, First-Out Real-Time)</strong>: Executes until it voluntarily yields, blocks on I/O, or is preempted by a higher-priority real-time task.</li>
+<li><strong><code>SCHED_RR</code> (Round-Robin Real-Time)</strong>: Like <code>SCHED_FIFO</code>, but tasks share equal time slices.</li>
+<li><strong><code>SCHED_DEADLINE</code></strong>: Uses the Earliest Deadline First (EDF) algorithm for hard real-time guarantees in robotics and automotive systems.</li>
+</ul>
+<hr>
+<h2 id="4-the-networking-subsystem-net">4. The Networking Subsystem (NET)</h2>
+<p>The Linux network stack delivers line-rate packet processing across high-density 100GbE/400GbE infrastructure.</p>
+<h3 id="1-struct-sk_buff-socket-buffer">1. <code>struct sk_buff</code> (Socket Buffer)</h3>
+<p>The socket buffer (<code>sk_buff</code>) is the most critical networking structure in the kernel:</p>
+<ul>
+<li>It represents a single network packet traversing the protocol stack.</li>
+<li>It avoids expensive memory copies. As a packet travels from the Ethernet driver → IP layer → TCP layer → Socket buffer, the kernel merely adjusts internal pointer offsets (<code>head</code>, <code>data</code>, <code>tail</code>, <code>end</code>) without copying packet payload bytes.</li>
+</ul>
+<h3 id="2-napi-new-api-interrupt-mitigation">2. NAPI (New API) Interrupt Mitigation</h3>
+<p>Under high packet load (e.g., 10 million packets per second), generating a hardware CPU interrupt for every incoming packet would lead to <strong>receive livelock</strong>, where the CPU spends 100% of its time processing interrupts and zero time processing data.</p>
+<p>Linux uses <strong>NAPI</strong>:</p>
+<ul>
+<li>When the first packet arrives, the network card triggers an interrupt.</li>
+<li>The kernel handles the interrupt, <strong>disables interrupts on the NIC</strong>, and transitions into a high-speed polling loop via <code>ksoftirqd</code>.</li>
+<li>Once the driver&rsquo;s ring buffer is empty, interrupts are re-enabled.</li>
+</ul>
+<h3 id="3-ebpf--xdp-express-data-path">3. eBPF &amp; XDP (eXpress Data Path)</h3>
+<p>Modern cloud infrastructure frequently bypasses standard network stack overhead using <strong>XDP (eXpress Data Path)</strong>:</p>
+<ul>
+<li>XDP executes sandboxed eBPF bytecode directly inside the network driver&rsquo;s receive ring buffer, before an <code>sk_buff</code> is even allocated.</li>
+<li>Packets can be dropped (<code>XDP_DROP</code>), redirected (<code>XDP_REDIRECT</code>), or transmitted back (<code>XDP_TX</code>) in <strong>under 100 nanoseconds</strong>, defeating massive multi-terabit DDoS attacks at wire speed.</li>
+</ul>
+<hr>
+<h2 id="5-inter-process-communication-ipc">5. Inter-Process Communication (IPC)</h2>
+<p>Processes executing in isolated user spaces often need to coordinate, synchronize, and exchange data.</p>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: left">IPC Mechanism</th>
+					<th style="text-align: left">Performance / Overhead</th>
+					<th style="text-align: left">Scope</th>
+					<th style="text-align: left">Common Use Cases</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: left"><strong>Unix Domain Sockets (<code>AF_UNIX</code>)</strong></td>
+					<td style="text-align: left">Fast; zero network stack traversal</td>
+					<td style="text-align: left">Local Host</td>
+					<td style="text-align: left">Container runtimes (Docker daemon <code>/var/run/docker.sock</code>), D-Bus.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Pipes &amp; FIFOs</strong></td>
+					<td style="text-align: left">Fast; kernel memory ring buffer</td>
+					<td style="text-align: left">Parent/Child or Named</td>
+					<td style="text-align: left">Shell pipelines (<code>cat file | grep err</code>), simple streaming.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Shared Memory (<code>shmget</code>/<code>mmap</code>)</strong></td>
+					<td style="text-align: left"><strong>Zero-Copy; fastest IPC</strong></td>
+					<td style="text-align: left">Local Host</td>
+					<td style="text-align: left">High-performance databases, video frame passing, IPC cache.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Signals (<code>kill()</code>)</strong></td>
+					<td style="text-align: left">Asynchronous interrupt; tiny payload</td>
+					<td style="text-align: left">Local Host</td>
+					<td style="text-align: left">Process lifecycle (<code>SIGTERM</code>, <code>SIGKILL</code>, <code>SIGHUP</code> reload).</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Futex (Fast Userspace Mutex)</strong></td>
+					<td style="text-align: left">Zero syscall on uncontended lock</td>
+					<td style="text-align: left">Local Host</td>
+					<td style="text-align: left">Multi-threaded lock synchronization in <code>pthread_mutex</code>.</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="6-hands-on-practical-labs">6. Hands-On Practical Labs</h2>
+<h3 id="lab-51-analyzing-demand-paging--page-faults">Lab 5.1: Analyzing Demand Paging &amp; Page Faults</h3>
+<p>In Linux, calling <code>malloc()</code> does not allocate physical RAM; it merely reserves virtual address space. Physical frames are allocated on-demand upon the first write via a <strong>Minor Page Fault</strong>.</p>
+<h4 id="1-page-fault-allocator-fault_testc">1. Page Fault Allocator: <code>fault_test.c</code></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cp">#define ALLOC_SIZE (128 * 1024 * 1024) </span><span class="cm">/* 128 MB */</span><span class="cp">
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[*] PID: %d. Calling malloc(128MB)...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">getpid</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="o">*</span><span class="n">ptr</span> <span class="o">=</span> <span class="nf">malloc</span><span class="p">(</span><span class="n">ALLOC_SIZE</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ptr</span><span class="p">)</span> <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[+] Virtual memory reserved. Sleeping 5s (check /proc/%d/status VmSize vs VmRSS)...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">getpid</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[+] Writing data to pages. Hardware MMU page faults will trigger now...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">ALLOC_SIZE</span><span class="p">;</span> <span class="n">i</span> <span class="o">+=</span> <span class="mi">4096</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ptr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;A&#39;</span><span class="p">;</span> <span class="cm">/* Access each 4KB physical page */</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[+] All pages populated! Sleeping 5s (inspect VmRSS again)...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">free</span><span class="p">(</span><span class="n">ptr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h4 id="2-monitoring-page-faults-in-terminal">2. Monitoring Page Faults in Terminal:</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Compile test</span>
+</span></span><span class="line"><span class="cl">gcc -O2 fault_test.c -o fault_test
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Run in background</span>
+</span></span><span class="line"><span class="cl">./fault_test <span class="p">&amp;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">PID</span><span class="o">=</span><span class="nv">$!</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Monitor minor and major page faults every second</span>
+</span></span><span class="line"><span class="cl">sar -B <span class="m">1</span> <span class="m">10</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Alternatively:</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># vmstat 1 10</span>
+</span></span></code></pre></div><p>Notice how <code>fault/s</code> spikes during the loop as the kernel handles 32,768 page faults (128MB / 4KB) and updates the page tables!</p>
+<hr>
+<h3 id="lab-52-zero-permission-file-descriptor-passing-via-af_unix--scm_rights">Lab 5.2: Zero-Permission File Descriptor Passing via <code>AF_UNIX</code> &amp; <code>SCM_RIGHTS</code></h3>
+<p>This lab demonstrates advanced Linux IPC: a privileged server opens <code>/etc/shadow</code> (or any protected file) and passes the active file descriptor directly to an unprivileged client over a Unix domain socket using <code>sendmsg()</code> and <code>SCM_RIGHTS</code>.</p>
+<h4 id="complete-source-fd_passc">Complete Source: <code>fd_pass.c</code></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/socket.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;fcntl.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/wait.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/* Helper to send open file descriptor over Unix socket */</span>
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">send_fd</span><span class="p">(</span><span class="kt">int</span> <span class="n">sock</span><span class="p">,</span> <span class="kt">int</span> <span class="n">fd_to_send</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">msghdr</span> <span class="n">msg</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="nf">CMSG_SPACE</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">))];</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">memset</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buf</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">iovec</span> <span class="n">io</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">iov_base</span> <span class="o">=</span> <span class="s">&#34;FD&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">iov_len</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">};</span>
+</span></span><span class="line"><span class="cl">    <span class="n">msg</span><span class="p">.</span><span class="n">msg_iov</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">io</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">msg</span><span class="p">.</span><span class="n">msg_iovlen</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">msg</span><span class="p">.</span><span class="n">msg_control</span> <span class="o">=</span> <span class="n">buf</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">msg</span><span class="p">.</span><span class="n">msg_controllen</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">cmsghdr</span> <span class="o">*</span><span class="n">cmsg</span> <span class="o">=</span> <span class="nf">CMSG_FIRSTHDR</span><span class="p">(</span><span class="o">&amp;</span><span class="n">msg</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_level</span> <span class="o">=</span> <span class="n">SOL_SOCKET</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_type</span> <span class="o">=</span> <span class="n">SCM_RIGHTS</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_len</span> <span class="o">=</span> <span class="nf">CMSG_LEN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="o">*</span><span class="p">((</span><span class="kt">int</span> <span class="o">*</span><span class="p">)</span><span class="nf">CMSG_DATA</span><span class="p">(</span><span class="n">cmsg</span><span class="p">))</span> <span class="o">=</span> <span class="n">fd_to_send</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nf">sendmsg</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">msg</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">perror</span><span class="p">(</span><span class="s">&#34;sendmsg failed&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/* Helper to receive open file descriptor from Unix socket */</span>
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">recv_fd</span><span class="p">(</span><span class="kt">int</span> <span class="n">sock</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">msghdr</span> <span class="n">msg</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="nf">CMSG_SPACE</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">))];</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="n">dummy</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">iovec</span> <span class="n">io</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">iov_base</span> <span class="o">=</span> <span class="n">dummy</span><span class="p">,</span> <span class="p">.</span><span class="n">iov_len</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">dummy</span><span class="p">)</span> <span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">msg</span><span class="p">.</span><span class="n">msg_iov</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">io</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">msg</span><span class="p">.</span><span class="n">msg_iovlen</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">msg</span><span class="p">.</span><span class="n">msg_control</span> <span class="o">=</span> <span class="n">buf</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">msg</span><span class="p">.</span><span class="n">msg_controllen</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nf">recvmsg</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">msg</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">perror</span><span class="p">(</span><span class="s">&#34;recvmsg failed&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">cmsghdr</span> <span class="o">*</span><span class="n">cmsg</span> <span class="o">=</span> <span class="nf">CMSG_FIRSTHDR</span><span class="p">(</span><span class="o">&amp;</span><span class="n">msg</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">cmsg</span> <span class="o">||</span> <span class="n">cmsg</span><span class="o">-&gt;</span><span class="n">cmsg_type</span> <span class="o">!=</span> <span class="n">SCM_RIGHTS</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#34;No SCM_RIGHTS payload received</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="o">*</span><span class="p">((</span><span class="kt">int</span> <span class="o">*</span><span class="p">)</span><span class="nf">CMSG_DATA</span><span class="p">(</span><span class="n">cmsg</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">sv</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nf">socketpair</span><span class="p">(</span><span class="n">AF_UNIX</span><span class="p">,</span> <span class="n">SOCK_STREAM</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">perror</span><span class="p">(</span><span class="s">&#34;socketpair&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kt">pid_t</span> <span class="n">pid</span> <span class="o">=</span> <span class="nf">fork</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">pid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* Child Process: Closes write socket, receives open fd from parent */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">close</span><span class="p">(</span><span class="n">sv</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[Child] Waiting for transmitted file descriptor...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">received_fd</span> <span class="o">=</span> <span class="nf">recv_fd</span><span class="p">(</span><span class="n">sv</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[Child] Received FD: %d! Reading contents without open()...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">received_fd</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kt">char</span> <span class="n">read_buf</span><span class="p">[</span><span class="mi">128</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">ssize_t</span> <span class="n">n</span> <span class="o">=</span> <span class="nf">read</span><span class="p">(</span><span class="n">received_fd</span><span class="p">,</span> <span class="n">read_buf</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">read_buf</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="n">read_buf</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[Child] Read Content: %s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">read_buf</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">close</span><span class="p">(</span><span class="n">received_fd</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">close</span><span class="p">(</span><span class="n">sv</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* Parent Process: Opens file and sends open fd to child */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">close</span><span class="p">(</span><span class="n">sv</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="nf">open</span><span class="p">(</span><span class="s">&#34;/etc/issue&#34;</span><span class="p">,</span> <span class="n">O_RDONLY</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">fd</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="n">fd</span> <span class="o">=</span> <span class="nf">open</span><span class="p">(</span><span class="s">&#34;/etc/hostname&#34;</span><span class="p">,</span> <span class="n">O_RDONLY</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[Parent] Opened file descriptor (%d). Transmitting via SCM_RIGHTS...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">fd</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">send_fd</span><span class="p">(</span><span class="n">sv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fd</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">close</span><span class="p">(</span><span class="n">sv</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nf">wait</span><span class="p">(</span><span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h4 id="compilation--verification">Compilation &amp; Verification:</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">gcc -O2 fd_pass.c -o fd_pass
+</span></span><span class="line"><span class="cl">./fd_pass
+</span></span></code></pre></div><hr>
+<h2 id="7-summary-checklist">7. Summary Checklist</h2>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> <strong>VFS Structs</strong>: Mastered <code>super_block</code>, <code>inode</code>, <code>dentry</code>, and <code>file</code>.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Memory Management</strong>: Contrasted Buddy Allocator with SLUB, and understood demand paging.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Process Scheduler</strong>: Analyzed CFS Red-Black trees and modern EEVDF lag compensation.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Networking Stack</strong>: Explored <code>sk_buff</code>, NAPI polling loops, and eBPF XDP line-rate filtering.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Hands-on Labs</strong>: Tracked page faults with <code>sar</code> and implemented <code>SCM_RIGHTS</code> fd passing over <code>AF_UNIX</code>.</li>
+</ul>
+
+      </div>
+      
+
+
+
+
+
+
+
+
+  
+  
+  
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+      
+    
+        
+
+        
+          
+        
+
+        
+        
+      
+
+
+<footer id="article-footer">
+  <div class="article-footer-top">
+    <time id="article-last-updated" datetime="2023-11-10"><i class="icon icon-calendar"></i>&nbsp;Last updated: 2023-11-10</time>
+  </div>
+
+  <div class="article-pagination">
+    
+      <a id="article-prev-link" class="pagination-card pagination-prev" href="/docs/linux-kernel/">
+        <span class="pagination-sub">&larr; Previous</span>
+        <span class="pagination-title">Linux Kernel</span>
+      </a>
+    
+
+    
+      <a id="article-next-link" class="pagination-card pagination-next" href="/docs/process-management/">
+        <span class="pagination-sub">Next &rarr;</span>
+        <span class="pagination-title">Process Management</span>
+      </a>
+    
+  </div>
+</footer>
+    </article>
+    <aside id="toc">
+  <span class="btn-close"><i class="icon icon-close"></i></span>
+  <div class="sticky">
+    <strong><i class="icon icon-toc"></i> On this page</strong>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-virtual-file-system-vfs-everything-is-a-file">1. Virtual File System (VFS): &ldquo;Everything is a File&rdquo;</a>
+      <ul>
+        <li><a href="#the-four-primary-vfs-data-structures-includelinuxfsh">The Four Primary VFS Data Structures (<code>include/linux/fs.h</code>):</a></li>
+        <li><a href="#the-linux-page-cache--dirty-writeback">The Linux Page Cache &amp; Dirty Writeback:</a></li>
+      </ul>
+    </li>
+    <li><a href="#2-memory-management-mm">2. Memory Management (MM)</a>
+      <ul>
+        <li><a href="#1-the-buddy-allocator-physical-page-allocation">1. The Buddy Allocator (Physical Page Allocation)</a></li>
+        <li><a href="#2-the-slub-allocator-kernel-object-caching">2. The SLUB Allocator (Kernel Object Caching)</a></li>
+        <li><a href="#3-demand-paging--page-faults">3. Demand Paging &amp; Page Faults</a></li>
+        <li><a href="#4-the-out-of-memory-oom-killer">4. The Out-Of-Memory (OOM) Killer</a></li>
+      </ul>
+    </li>
+    <li><a href="#3-the-process-scheduler-sched">3. The Process Scheduler (SCHED)</a>
+      <ul>
+        <li><a href="#scheduler-evolution">Scheduler Evolution:</a></li>
+        <li><a href="#scheduling-policies-includeuapilinuxschedh">Scheduling Policies (<code>include/uapi/linux/sched.h</code>):</a></li>
+      </ul>
+    </li>
+    <li><a href="#4-the-networking-subsystem-net">4. The Networking Subsystem (NET)</a>
+      <ul>
+        <li><a href="#1-struct-sk_buff-socket-buffer">1. <code>struct sk_buff</code> (Socket Buffer)</a></li>
+        <li><a href="#2-napi-new-api-interrupt-mitigation">2. NAPI (New API) Interrupt Mitigation</a></li>
+        <li><a href="#3-ebpf--xdp-express-data-path">3. eBPF &amp; XDP (eXpress Data Path)</a></li>
+      </ul>
+    </li>
+    <li><a href="#5-inter-process-communication-ipc">5. Inter-Process Communication (IPC)</a></li>
+    <li><a href="#6-hands-on-practical-labs">6. Hands-On Practical Labs</a>
+      <ul>
+        <li><a href="#lab-51-analyzing-demand-paging--page-faults">Lab 5.1: Analyzing Demand Paging &amp; Page Faults</a></li>
+        <li><a href="#lab-52-zero-permission-file-descriptor-passing-via-af_unix--scm_rights">Lab 5.2: Zero-Permission File Descriptor Passing via <code>AF_UNIX</code> &amp; <code>SCM_RIGHTS</code></a></li>
+      </ul>
+    </li>
+    <li><a href="#7-summary-checklist">7. Summary Checklist</a></li>
+  </ul>
+</nav>
+  </div>
+</aside>
+  </main>
+</div>
+
+    <footer id="site-footer">
+  <div class="site-footer-container">
+    <div class="site-footer-grid">
+      
+      <div class="footer-col footer-col-brand">
+        <div class="footer-brand">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="3" width="20" height="18" rx="4" fill="currentColor" fill-opacity="0.12" stroke="currentColor" stroke-width="1.75"/>
+            <path d="M7 9L10.5 12L7 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.5 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span class="footer-brand-title">Linux Collective</span>
+        </div>
+        <p class="footer-tagline">
+          An open-source knowledge hub and community deep-dive initiative exploring Linux architecture, kernel internals, and modern systems engineering.
+        </p>
+        <div class="footer-social-links">
+          
+          <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon-link">
+            <i class="icon icon-github"></i>
+          </a>
+          
+          
+          <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" aria-label="Discord" class="social-icon-link">
+            <i class="icon icon-discord icon-colored"></i>
+          </a>
+          
+          
+          <a href="https://www.youtube.com/@CloudNativeFolks" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="social-icon-link">
+            <i class="icon icon-youtube icon-colored"></i>
+          </a>
+          
+          
+          <a href="https://twitter.com/i/communities/1499311438745468931" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" class="social-icon-link">
+            <i class="icon icon-twitter icon-colored"></i>
+          </a>
+          
+        </div>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Documentation</h4>
+        <ul class="footer-links">
+          <li><a href="/docs/overview/">Getting Started</a></li>
+          <li><a href="/docs/roadmap/">Engineering Roadmap</a></li>
+          <li><a href="/docs/linux-history/">Linux History</a></li>
+          <li><a href="/docs/linux-distros/">Linux Distributions</a></li>
+          <li><a href="/docs/level-layer-abstraction/">Levels & Abstractions</a></li>
+          <li><a href="/docs/linux-kernel/">Linux Kernel Internals</a></li>
+          <li><a href="/docs/linux-kernel-subsystem/">Kernel Subsystems</a></li>
+          <li><a href="/docs/process-management/">Process Management</a></li>
+        </ul>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Community</h4>
+        <ul class="footer-links">
+          <li><a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer">CloudNativeFolks Discord</a></li>
+          <li><a href="https://blog.cloudnativefolks.org" target="_blank" rel="noopener noreferrer">Community Blog</a></li>
+          <li><a href="https://www.youtube.com/@CloudNativeFolks" target="_blank" rel="noopener noreferrer">YouTube Channel</a></li>
+          <li><a href="https://twitter.com/i/communities/1499311438745468931" target="_blank" rel="noopener noreferrer">Twitter / X Community</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/graphs/contributors" target="_blank" rel="noopener noreferrer">Contributors Showcase</a></li>
+        </ul>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Open Source</h4>
+        <ul class="footer-links">
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/issues" target="_blank" rel="noopener noreferrer">Report an Issue</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/pulls" target="_blank" rel="noopener noreferrer">Submit Contribution</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License (MIT)</a></li>
+        </ul>
+        <div class="footer-badge-wrapper">
+          <a href="https://visitorbadge.io/status?path=https%3A%2F%2Flinuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="visitor-badge-link">
+            <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Flinuxcollective.github.io&label=VISITORS&countColor=%232563eb&style=flat-square" alt="Visitor Counter" loading="lazy" />
+          </a>
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="site-footer-bottom">
+      <div class="footer-bottom-copy">
+        &copy; 2022-2026 <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer">CloudNativeFolks</a>. Built for the open source community.
+      </div>
+      <div class="footer-bottom-love">
+        Engineered with <i class="icon icon-love icon-colored"></i> by <a href="https://blog.cloudnativefolks.org" target="_blank" rel="noopener noreferrer">@CloudNativeFolks</a>
+      </div>
+    </div>
+  </div>
+</footer>
+    
+
+
+
+
+
+
+<script type="text/javascript" src="/js/base.min.js"></script>
+
+
+
+  
+  <script src="/js/component/docsearch.min.js"></script>
+  <script type="application/javascript">
+      docsearch({
+          container: '#site-header-search',
+          appId: '',
+          indexName: '',
+          apiKey: '',
+      });
+  </script>
+
+  </body>
+</html>

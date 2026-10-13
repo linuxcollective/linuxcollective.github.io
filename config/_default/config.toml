@@ -2,6 +2,7 @@ title = 'Linux Collective'
 baseURL = 'https://linuxcollective.github.io'
 
 defaultContentLanguage = 'en'
+locale = 'en-US'
 languageCode = 'en-us'
 enableInlineShortcodes = true
 googleAnalytics = ''

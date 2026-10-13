@@ -2,109 +2,190 @@
 @import "../icon/default";
 
 :root {
-  --font-family: 'Inter', sans-serif;
-  --font-family-brand: 'Times', serif;
-  --font-family-code: 'Menlo', monospace;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-brand: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-code: 'JetBrains Mono', 'Fira Code', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
 
-  --background: #ffffff;
-  --color: #355265;
-  --color2: #274457;
-  --color3: #476d86;
+  /* Theme Accents */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: #eff6ff;
+  --primary-glow: rgba(37, 99, 235, 0.25);
+  --accent-cyan: #06b6d4;
+  --accent-indigo: #6366f1;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
 
-  --color-anchor: #328ac1;
-  --color-hover: #4b9dd0;
+  /* Light Theme */
+  --background: #f8fafc;
+  --background-subtle: #ffffff;
+  --background-fg: #ffffff;
+  --background-fg2: #f1f5f9;
+  --border-color: #e2e8f0;
+  --border-color-subtle: #edf2f7;
+  --border-glow: rgba(37, 99, 235, 0.2);
 
-  --background-fg: #f7f7f7;
-  --background-fg2: #ebebeb;
-  --border-color: #dddddd;
+  --color: #334155;
+  --color2: #0f172a;
+  --color3: #64748b;
 
-  --home-cover-background: linear-gradient(135deg, rgba(79, 113, 235, 0.2) 9.8%, rgba(232, 79, 235, 0.2) 92.84%);
+  --color-anchor: #2563eb;
+  --color-hover: #1d4ed8;
 
-  /* base16 tomorrow */
-  --chroma-base00: #f9f9f9;
-  --chroma-base01: #e0e0e0;
-  --chroma-base02: rgba(159, 218, 159, .2);
-  --chroma-base03: #8e908c;
-  --chroma-base04: #969896;
-  --chroma-base05: #4d4d4c;
-  --chroma-base06: #282a2e;
-  --chroma-base07: #1d1f21;
-  --chroma-base08: #c82829;
-  --chroma-base09: #f5871f;
-  --chroma-base0A: #eab700;
-  --chroma-base0B: #718c00;
-  --chroma-base0C: #3e999f;
-  --chroma-base0D: #4271ae;
-  --chroma-base0E: #8959a8;
-  --chroma-base0F: #a3685a;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  --card-shadow-hover: 0 16px 32px -4px rgba(15, 23, 42, 0.1), 0 4px 12px -2px rgba(37, 99, 235, 0.12);
+
+  --header-bg: rgba(255, 255, 255, 0.82);
+  --header-border: rgba(226, 232, 240, 0.8);
+
+  --badge-bg: rgba(37, 99, 235, 0.08);
+  --badge-text: #2563eb;
+  --badge-border: rgba(37, 99, 235, 0.22);
+
+  --terminal-bg: #0f172a;
+  --terminal-border: #1e293b;
+  --terminal-header: #1e293b;
+  --terminal-text: #e2e8f0;
+
+  --home-cover-background: radial-gradient(ellipse 90% 60% at 50% -15%, rgba(37, 99, 235, 0.12) 0%, rgba(6, 182, 212, 0.05) 50%, rgba(248, 250, 252, 0) 100%);
+
+  /* Syntax Highlighting Light */
+  --chroma-base00: #f8fafc;
+  --chroma-base01: #e2e8f0;
+  --chroma-base02: rgba(37, 99, 235, 0.1);
+  --chroma-base03: #64748b;
+  --chroma-base04: #475569;
+  --chroma-base05: #334155;
+  --chroma-base06: #1e293b;
+  --chroma-base07: #0f172a;
+  --chroma-base08: #dc2626;
+  --chroma-base09: #ea580c;
+  --chroma-base0A: #d97706;
+  --chroma-base0B: #16a34a;
+  --chroma-base0C: #0891b2;
+  --chroma-base0D: #2563eb;
+  --chroma-base0E: #7c3aed;
+  --chroma-base0F: #b91c1c;
 }
 
 :root[data-color="dark"] {
-  --background: #121212;
-  --color: #efefef;
-  --color2: #ffffff;
-  --color3: #b3b3b3;
+  --background: #0b0f19;
+  --background-subtle: #0f172a;
+  --background-fg: #131b2e;
+  --background-fg2: #1e293b;
+  --border-color: rgba(255, 255, 255, 0.09);
+  --border-color-subtle: rgba(255, 255, 255, 0.05);
+  --border-glow: rgba(56, 189, 248, 0.25);
 
-  --background-fg: #333333;
-  --background-fg2: #1f1f1f;
-  --border-color: rgba(255, 255, 255, .4);
+  --color: #cbd5e1;
+  --color2: #f8fafc;
+  --color3: #94a3b8;
 
-  /* base16 tomorrow night */
-  --chroma-base00: #080808;
-  --chroma-base01: #393939;
-  --chroma-base02: rgba(159, 218, 159, .1);
-  --chroma-base03: #999999;
-  --chroma-base04: #b4b7b4;
-  --chroma-base05: #cccccc;
-  --chroma-base06: #e0e0e0;
+  --color-anchor: #38bdf8;
+  --color-hover: #7dd3fc;
+
+  --card-bg: rgba(19, 27, 46, 0.75);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.35);
+  --card-shadow-hover: 0 16px 36px -4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.15);
+
+  --header-bg: rgba(11, 15, 25, 0.82);
+  --header-border: rgba(255, 255, 255, 0.08);
+
+  --badge-bg: rgba(56, 189, 248, 0.12);
+  --badge-text: #38bdf8;
+  --badge-border: rgba(56, 189, 248, 0.28);
+
+  --terminal-bg: #070a12;
+  --terminal-border: rgba(255, 255, 255, 0.1);
+  --terminal-header: #111827;
+  --terminal-text: #e2e8f0;
+
+  --home-cover-background: radial-gradient(ellipse 90% 60% at 50% -15%, rgba(56, 189, 248, 0.18) 0%, rgba(99, 102, 241, 0.1) 45%, rgba(11, 15, 25, 0) 100%);
+
+  /* Syntax Highlighting Dark */
+  --chroma-base00: #070a12;
+  --chroma-base01: #1e293b;
+  --chroma-base02: rgba(56, 189, 248, 0.15);
+  --chroma-base03: #64748b;
+  --chroma-base04: #94a3b8;
+  --chroma-base05: #cbd5e1;
+  --chroma-base06: #e2e8f0;
   --chroma-base07: #ffffff;
-  --chroma-base08: #f2777a;
-  --chroma-base09: #f99157;
-  --chroma-base0A: #ffcc66;
-  --chroma-base0B: #99cc99;
-  --chroma-base0C: #66cccc;
-  --chroma-base0D: #6699cc;
-  --chroma-base0E: #cc99cc;
-  --chroma-base0F: #a3685a;
+  --chroma-base08: #f87171;
+  --chroma-base09: #fb923c;
+  --chroma-base0A: #fbbf24;
+  --chroma-base0B: #4ade80;
+  --chroma-base0C: #22d3ee;
+  --chroma-base0D: #60a5fa;
+  --chroma-base0E: #c084fc;
+  --chroma-base0F: #f43f5e;
 }
 
 :root[data-color="night"] {
-  --background: #333333;
-  --color: #cccccc;
-  --color2: #dedede;
-  --color3: #9d9d9d;
+  --background: #000000;
+  --background-subtle: #09090b;
+  --background-fg: #121215;
+  --background-fg2: #18181b;
+  --border-color: rgba(255, 255, 255, 0.12);
+  --border-color-subtle: rgba(255, 255, 255, 0.06);
+  --border-glow: rgba(96, 165, 250, 0.35);
 
-  --background-fg: #444444;
-  --background-fg2: #303030;
-  --border-color: rgba(255, 255, 255, 0.2);
+  --color: #d4d4d8;
+  --color2: #ffffff;
+  --color3: #a1a1aa;
 
-  /* base16 twilight */
-  --chroma-base00: #1e1e1e;
-  --chroma-base01: #323537;
-  --chroma-base02: rgba(159, 218, 159, .1);
-  --chroma-base03: #5f5a60;
-  --chroma-base04: #838184;
-  --chroma-base05: #a7a7a7;
-  --chroma-base06: #c3c3c3;
+  --color-anchor: #60a5fa;
+  --color-hover: #93c5fd;
+
+  --card-bg: rgba(18, 18, 21, 0.85);
+  --card-border: rgba(255, 255, 255, 0.12);
+  --card-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.8);
+  --card-shadow-hover: 0 16px 36px -4px rgba(0, 0, 0, 0.9), 0 0 20px rgba(96, 165, 250, 0.2);
+
+  --header-bg: rgba(0, 0, 0, 0.88);
+  --header-border: rgba(255, 255, 255, 0.1);
+
+  --badge-bg: rgba(96, 165, 250, 0.15);
+  --badge-text: #93c5fd;
+  --badge-border: rgba(96, 165, 250, 0.35);
+
+  --terminal-bg: #050507;
+  --terminal-border: #27272a;
+  --terminal-header: #121215;
+  --terminal-text: #f4f4f5;
+
+  --home-cover-background: radial-gradient(ellipse 90% 60% at 50% -15%, rgba(96, 165, 250, 0.16) 0%, rgba(168, 85, 247, 0.08) 50%, rgba(0, 0, 0, 0) 100%);
+
+  /* Syntax Highlighting OLED */
+  --chroma-base00: #030305;
+  --chroma-base01: #27272a;
+  --chroma-base02: rgba(96, 165, 250, 0.15);
+  --chroma-base03: #71717a;
+  --chroma-base04: #a1a1aa;
+  --chroma-base05: #d4d4d8;
+  --chroma-base06: #f4f4f5;
   --chroma-base07: #ffffff;
-  --chroma-base08: #cf6a4c;
-  --chroma-base09: #cda869;
-  --chroma-base0A: #f9ee98;
-  --chroma-base0B: #8f9d6a;
-  --chroma-base0C: #afc4db;
-  --chroma-base0D: #7587a6;
-  --chroma-base0E: #9b859d;
-  --chroma-base0F: #9b703f;
+  --chroma-base08: #f87171;
+  --chroma-base09: #fb923c;
+  --chroma-base0A: #facc15;
+  --chroma-base0B: #4ade80;
+  --chroma-base0C: #38bdf8;
+  --chroma-base0D: #818cf8;
+  --chroma-base0E: #e879f9;
+  --chroma-base0F: #fb7185;
 }
 
 :root[data-color="light"] .icon:not(.icon-colored) {
-  filter: invert(30%) sepia(24%) saturate(758%) hue-rotate(160deg) brightness(89%) contrast(90%);
+  filter: invert(20%) sepia(20%) saturate(1200%) hue-rotate(185deg) brightness(92%) contrast(92%);
 }
 
 :root[data-color="dark"] .icon:not(.icon-colored) {
-  filter: invert(97%) sepia(0%) saturate(3231%) hue-rotate(294deg) brightness(118%) contrast(87%);
+  filter: invert(90%) sepia(10%) saturate(400%) hue-rotate(180deg) brightness(105%) contrast(90%);
 }
 
 :root[data-color="night"] .icon:not(.icon-colored) {
-  filter: invert(100%) sepia(2%) saturate(1090%) hue-rotate(294deg) brightness(83%) contrast(92%);
+  filter: invert(98%) sepia(2%) saturate(100%) brightness(105%) contrast(95%);
 }

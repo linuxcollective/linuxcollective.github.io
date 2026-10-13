@@ -7,7 +7,35 @@ weight = 1
 
 [[main]]
 identifier = 'docs'
-name = 'Documentation'
+name = 'Docs'
 pre = "<i class='icon icon-book'></i>"
 url = '/docs/'
 weight = 2
+
+[[main]]
+identifier = 'roadmap'
+name = 'Roadmap'
+pre = "<i class='icon icon-book'></i>"
+url = '/docs/roadmap/'
+weight = 3
+
+[[main]]
+identifier = 'kernel'
+name = 'Kernel'
+pre = "<i class='icon icon-kernel'></i>"
+url = '/docs/linux-kernel/'
+weight = 4
+
+[[main]]
+identifier = 'community'
+name = 'Community'
+pre = "<i class='icon icon-discord'></i>"
+url = 'https://discord.gg/rEvr7vq'
+weight = 5
+
+[[main]]
+identifier = 'github'
+name = 'GitHub'
+pre = "<i class='icon icon-github'></i>"
+url = 'https://github.com/linuxcollective/linuxcollective.github.io'
+weight = 6

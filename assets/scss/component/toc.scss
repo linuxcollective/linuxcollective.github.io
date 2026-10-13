@@ -1,50 +1,60 @@
+/* ==========================================================================
+   Table of Contents Component Styles
+   ========================================================================== */
+
 #toc {
-  padding-top: 40px;
+  padding: 32px 16px 40px;
 }
 
 #toc strong {
-  font-weight: 600;
-  padding: 7px 10px 7px 0;
+  font-family: var(--font-family-brand);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color2);
   display: flex;
-  gap: 3px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+#toc nav, #toc #TableOfContents {
   position: relative;
-  left: -3px;
-  color: var(--color2)
 }
 
 #toc ul {
-  margin-left: .3em;
-  border-left: 1px solid var(--border-color);
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 10px;
+  border-left: 1.5px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 #toc ul ul {
-  margin-left: 1em;
+  padding-left: 12px;
+  margin-top: 6px;
 }
 
 #toc ul a {
-  display: inline-block;
-  padding: 7px;
+  display: block;
+  font-size: 0.85rem;
+  line-height: 1.45;
   color: var(--color3);
-}
-
-#toc ul a.active, #toc ul a:hover {
-  color: var(--color-hover);
-  font-weight: 600;
-  font-size: 98%;
-}
-
-#toc ul a::before {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  background: var(--border-color);
+  text-decoration: none;
+  padding: 4px 0;
+  transition: all 0.2s ease;
   position: relative;
-  left: -10.5px;
-  top: -3px;
 }
 
-#toc ul a.active::before, #toc ul a:hover::before {
-  background: var(--color-hover);
+#toc ul a:hover {
+  color: var(--color-anchor);
+  transform: translateX(2px);
 }
 
+#toc ul a.active {
+  color: var(--color-anchor);
+  font-weight: 600;
+}

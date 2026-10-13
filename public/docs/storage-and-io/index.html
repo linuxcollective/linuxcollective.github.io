@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta name="author" content="CloudNativeFolks">
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+
+
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://linuxcollective.github.io/docs/storage-and-io/">
+<meta property="og:title" content="Storage Architecture, Filesystems &amp; io_uring · Linux Collective">
+<meta property="og:description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta property="og:image" content="https://linuxcollective.github.io//img/icon/Linux%20Collective.png">
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://linuxcollective.github.io/docs/storage-and-io/">
+<meta name="twitter:title" content="Storage Architecture, Filesystems &amp; io_uring · Linux Collective">
+<meta name="twitter:description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta name="twitter:image" content="https://linuxcollective.github.io//img/icon/Linux%20Collective.png">
+
+<title>Storage Architecture, Filesystems &amp; io_uring · Linux Collective</title>
+
+<link rel="canonical" href="https://linuxcollective.github.io/docs/storage-and-io/">
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/scss/base.css" integrity="">
+
+
+
+<link rel="stylesheet" href="/scss/theme/default.css" integrity="">
+
+
+
+  
+
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/img/icon/favicon.ico">
+<link rel="icon" href="/img/icon/icon-16.png" sizes="16x16" type="image/png">
+<link rel="icon" href="/img/icon/icon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/img/icon/icon-180.png" sizes="180x180">
+
+
+    <script 
+     src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/quizdown.js">
+  </script>
+  <script 
+      src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/extensions/quizdownKatex.js">
+  </script>
+  <script 
+      src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/extensions/quizdownHighlight.js">
+  </script>
+  <script>quizdown.register(quizdownHighlight).register(quizdownKatex).init()</script> 
+  </head>
+  <body>
+    <header id="site-header">
+  <div class="site-header-inner">
+    
+    <div id="site-header-brand">
+      <a href="/" class="brand-link">
+        <span class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="3" width="20" height="18" rx="4" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-width="1.75"/>
+            <path d="M7 9L10.5 12L7 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.5 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">Linux Collective</span>
+        <span class="brand-badge">Open Source</span>
+      </a>
+    </div>
+
+    
+    <div id="site-header-menu">
+      <nav>
+        <ul>
+          
+          
+          
+            
+            <li>
+              <a href="/"  >
+                <i class='icon icon-home'></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/"  class="active" >
+                <i class='icon icon-book'></i>
+                <span>Docs</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/roadmap/"  >
+                <i class='icon icon-book'></i>
+                <span>Roadmap</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/linux-kernel/"  >
+                <i class='icon icon-kernel'></i>
+                <span>Kernel</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="https://discord.gg/rEvr7vq"   target="_blank" rel="noopener noreferrer">
+                <i class='icon icon-discord'></i>
+                <span>Community</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="https://github.com/linuxcollective/linuxcollective.github.io"   target="_blank" rel="noopener noreferrer">
+                <i class='icon icon-github'></i>
+                <span>GitHub</span>
+              </a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+
+    
+    <div id="site-header-controls">
+      
+      <div id="site-header-search"></div>
+
+      
+      <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="header-action-btn github-btn" title="GitHub Repository" aria-label="GitHub Repository">
+        <i class="icon icon-github"></i>
+        <span class="btn-text">GitHub</span>
+      </a>
+
+      
+      <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" class="header-action-btn discord-btn" title="Join Discord Community" aria-label="Discord Community">
+        <i class="icon icon-discord icon-colored"></i>
+      </a>
+
+      
+      <div class="dropdown theme-dropdown">
+        <button class="dropdown-btn" aria-haspopup="menu" aria-label="Toggle theme">
+          <i class="icon icon-brightness"></i>
+          <i class="icon icon-select"></i>
+        </button>
+        <ul role="menu" class="dropdown-menu">
+          <li role="menuitem"><button class="color-scheme" data-value="light"><i class="icon icon-light-mode"></i> Light</button></li>
+          <li role="menuitem"><button class="color-scheme" data-value="dark"><i class="icon icon-dark-mode"></i> Dark</button></li>
+          <li role="menuitem"><button class="color-scheme" data-value="night"><i class="icon icon-night-mode"></i> Night</button></li>
+        </ul>
+      </div>
+
+      
+      <button id="site-header-mobile-toggle" aria-label="Toggle navigation menu" class="mobile-toggle-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+    
+<div id="site-main-content-wrapper">
+  
+  
+    <aside id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-header-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span>Course Modules</span>
+    </div>
+    <span class="btn-close" aria-label="Close sidebar"><i class="icon icon-close"></i></span>
+  </div>
+
+  <div class="sidebar-nav-container"><div class="sidebar-group">
+        <strong class="sidebar-section">Getting Started</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/overview/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Overview</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/roadmap/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Learning Roadmap</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Linux Foundations &amp; Distros</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/shell-and-sysadmin/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Shell &amp; systemd Admin</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-history/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux History</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-distros/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Distros</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Architecture &amp; Core Subsystems</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/level-layer-abstraction/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Level &amp; Layer Abstraction</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-kernel/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Kernel</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-kernel-subsystem/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Kernel Subsystem</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/process-management/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Process Management</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link current" href="/docs/storage-and-io/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Storage &amp; io_uring</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Advanced Systems &amp; Kernel Dev</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/container-primitives/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Container Primitives</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/ebpf-and-observability/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Performance &amp; eBPF</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/kernel-drivers-and-modules/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Kernel Drivers &amp; LKML</span>
+              </a>
+
+            
+        </div>
+      </div>
+  </div>
+</aside>
+  
+  <main>
+    <article id="article">
+      <nav id="article-nav">
+  <button id="article-nav-menu-btn"><i class="icon icon-menu"></i> On this section</button>
+  <button id="article-nav-toc-btn"><i class="icon icon-toc"></i> On this page</button>
+</nav>
+      <header id="article-header">
+  
+  <nav class="article-breadcrumbs" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/docs/overview/">Documentation</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-current">Storage Architecture, Filesystems &amp; io_uring</span>
+  </nav>
+
+  <h1 class="article-title">Storage Architecture, Filesystems &amp; io_uring</h1>
+
+  <div class="article-meta-bar">
+    <span class="article-meta-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      9 min read
+    </span>
+    <span class="article-meta-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      1601 words
+    </span>
+    
+    <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/a7.storage-and-io.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
+      <i class="icon icon-github"></i>
+      <span>Edit on GitHub</span>
+    </a>
+    
+  </div>
+</header>
+      <div id="article-content">
+        
+        
+        <blockquote>
+<p><em>&ldquo;The fastest I/O is the I/O you don&rsquo;t do. The second fastest is the I/O that doesn&rsquo;t trap into the kernel with a system call on every single buffer.&rdquo;</em><br>
+— <strong>Linus Torvalds</strong></p>
+</blockquote>
+<p>Modern NVMe solid-state storage can execute millions of Input/Output Operations Per Second (IOPS) with microsecond latencies. However, traditional POSIX system call interfaces—such as <code>read()</code>, <code>write()</code>, and even multiplexers like <code>epoll</code>—were architected in an era of rotational magnetic disks where rotational latency (milliseconds) dwarfed the CPU overhead of system calls and context switches.</p>
+<p>On modern hardware, the overhead of trapping from Ring 3 to Ring 0, allocating kernel data structures, and triggering interrupts is often slower than the physical storage media itself.</p>
+<p>This guide explores the Linux storage stack from the <strong>Virtual File System (VFS)</strong> down to the <strong>Block I/O Layer</strong>, investigates the <strong>Page Cache</strong>, and walks through the <strong><code>io_uring</code></strong> asynchronous I/O interface created by Jens Axboe.</p>
+<hr>
+<h2 id="1-the-linux-storage-pipeline">1. The Linux Storage Pipeline</h2>
+<p>When a user space application issues a write request, data journeys through multiple architectural layers before touching physical non-volatile silicon:</p>
+<pre tabindex="0"><code>+--------------------------------------------------------------------------+
+| USER SPACE: Application (Databases, Web Servers, Compilers)              |
++--------------------------------------------------------------------------+
+       | read() / write() / pwritev2()             | io_uring SQ/CQ Rings
+       v                                           v (Zero syscalls via SQPOLL)
++--------------------------------------------------------------------------+
+| KERNEL SPACE: Virtual File System (VFS)                                  |
+|   struct file -&gt; struct inode -&gt; struct dentry                           |
++--------------------------------------------------------------------------+
+       |                                           |
+       v (Buffered I/O)                            v (Direct I/O: O_DIRECT)
++------------------------------------+             |
+| Page Cache (struct address_space)  |             |
+|   Dirty Pages / [kworker] threads  |             |
++------------------------------------+             |
+       |                                           |
+       +---------------------+---------------------+
+                             v
++--------------------------------------------------------------------------+
+| Concrete Filesystem (Ext4, XFS, Btrfs, ZFS)                              |
+|   Translates logical file offsets into physical block sector addresses   |
++--------------------------------------------------------------------------+
+       v
++--------------------------------------------------------------------------+
+| Block I/O Layer &amp; Schedulers                                             |
+|   struct bio allocation, Request Merging (mq-deadline, bfq, none)        |
++--------------------------------------------------------------------------+
+       v
++--------------------------------------------------------------------------+
+| Device Driver Layer (nvme.ko, ahci.ko, virtio_blk.ko)                    |
+|   Hardware Submission Queues &amp; Completion Queues via DMA                 |
++--------------------------------------------------------------------------+
+       v
++--------------------------------------------------------------------------+
+| PHYSICAL HARDWARE: PCIe NVMe SSD / SATA Controller                       |
++--------------------------------------------------------------------------+
+</code></pre><hr>
+<h2 id="2-virtual-file-system--page-cache-mechanics">2. Virtual File System &amp; Page Cache Mechanics</h2>
+<h3 id="1-buffered-io-vs-direct-io-o_direct">1. Buffered I/O vs. Direct I/O (<code>O_DIRECT</code>)</h3>
+<p>By default, all Linux file operations are <strong>Buffered I/O</strong>:</p>
+<ul>
+<li><strong>Reads</strong>: If requested data resides in the kernel&rsquo;s <strong>Page Cache</strong>, the CPU copies data from kernel memory to the user space buffer via <code>copy_to_user()</code>. No disk access occurs. If absent, a <strong>Major Page Fault</strong> triggers synchronous disk retrieval.</li>
+<li><strong>Writes</strong>: When an application writes, data is placed directly into the Page Cache and marked as <strong>Dirty</strong>. The <code>write()</code> system call returns immediately to user space. Background kernel flusher threads (<code>[kworker]</code>) asynchronously serialize dirty pages to disk.</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/* Direct I/O flags in &lt;fcntl.h&gt; */</span>
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="nf">open</span><span class="p">(</span><span class="s">&#34;/var/lib/data.db&#34;</span><span class="p">,</span> <span class="n">O_RDWR</span> <span class="o">|</span> <span class="n">O_DIRECT</span> <span class="o">|</span> <span class="n">O_SYNC</span><span class="p">);</span>
+</span></span></code></pre></div><p>When <code>O_DIRECT</code> is passed:</p>
+<ol>
+<li>The kernel bypasses the Page Cache entirely.</li>
+<li>The user space buffer must be memory-aligned (typically to 512-byte or 4096-byte boundaries).</li>
+<li>The DMA controller transfers data directly between the user space buffer and the storage controller, preventing double-buffering in RAM for databases like PostgreSQL and RocksDB.</li>
+</ol>
+<h3 id="2-tuning-page-cache-writeback-ratios">2. Tuning Page Cache Writeback Ratios</h3>
+<p>Under sustained heavy write workloads, unwritten dirty pages accumulate in RAM. If RAM fills with dirty pages, Linux will stall user processes until disk flushes finish.</p>
+<p>Key kernel sysctl parameters under <code>/proc/sys/vm/</code>:</p>
+<ul>
+<li><strong><code>vm.dirty_background_ratio</code></strong> (Default: ~10%): Percentage of system memory containing dirty pages at which background <code>[kworker]</code> threads wake up to write data to disk.</li>
+<li><strong><code>vm.dirty_ratio</code></strong> (Default: ~20%): Hard ceiling. If dirty pages exceed this percentage, <strong>all producing user space threads are blocked</strong> and forced to synchronously flush data to disk.</li>
+</ul>
+<hr>
+<h2 id="3-the-block-layer--struct-bio">3. The Block Layer &amp; <code>struct bio</code></h2>
+<p>The Block Layer handles data in units of hardware sectors and filesystem blocks.</p>
+<p>The fundamental unit of block I/O in the Linux kernel is <strong><code>struct bio</code></strong> (defined in <code>include/linux/bio.h</code>):</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">bio</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">bio</span>          <span class="o">*</span><span class="n">bi_next</span><span class="p">;</span>       <span class="cm">/* Request queue linkage */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">block_device</span> <span class="o">*</span><span class="n">bi_bdev</span><span class="p">;</span>       <span class="cm">/* Target block device */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">blk_opf_t</span>           <span class="n">bi_opf</span><span class="p">;</span>         <span class="cm">/* Operation flags: REQ_OP_READ, REQ_OP_WRITE */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">unsigned</span> <span class="kt">short</span>      <span class="n">bi_flags</span><span class="p">;</span>       <span class="cm">/* Status flags */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">bvec_iter</span>    <span class="n">bi_iter</span><span class="p">;</span>        <span class="cm">/* Current sector &amp; bio_vec iterator */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">unsigned</span> <span class="kt">int</span>        <span class="n">bi_vcnt</span><span class="p">;</span>        <span class="cm">/* Number of bio_vec elements */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">bio_vec</span>      <span class="o">*</span><span class="n">bi_io_vec</span><span class="p">;</span>     <span class="cm">/* Array of (page, offset, len) vectors */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">bio_end_io_t</span>        <span class="o">*</span><span class="n">bi_end_io</span><span class="p">;</span>     <span class="cm">/* Completion callback function */</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></div><h3 id="multi-queue-block-layer-blk-mq">Multi-Queue Block Layer (<code>blk-mq</code>)</h3>
+<p>On modern multi-core systems with high-speed NVMe drives, traditional single-lock request queues caused severe CPU contention. The modern Linux kernel uses <strong><code>blk-mq</code></strong> (Multi-Queue Block Layer):</p>
+<ul>
+<li><strong>Software Staging Queues</strong>: Per-CPU queues that eliminate cross-core lock contention.</li>
+<li><strong>Hardware Dispatch Queues</strong>: Maps 1:1 or N:M with physical NVMe hardware submission queues.</li>
+</ul>
+<hr>
+<h2 id="4-the-asynchronous-io-evolution-why-io_uring">4. The Asynchronous I/O Evolution: Why <code>io_uring</code>?</h2>
+<p>For decades, network servers relied on <code>epoll</code> for non-blocking network sockets. However:</p>
+<ol>
+<li><strong><code>epoll</code> does not support regular files</strong>: Regular disk files always report as &ldquo;ready&rdquo; even when reading from cold physical disks will stall the calling thread on a major page fault.</li>
+<li><strong>POSIX AIO (<code>aio_read()</code>)</strong>: Historically implemented via helper threads in glibc, incurring thread synchronization overhead.</li>
+<li><strong>Linux Kernel AIO (<code>io_submit</code>)</strong>: Limited almost exclusively to <code>O_DIRECT</code> file access and cannot handle buffered files, network sockets, or pipes.</li>
+</ol>
+<h3 id="enter-io_uring">Enter <code>io_uring</code></h3>
+<p>Designed in 2019 by Linux kernel block layer maintainer <strong>Jens Axboe</strong>, <strong><code>io_uring</code></strong> is a true high-performance asynchronous interface that works across any file descriptor: regular files, sockets, pipes, and devices.</p>
+<p>It operates using two lockless ring buffers mapped into both user space and kernel space memory:</p>
+<ol>
+<li><strong>Submission Queue (SQ)</strong>: Ring buffer where user space enqueues I/O requests (<code>struct io_uring_sqe</code>).</li>
+<li><strong>Completion Queue (CQ)</strong>: Ring buffer where the kernel publishes completed I/O results (<code>struct io_uring_cqe</code>).</li>
+</ol>
+<pre tabindex="0"><code>+--------------------------------------------------------------------------+
+| USER SPACE MEMORY                                                        |
+|                                                                          |
+|   Submission Queue (SQ) Ring                Completion Queue (CQ) Ring   |
+|   [SQE 0] [SQE 1] [SQE 2]                   [CQE 0] [CQE 1] [CQE 2]      |
+|     |       |       |                         ^       ^       ^          |
++-----|-------|-------|-------------------------|-------|-------|----------+
+      |       |       | (Shared via mmap)       |       |       |
++-----v-------v-------v-------------------------|-------|-------|----------+
+| KERNEL SPACE                                  |       |       |          |
+|                                               |       |       |          |
+|   Worker Threads / SQPOLL Kernel Thread ------+-------+-------+          |
+|   Dispatches bio requests to NVMe controller                             |
++--------------------------------------------------------------------------+
+</code></pre><p>Because both queues reside in shared memory (<code>mmap</code>), submitting and completing requests requires <strong>zero memory copying</strong> and—with <code>IORING_SETUP_SQPOLL</code>—<strong>zero system calls</strong>.</p>
+<hr>
+<h2 id="5-hands-on-practical-labs">5. Hands-On Practical Labs</h2>
+<h3 id="lab-71-asynchronous-file-io-with-liburing-in-c">Lab 7.1: Asynchronous File I/O with <code>liburing</code> in C</h3>
+<p>In this lab, we build a compilable C program that initializes an <code>io_uring</code> ring, submits an asynchronous vector read request for a file, and reaps the completion event without blocking.</p>
+<h4 id="prerequisites">Prerequisites</h4>
+<p>Ensure <code>liburing-dev</code> (Debian/Ubuntu) or <code>liburing-devel</code> (RHEL/Fedora) is installed:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt-get install -y liburing-dev build-essential
+</span></span></code></pre></div><h4 id="program-source-uring_readerc">Program Source: <code>uring_reader.c</code></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;fcntl.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;liburing.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cp">#define QUEUE_DEPTH 8
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define BLOCK_SZ    4096
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#34;Usage: %s &lt;filename&gt;</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">filepath</span> <span class="o">=</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="nf">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">O_RDONLY</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">fd</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">perror</span><span class="p">(</span><span class="s">&#34;open failed&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 1. Initialize io_uring with queue depth of 8 entries */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">io_uring</span> <span class="n">ring</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">ret</span> <span class="o">=</span> <span class="nf">io_uring_queue_init</span><span class="p">(</span><span class="n">QUEUE_DEPTH</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ring</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#34;io_uring_queue_init failed: %s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">strerror</span><span class="p">(</span><span class="o">-</span><span class="n">ret</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 2. Allocate aligned memory buffer */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="o">*</span><span class="n">buffer</span> <span class="o">=</span> <span class="nf">malloc</span><span class="p">(</span><span class="n">BLOCK_SZ</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">buffer</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">perror</span><span class="p">(</span><span class="s">&#34;malloc failed&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">io_uring_queue_exit</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ring</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 3. Fetch a Submission Queue Entry (SQE) */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">io_uring_sqe</span> <span class="o">*</span><span class="n">sqe</span> <span class="o">=</span> <span class="nf">io_uring_get_sqe</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ring</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">sqe</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#34;Failed to get SQE from ring</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">goto</span> <span class="n">cleanup</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 4. Prepare asynchronous read request (offset 0, size BLOCK_SZ) */</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">io_uring_prep_read</span><span class="p">(</span><span class="n">sqe</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="n">BLOCK_SZ</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">sqe</span><span class="o">-&gt;</span><span class="n">user_data</span> <span class="o">=</span> <span class="mi">1337</span><span class="p">;</span> <span class="cm">/* Identifier to match upon completion */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 5. Submit SQE to kernel */</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[+] Submitting async read request to kernel via io_uring...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">io_uring_submit</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ring</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 6. Wait for Completion Queue Entry (CQE) */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">io_uring_cqe</span> <span class="o">*</span><span class="n">cqe</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[+] Waiting for completion event from CQ ring...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">ret</span> <span class="o">=</span> <span class="nf">io_uring_wait_cqe</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ring</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cqe</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#34;io_uring_wait_cqe failed: %s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">strerror</span><span class="p">(</span><span class="o">-</span><span class="n">ret</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">        <span class="k">goto</span> <span class="n">cleanup</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 7. Verify result */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">cqe</span><span class="o">-&gt;</span><span class="n">res</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#34;Async I/O failed with error: %s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">strerror</span><span class="p">(</span><span class="o">-</span><span class="n">cqe</span><span class="o">-&gt;</span><span class="n">res</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">buffer</span><span class="p">[</span><span class="n">cqe</span><span class="o">-&gt;</span><span class="n">res</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[+] Read %d bytes successfully (user_data: %llu)!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">cqe</span><span class="o">-&gt;</span><span class="n">res</span><span class="p">,</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">long</span> <span class="kt">long</span><span class="p">)</span><span class="n">cqe</span><span class="o">-&gt;</span><span class="n">user_data</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[+] Content Preview:</span><span class="se">\n</span><span class="s">---</span><span class="se">\n</span><span class="s">%s</span><span class="se">\n</span><span class="s">---</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">buffer</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 8. Mark CQE as consumed */</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">io_uring_cqe_seen</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ring</span><span class="p">,</span> <span class="n">cqe</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nl">cleanup</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">free</span><span class="p">(</span><span class="n">buffer</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">io_uring_queue_exit</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ring</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h4 id="compilation--execution">Compilation &amp; Execution</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Compile with liburing</span>
+</span></span><span class="line"><span class="cl">gcc -O2 uring_reader.c -o uring_reader -luring
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Execute against /etc/os-release</span>
+</span></span><span class="line"><span class="cl">./uring_reader /etc/os-release
+</span></span></code></pre></div><hr>
+<h3 id="lab-72-benchmarking-io_uring-vs-libaio-vs-psync-with-fio">Lab 7.2: Benchmarking <code>io_uring</code> vs <code>libaio</code> vs <code>psync</code> with <code>fio</code></h3>
+<p>The <code>fio</code> (Flexible I/O Tester) benchmark is the industry standard for measuring Linux storage throughput and latency.</p>
+<h4 id="1-install-fio">1. Install <code>fio</code></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt-get install -y fio
+</span></span></code></pre></div><h4 id="2-run-comparative-benchmark-harness">2. Run Comparative Benchmark Harness</h4>
+<p>Create a test configuration <code>benchmark.fio</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-ini" data-lang="ini"><span class="line"><span class="cl"><span class="k">[global]</span>
+</span></span><span class="line"><span class="cl"><span class="na">ioengine</span><span class="o">=</span><span class="s">io_uring</span>
+</span></span><span class="line"><span class="cl"><span class="na">direct</span><span class="o">=</span><span class="s">1</span>
+</span></span><span class="line"><span class="cl"><span class="na">runtime</span><span class="o">=</span><span class="s">15s</span>
+</span></span><span class="line"><span class="cl"><span class="na">time_based</span><span class="o">=</span><span class="s">1</span>
+</span></span><span class="line"><span class="cl"><span class="na">group_reporting</span><span class="o">=</span><span class="s">1</span>
+</span></span><span class="line"><span class="cl"><span class="na">filename</span><span class="o">=</span><span class="s">/tmp/fio_test.dat</span>
+</span></span><span class="line"><span class="cl"><span class="na">size</span><span class="o">=</span><span class="s">512M</span>
+</span></span><span class="line"><span class="cl"><span class="na">bs</span><span class="o">=</span><span class="s">4k</span>
+</span></span><span class="line"><span class="cl"><span class="na">rw</span><span class="o">=</span><span class="s">randread</span>
+</span></span><span class="line"><span class="cl"><span class="na">numjobs</span><span class="o">=</span><span class="s">4</span>
+</span></span><span class="line"><span class="cl"><span class="na">iodepth</span><span class="o">=</span><span class="s">64</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">[io_uring_test]</span>
+</span></span><span class="line"><span class="cl"><span class="na">ioengine</span><span class="o">=</span><span class="s">io_uring</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">[libaio_test]</span>
+</span></span><span class="line"><span class="cl"><span class="na">stonewall</span>
+</span></span><span class="line"><span class="cl"><span class="na">ioengine</span><span class="o">=</span><span class="s">libaio</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">[psync_test]</span>
+</span></span><span class="line"><span class="cl"><span class="na">stonewall</span>
+</span></span><span class="line"><span class="cl"><span class="na">ioengine</span><span class="o">=</span><span class="s">psync</span>
+</span></span><span class="line"><span class="cl"><span class="na">iodepth</span><span class="o">=</span><span class="s">1</span>
+</span></span></code></pre></div><p>Run the benchmark:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">fio benchmark.fio
+</span></span></code></pre></div><h4 id="what-to-observe">What to Observe:</h4>
+<ul>
+<li><strong>IOPS</strong>: Notice how <code>io_uring</code> achieves significantly higher IOPS than <code>psync</code> due to asynchronous batching and zero per-request context switching.</li>
+<li><strong>CPU Utilization</strong>: <code>io_uring</code> consumes significantly fewer CPU cycles per I/O operation compared to POSIX <code>libaio</code>.</li>
+</ul>
+<hr>
+<h3 id="lab-73-investigating-page-cache-writeback--dirty-pages">Lab 7.3: Investigating Page Cache Writeback &amp; Dirty Pages</h3>
+<p>Inspect the kernel&rsquo;s real-time Page Cache dirty page statistics:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Display active dirty memory pages</span>
+</span></span><span class="line"><span class="cl">grep -E <span class="s1">&#39;Dirty|Writeback&#39;</span> /proc/meminfo
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Monitor disk I/O activity every second</span>
+</span></span><span class="line"><span class="cl">vmstat -d <span class="m">1</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Inspect active kernel dirty ratio settings</span>
+</span></span><span class="line"><span class="cl">sysctl vm.dirty_ratio vm.dirty_background_ratio
+</span></span></code></pre></div><p>To observe background flushing in real-time, write 1GB of random data:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">dd <span class="k">if</span><span class="o">=</span>/dev/urandom <span class="nv">of</span><span class="o">=</span>/tmp/test_dirty.bin <span class="nv">bs</span><span class="o">=</span>1M <span class="nv">count</span><span class="o">=</span><span class="m">1000</span> <span class="p">&amp;</span>
+</span></span><span class="line"><span class="cl"><span class="k">while</span> pgrep dd &gt; /dev/null<span class="p">;</span> <span class="k">do</span>
+</span></span><span class="line"><span class="cl">    grep <span class="s2">&#34;Dirty:&#34;</span> /proc/meminfo
+</span></span><span class="line"><span class="cl">    sleep 0.5
+</span></span><span class="line"><span class="cl"><span class="k">done</span>
+</span></span><span class="line"><span class="cl">rm -f /tmp/test_dirty.bin
+</span></span></code></pre></div><hr>
+<h2 id="6-summary-checklist">6. Summary Checklist</h2>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> <strong>VFS Abstraction</strong>: Understand <code>struct file</code>, <code>struct inode</code>, and <code>struct dentry</code>.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Page Cache &amp; Direct I/O</strong>: Mastered <code>O_DIRECT</code> alignment rules and <code>vm.dirty_*</code> sysctl controls.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Block Layer</strong>: Explored <code>struct bio</code> and <code>blk-mq</code> multi-queue dispatch.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong><code>io_uring</code></strong>: Understood Submission Queues (SQ) and Completion Queues (CQ) mapped via shared memory.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Practical Hands-on</strong>: Compiled and executed a real asynchronous <code>io_uring</code> reader in C.</li>
+</ul>
+
+      </div>
+      
+
+
+
+
+
+
+
+
+  
+  
+  
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+      
+    
+        
+
+        
+          
+        
+
+        
+        
+
+
+<footer id="article-footer">
+  <div class="article-footer-top">
+    <time id="article-last-updated" datetime="0001-01-01"><i class="icon icon-calendar"></i>&nbsp;Last updated: 0001-01-01</time>
+  </div>
+
+  <div class="article-pagination">
+    
+      <a id="article-prev-link" class="pagination-card pagination-prev" href="/docs/process-management/">
+        <span class="pagination-sub">&larr; Previous</span>
+        <span class="pagination-title">Process Management</span>
+      </a>
+    
+
+    
+      <a id="article-next-link" class="pagination-card pagination-next" href="/docs/container-primitives/">
+        <span class="pagination-sub">Next &rarr;</span>
+        <span class="pagination-title">Container Primitives</span>
+      </a>
+    
+  </div>
+</footer>
+    </article>
+    <aside id="toc">
+  <span class="btn-close"><i class="icon icon-close"></i></span>
+  <div class="sticky">
+    <strong><i class="icon icon-toc"></i> On this page</strong>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-the-linux-storage-pipeline">1. The Linux Storage Pipeline</a></li>
+    <li><a href="#2-virtual-file-system--page-cache-mechanics">2. Virtual File System &amp; Page Cache Mechanics</a>
+      <ul>
+        <li><a href="#1-buffered-io-vs-direct-io-o_direct">1. Buffered I/O vs. Direct I/O (<code>O_DIRECT</code>)</a></li>
+        <li><a href="#2-tuning-page-cache-writeback-ratios">2. Tuning Page Cache Writeback Ratios</a></li>
+      </ul>
+    </li>
+    <li><a href="#3-the-block-layer--struct-bio">3. The Block Layer &amp; <code>struct bio</code></a>
+      <ul>
+        <li><a href="#multi-queue-block-layer-blk-mq">Multi-Queue Block Layer (<code>blk-mq</code>)</a></li>
+      </ul>
+    </li>
+    <li><a href="#4-the-asynchronous-io-evolution-why-io_uring">4. The Asynchronous I/O Evolution: Why <code>io_uring</code>?</a>
+      <ul>
+        <li><a href="#enter-io_uring">Enter <code>io_uring</code></a></li>
+      </ul>
+    </li>
+    <li><a href="#5-hands-on-practical-labs">5. Hands-On Practical Labs</a>
+      <ul>
+        <li><a href="#lab-71-asynchronous-file-io-with-liburing-in-c">Lab 7.1: Asynchronous File I/O with <code>liburing</code> in C</a></li>
+        <li><a href="#lab-72-benchmarking-io_uring-vs-libaio-vs-psync-with-fio">Lab 7.2: Benchmarking <code>io_uring</code> vs <code>libaio</code> vs <code>psync</code> with <code>fio</code></a></li>
+        <li><a href="#lab-73-investigating-page-cache-writeback--dirty-pages">Lab 7.3: Investigating Page Cache Writeback &amp; Dirty Pages</a></li>
+      </ul>
+    </li>
+    <li><a href="#6-summary-checklist">6. Summary Checklist</a></li>
+  </ul>
+</nav>
+  </div>
+</aside>
+  </main>
+</div>
+
+    <footer id="site-footer">
+  <div class="site-footer-container">
+    <div class="site-footer-grid">
+      
+      <div class="footer-col footer-col-brand">
+        <div class="footer-brand">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="3" width="20" height="18" rx="4" fill="currentColor" fill-opacity="0.12" stroke="currentColor" stroke-width="1.75"/>
+            <path d="M7 9L10.5 12L7 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.5 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span class="footer-brand-title">Linux Collective</span>
+        </div>
+        <p class="footer-tagline">
+          An open-source knowledge hub and community deep-dive initiative exploring Linux architecture, kernel internals, and modern systems engineering.
+        </p>
+        <div class="footer-social-links">
+          
+          <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon-link">
+            <i class="icon icon-github"></i>
+          </a>
+          
+          
+          <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" aria-label="Discord" class="social-icon-link">
+            <i class="icon icon-discord icon-colored"></i>
+          </a>
+          
+          
+          <a href="https://www.youtube.com/@CloudNativeFolks" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="social-icon-link">
+            <i class="icon icon-youtube icon-colored"></i>
+          </a>
+          
+          
+          <a href="https://twitter.com/i/communities/1499311438745468931" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" class="social-icon-link">
+            <i class="icon icon-twitter icon-colored"></i>
+          </a>
+          
+        </div>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Documentation</h4>
+        <ul class="footer-links">
+          <li><a href="/docs/overview/">Getting Started</a></li>
+          <li><a href="/docs/roadmap/">Engineering Roadmap</a></li>
+          <li><a href="/docs/linux-history/">Linux History</a></li>
+          <li><a href="/docs/linux-distros/">Linux Distributions</a></li>
+          <li><a href="/docs/level-layer-abstraction/">Levels & Abstractions</a></li>
+          <li><a href="/docs/linux-kernel/">Linux Kernel Internals</a></li>
+          <li><a href="/docs/linux-kernel-subsystem/">Kernel Subsystems</a></li>
+          <li><a href="/docs/process-management/">Process Management</a></li>
+        </ul>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Community</h4>
+        <ul class="footer-links">
+          <li><a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer">CloudNativeFolks Discord</a></li>
+          <li><a href="https://blog.cloudnativefolks.org" target="_blank" rel="noopener noreferrer">Community Blog</a></li>
+          <li><a href="https://www.youtube.com/@CloudNativeFolks" target="_blank" rel="noopener noreferrer">YouTube Channel</a></li>
+          <li><a href="https://twitter.com/i/communities/1499311438745468931" target="_blank" rel="noopener noreferrer">Twitter / X Community</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/graphs/contributors" target="_blank" rel="noopener noreferrer">Contributors Showcase</a></li>
+        </ul>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Open Source</h4>
+        <ul class="footer-links">
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/issues" target="_blank" rel="noopener noreferrer">Report an Issue</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/pulls" target="_blank" rel="noopener noreferrer">Submit Contribution</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License (MIT)</a></li>
+        </ul>
+        <div class="footer-badge-wrapper">
+          <a href="https://visitorbadge.io/status?path=https%3A%2F%2Flinuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="visitor-badge-link">
+            <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Flinuxcollective.github.io&label=VISITORS&countColor=%232563eb&style=flat-square" alt="Visitor Counter" loading="lazy" />
+          </a>
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="site-footer-bottom">
+      <div class="footer-bottom-copy">
+        &copy; 2022-2026 <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer">CloudNativeFolks</a>. Built for the open source community.
+      </div>
+      <div class="footer-bottom-love">
+        Engineered with <i class="icon icon-love icon-colored"></i> by <a href="https://blog.cloudnativefolks.org" target="_blank" rel="noopener noreferrer">@CloudNativeFolks</a>
+      </div>
+    </div>
+  </div>
+</footer>
+    
+
+
+
+
+
+
+<script type="text/javascript" src="/js/base.min.js"></script>
+
+
+
+  
+  <script src="/js/component/docsearch.min.js"></script>
+  <script type="application/javascript">
+      docsearch({
+          container: '#site-header-search',
+          appId: '',
+          indexName: '',
+          apiKey: '',
+      });
+  </script>
+
+  </body>
+</html>

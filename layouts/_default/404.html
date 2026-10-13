@@ -1,10 +1,25 @@
 {{ define "main" }}
-<div id="site-main-content-wrapper">
-  <main>
-    <article id="article">
-      <h1>Page Not Found</h1>
-      <p>Sorry, but the page you were trying to view does not exist.</p>
-    </article>
+<div id="site-main-content-wrapper" class="home-wrapper">
+  <main class="home-main" style="padding: 100px 20px; text-align: center; justify-content: center; align-items: center; min-height: 60vh;">
+    <div style="max-width: 600px; margin: 0 auto;">
+      <div style="font-family: var(--font-family-code); font-size: 5rem; font-weight: 800; color: var(--color-anchor); margin-bottom: 12px; letter-spacing: -0.05em;">
+        404
+      </div>
+      <h1 style="font-family: var(--font-family-brand); font-size: 2rem; font-weight: 700; color: var(--color2); margin-bottom: 16px;">
+        Kernel Panic: Page Not Found
+      </h1>
+      <p style="font-size: 1.05rem; color: var(--color3); line-height: 1.6; margin-bottom: 32px;">
+        The requested segment could not be mapped into virtual memory. The page may have moved, or the link may be broken.
+      </p>
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <a href="/" class="btn btn-primary btn-lg">
+          <span>&larr; Return to Home</span>
+        </a>
+        <a href="/docs/overview/" class="btn btn-secondary btn-lg">
+          <span>Browse Documentation</span>
+        </a>
+      </div>
+    </div>
   </main>
 </div>
 {{ end }}

@@ -1,30 +1,470 @@
 {{ define "main" }}
-<div id="site-main-content-wrapper">
-  <main>
-    <section class="cover">
-      <h1>{{ .Site.Title }}</h1>
-      <h2>{{ .Site.Params.description }}</h2>
-      <img src="/img/icon/Linux Collective-2.png"  width="300" height="300"> 
-      <a class="button" href="https://discord.gg/rEvr7vq">Join CloudNativeFolks Community </a>
+<div id="site-main-content-wrapper" class="home-wrapper">
+  <main class="home-main">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-container">
+        <!-- Badge -->
+        <div class="hero-badge-wrapper">
+          <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" class="hero-badge">
+            <span class="badge-dot"></span>
+            <span class="badge-icon">🐧</span>
+            <span class="badge-text">CloudNativeFolks Initiative · Free &amp; Open Source</span>
+            <span class="badge-arrow">→</span>
+          </a>
+        </div>
 
-      {{ with .Site.Params.githubRepos }}
-        {{ partial "github-repos-grid" . }}
-      {{ else }}
-        {{ with .Site.Params.githubRepo }}
-          {{ partial "github-buttons" . }}
-        {{ end }}
-      {{ end }}
-      <h3> Thanks to all our contributors!</h3>
+        <!-- Headline -->
+        <h1 class="hero-title">
+          Master the Linux Ecosystem <br class="title-break">
+          <span class="hero-gradient-text">from Kernel to Cloud</span>
+        </h1>
 
-      <a href="https://github.com/linuxcollective/linuxcollective.github.io/graphs/contributors">
-        <img src="https://contrib.rocks/image?repo=linuxcollective/linuxcollective.github.io" />
-      </a>
-      <!--  https://contrib.rocks -->
+        <!-- Subtitle -->
+        <p class="hero-subtitle">
+          An open-source, deep-dive technical platform for systems engineers, developers, and cloud practitioners. Explore Linux evolution, kernel subsystems, process management, and modern infrastructure primitives.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="hero-cta-group">
+          <a href="/docs/overview/" class="btn btn-primary btn-lg">
+            <span>Explore Documentation</span>
+            <svg class="btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+          <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" class="btn btn-discord btn-lg">
+            <i class="icon icon-discord icon-colored"></i>
+            <span>Join Discord Community</span>
+          </a>
+          <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-lg">
+            <i class="icon icon-github"></i>
+            <span>Star on GitHub</span>
+          </a>
+        </div>
+
+        <!-- Interactive Terminal Showcase -->
+        <div class="terminal-showcase" id="terminal-showcase">
+          <div class="terminal-window">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-yellow"></span>
+                <span class="dot dot-green"></span>
+              </div>
+              <div class="terminal-title">collective@linux-host: ~ (bash)</div>
+              <div class="terminal-actions">
+                <button class="terminal-copy-btn" id="terminal-copy-btn" title="Copy command">
+                  <i class="icon icon-copy"></i>
+                  <span>Copy</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Terminal Tabs -->
+            <div class="terminal-tabs" role="tablist">
+              <button class="terminal-tab active" data-tab="tab-sysinfo">Kernel Info</button>
+              <button class="terminal-tab" data-tab="tab-subsystems">Subsystems</button>
+              <button class="terminal-tab" data-tab="tab-quickstart">Syscalls &amp; Rings</button>
+            </div>
+
+            <!-- Terminal Tab Content -->
+            <div class="terminal-body">
+              <div class="tab-pane active" id="tab-sysinfo">
+                <div class="term-line prompt-line">
+                  <span class="term-prompt">collective@linux:~$</span>
+                  <span class="term-command">uname -a &amp;&amp; cat /etc/os-release | grep PRETTY_NAME</span>
+                </div>
+                <div class="term-output">
+                  <span class="term-cyan">Linux linux-collective 6.11.0-cloud-native #1 SMP PREEMPT_DYNAMIC</span> x86_64 GNU/Linux<br>
+                  PRETTY_NAME="<span class="term-green">Linux Collective OS (CloudNativeFolks Edition)</span>"
+                </div>
+                <div class="term-line prompt-line">
+                  <span class="term-prompt">collective@linux:~$</span>
+                  <span class="term-command">lscpu | head -n 4</span>
+                </div>
+                <div class="term-output">
+                  Architecture:            <span class="term-yellow">x86_64, aarch64</span><br>
+                  CPU op-mode(s):          32-bit, 64-bit<br>
+                  Byte Order:              Little Endian<br>
+                  Virtualization:          VT-x / AMD-V / KVM Ready
+                </div>
+                <div class="term-line prompt-line cursor-line">
+                  <span class="term-prompt">collective@linux:~$</span>
+                  <span class="term-cursor"></span>
+                </div>
+              </div>
+
+              <div class="tab-pane" id="tab-subsystems">
+                <div class="term-line prompt-line">
+                  <span class="term-prompt">collective@linux:~$</span>
+                  <span class="term-command">tree /sys/kernel/debug/tracing -L 1 2&gt;/dev/null || cat /proc/filesystems | head -n 5</span>
+                </div>
+                <div class="term-output">
+                  [VFS] Virtual File System &nbsp;&rarr; <span class="term-cyan">ext4, btrfs, xfs, overlay, tmpfs</span><br>
+                  [MM] &nbsp;Memory Management &nbsp;&rarr; <span class="term-green">Paging, Slab Allocator, Page Tables</span><br>
+                  [SCHED] Process Scheduler &rarr; <span class="term-yellow">CFS / EEVDF, Task Struct, Namespaces</span><br>
+                  [IPC] Inter-Process Comms &rarr; <span class="term-magenta">Pipes, Shared Memory, Unix Sockets</span><br>
+                  [NET] Network Stack &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&rarr; <span class="term-cyan">TCP/IP, Netfilter, eBPF TC/XDP</span>
+                </div>
+                <div class="term-line prompt-line cursor-line">
+                  <span class="term-prompt">collective@linux:~$</span>
+                  <span class="term-cursor"></span>
+                </div>
+              </div>
+
+              <div class="tab-pane" id="tab-quickstart">
+                <div class="term-line prompt-line">
+                  <span class="term-prompt">collective@linux:~$</span>
+                  <span class="term-command">strace -c -e trace=process,memory,file ls &gt;/dev/null</span>
+                </div>
+                <div class="term-output">
+                  % time &nbsp;&nbsp;&nbsp;&nbsp;seconds &nbsp;usecs/call &nbsp;&nbsp;&nbsp;&nbsp;calls &nbsp;&nbsp;&nbsp;errors &nbsp;syscall<br>
+                  ------ ----------- ----------- --------- --------- ----------------<br>
+                  &nbsp;38.45 &nbsp;&nbsp;&nbsp;0.000142 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;14 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="term-green">openat</span><br>
+                  &nbsp;22.12 &nbsp;&nbsp;&nbsp;0.000081 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;11 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="term-cyan">mmap</span><br>
+                  &nbsp;19.34 &nbsp;&nbsp;&nbsp;0.000071 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;8 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;8 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="term-yellow">newfstatat</span><br>
+                  &nbsp;10.22 &nbsp;&nbsp;&nbsp;0.000037 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;12 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="term-magenta">close</span><br>
+                  ------ ----------- ----------- --------- --------- ----------------<br>
+                  100.00 &nbsp;&nbsp;&nbsp;0.000368 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;28 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;total
+                </div>
+                <div class="term-line prompt-line cursor-line">
+                  <span class="term-prompt">collective@linux:~$</span>
+                  <span class="term-cursor"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
-  
 
+    <!-- Metrics Strip -->
+    <section class="metrics-section">
+      <div class="metrics-container">
+        <div class="metric-card">
+          <div class="metric-value">100%</div>
+          <div class="metric-label">Free &amp; Open Source</div>
+          <div class="metric-sub">CC / MIT Licensed Guides</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">Kernel &rarr; App</div>
+          <div class="metric-label">Full Architecture Depth</div>
+          <div class="metric-sub">Syscalls, VFS, MM, &amp; Scheduling</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">Cloud Ready</div>
+          <div class="metric-label">Container Primitives</div>
+          <div class="metric-sub">cgroups, namespaces, &amp; eBPF</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">Community</div>
+          <div class="metric-label">CloudNativeFolks</div>
+          <div class="metric-sub">Discord, YouTube, &amp; GitHub</div>
+        </div>
+      </div>
+    </section>
 
+    <!-- Core Knowledge Modules Grid -->
+    <section class="tracks-section" id="learning-tracks">
+      <div class="tracks-container">
+        <div class="section-header">
+          <a href="/docs/roadmap/" style="text-decoration: none;"><span class="section-tag">Explore 10-Tier Roadmap &rarr;</span></a>
+          <h2 class="section-title">Explore Core Learning Modules</h2>
+          <p class="section-desc">
+            Structured step-by-step guides from historical Unix roots to advanced kernel engineering and process lifecycles.
+          </p>
+        </div>
+
+        <div class="tracks-grid">
+          <!-- Card 1 -->
+          <a href="/docs/linux-history/" class="track-card">
+            <div class="track-card-header">
+              <div class="track-icon-wrapper track-icon-blue">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <span class="track-badge">Module 01</span>
+            </div>
+            <h3 class="track-title">Linux History &amp; Evolution</h3>
+            <p class="track-desc">
+              From Linus Torvalds' 1991 announcement and Unix legacy to GNU licensing and modern enterprise infrastructure.
+            </p>
+            <div class="track-footer">
+              <span class="track-link-text">Read Module</span>
+              <span class="track-link-arrow">&rarr;</span>
+            </div>
+          </a>
+
+          <!-- Card 2 -->
+          <a href="/docs/linux-distros/" class="track-card">
+            <div class="track-card-header">
+              <div class="track-icon-wrapper track-icon-purple">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                </svg>
+              </div>
+              <span class="track-badge">Module 02</span>
+            </div>
+            <h3 class="track-title">Distribution Landscape</h3>
+            <p class="track-desc">
+              Compare Debian, Red Hat, Arch, Alpine, and immutable distributions. Package managers, systemd, and cloud footprints.
+            </p>
+            <div class="track-footer">
+              <span class="track-link-text">Read Module</span>
+              <span class="track-link-arrow">&rarr;</span>
+            </div>
+          </a>
+
+          <!-- Card 3 -->
+          <a href="/docs/level-layer-abstraction/" class="track-card">
+            <div class="track-card-header">
+              <div class="track-icon-wrapper track-icon-cyan">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                  <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                  <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                  <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                </svg>
+              </div>
+              <span class="track-badge">Module 03</span>
+            </div>
+            <h3 class="track-title">Levels &amp; Layer Abstraction</h3>
+            <p class="track-desc">
+              Understand User Space vs. Kernel Space, hardware protection rings (Ring 0 vs Ring 3), and glibc translation bridges.
+            </p>
+            <div class="track-footer">
+              <span class="track-link-text">Read Module</span>
+              <span class="track-link-arrow">&rarr;</span>
+            </div>
+          </a>
+
+          <!-- Card 4 -->
+          <a href="/docs/linux-kernel/" class="track-card">
+            <div class="track-card-header">
+              <div class="track-icon-wrapper track-icon-emerald">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                  <rect x="9" y="9" width="6" height="6"></rect>
+                  <line x1="9" y1="1" x2="9" y2="4"></line>
+                  <line x1="15" y1="1" x2="15" y2="4"></line>
+                  <line x1="9" y1="20" x2="9" y2="23"></line>
+                  <line x1="15" y1="20" x2="15" y2="23"></line>
+                  <line x1="20" y1="9" x2="23" y2="9"></line>
+                  <line x1="20" y1="15" x2="23" y2="15"></line>
+                  <line x1="1" y1="9" x2="4" y2="9"></line>
+                  <line x1="1" y1="15" x2="4" y2="15"></line>
+                </svg>
+              </div>
+              <span class="track-badge">Module 04</span>
+            </div>
+            <h3 class="track-title">Linux Kernel Architecture</h3>
+            <p class="track-desc">
+              Monolithic kernel architecture with dynamically loadable modules (LKM), device drivers, and system call tables.
+            </p>
+            <div class="track-footer">
+              <span class="track-link-text">Read Module</span>
+              <span class="track-link-arrow">&rarr;</span>
+            </div>
+          </a>
+
+          <!-- Card 5 -->
+          <a href="/docs/linux-kernel-subsystem/" class="track-card">
+            <div class="track-card-header">
+              <div class="track-icon-wrapper track-icon-amber">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+              </div>
+              <span class="track-badge">Module 05</span>
+            </div>
+            <h3 class="track-title">Kernel Subsystems Deep Dive</h3>
+            <p class="track-desc">
+              Master the five foundational subsystems: Virtual File System (VFS), Memory Management (MM), IPC, Sched, and Network.
+            </p>
+            <div class="track-footer">
+              <span class="track-link-text">Read Module</span>
+              <span class="track-link-arrow">&rarr;</span>
+            </div>
+          </a>
+
+          <!-- Card 6 -->
+          <a href="/docs/process-management/" class="track-card">
+            <div class="track-card-header">
+              <div class="track-icon-wrapper track-icon-red">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="18" cy="18" r="3"></circle>
+                  <circle cx="6" cy="6" r="3"></circle>
+                  <path d="M13 6h3a2 2 0 0 1 2 2v7"></path>
+                  <line x1="6" y1="9" x2="6" y2="21"></line>
+                </svg>
+              </div>
+              <span class="track-badge">Module 06</span>
+            </div>
+            <h3 class="track-title">Process &amp; Thread Management</h3>
+            <p class="track-desc">
+              Process lifecycle, task_struct internals, fork/exec pipelines, cgroups, namespaces, and scheduling classes.
+            </p>
+            <div class="track-footer">
+              <span class="track-link-text">Read Module</span>
+              <span class="track-link-arrow">&rarr;</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Architecture Diagram & Quick Cheatsheet Section -->
+    <section class="cheatsheet-section">
+      <div class="cheatsheet-container">
+        <div class="section-header">
+          <span class="section-tag">Essential Toolset</span>
+          <h2 class="section-title">Linux Systems Cheatsheet &amp; Diagnostics</h2>
+          <p class="section-desc">
+            Quick command reference for debugging systems, diagnosing memory, inspecting sockets, and monitoring processes.
+          </p>
+        </div>
+
+        <div class="cheatsheet-grid">
+          <!-- Cheatsheet Card 1 -->
+          <div class="cheat-card">
+            <div class="cheat-header">
+              <div class="cheat-title-group">
+                <span class="cheat-icon">⚡</span>
+                <h4 class="cheat-title">Process Diagnostics</h4>
+              </div>
+              <span class="cheat-badge">Tasks &amp; CPU</span>
+            </div>
+            <div class="cheat-snippets">
+              <div class="cheat-snippet" data-cmd="ps aux --sort=-%cpu | head -n 6">
+                <code>ps aux --sort=-%cpu | head -n 6</code>
+                <button class="snippet-copy-btn" title="Copy"><i class="icon icon-copy"></i></button>
+              </div>
+              <div class="cheat-snippet" data-cmd="pstree -ps $$">
+                <code>pstree -ps $$</code>
+                <button class="snippet-copy-btn" title="Copy"><i class="icon icon-copy"></i></button>
+              </div>
+              <div class="cheat-snippet" data-cmd="cat /proc/loadavg">
+                <code>cat /proc/loadavg</code>
+                <button class="snippet-copy-btn" title="Copy"><i class="icon icon-copy"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cheatsheet Card 2 -->
+          <div class="cheat-card">
+            <div class="cheat-header">
+              <div class="cheat-title-group">
+                <span class="cheat-icon">🧠</span>
+                <h4 class="cheat-title">Memory &amp; Paging</h4>
+              </div>
+              <span class="cheat-badge">RAM &amp; Vmstat</span>
+            </div>
+            <div class="cheat-snippets">
+              <div class="cheat-snippet" data-cmd="free -h --wide">
+                <code>free -h --wide</code>
+                <button class="snippet-copy-btn" title="Copy"><i class="icon icon-copy"></i></button>
+              </div>
+              <div class="cheat-snippet" data-cmd="vmstat 1 5">
+                <code>vmstat 1 5</code>
+                <button class="snippet-copy-btn" title="Copy"><i class="icon icon-copy"></i></button>
+              </div>
+              <div class="cheat-snippet" data-cmd="cat /proc/meminfo | grep -E 'MemTotal|MemAvailable|Buffers|Cached'">
+                <code>grep -E 'MemTotal|MemAvailable' /proc/meminfo</code>
+                <button class="snippet-copy-btn" title="Copy"><i class="icon icon-copy"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cheatsheet Card 3 -->
+          <div class="cheat-card">
+            <div class="cheat-header">
+              <div class="cheat-title-group">
+                <span class="cheat-icon">🌐</span>
+                <h4 class="cheat-title">Network &amp; Sockets</h4>
+              </div>
+              <span class="cheat-badge">TCP / IP</span>
+            </div>
+            <div class="cheat-snippets">
+              <div class="cheat-snippet" data-cmd="ss -tulpn">
+                <code>ss -tulpn</code>
+                <button class="snippet-copy-btn" title="Copy"><i class="icon icon-copy"></i></button>
+              </div>
+              <div class="cheat-snippet" data-cmd="ip -br addr show">
+                <code>ip -br addr show</code>
+                <button class="snippet-copy-btn" title="Copy"><i class="icon icon-copy"></i></button>
+              </div>
+              <div class="cheat-snippet" data-cmd="ip route show default">
+                <code>ip route show default</code>
+                <button class="snippet-copy-btn" title="Copy"><i class="icon icon-copy"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cheatsheet Card 4 -->
+          <div class="cheat-card">
+            <div class="cheat-header">
+              <div class="cheat-title-group">
+                <span class="cheat-icon">💾</span>
+                <h4 class="cheat-title">Disk &amp; VFS I/O</h4>
+              </div>
+              <span class="cheat-badge">Storage</span>
+            </div>
+            <div class="cheat-snippets">
+              <div class="cheat-snippet" data-cmd="df -hT --exclude-type=tmpfs">
+                <code>df -hT --exclude-type=tmpfs</code>
+                <button class="snippet-copy-btn" title="Copy"><i class="icon icon-copy"></i></button>
+              </div>
+              <div class="cheat-snippet" data-cmd="lsblk -o NAME,FSTYPE,SIZE,MOUNTPOINT">
+                <code>lsblk -o NAME,FSTYPE,SIZE,MOUNTPOINT</code>
+                <button class="snippet-copy-btn" title="Copy"><i class="icon icon-copy"></i></button>
+              </div>
+              <div class="cheat-snippet" data-cmd="iostat -xz 1 3">
+                <code>iostat -xz 1 3</code>
+                <button class="snippet-copy-btn" title="Copy"><i class="icon icon-copy"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Community & Contributor Showcase -->
+    <section class="community-section">
+      <div class="community-container">
+        <div class="community-card">
+          <div class="community-content">
+            <span class="community-tag">Open Source Collective</span>
+            <h2 class="community-title">Built by the Community, for the Community</h2>
+            <p class="community-desc">
+              Linux Collective thrives thanks to engineers and contributors from around the world. Whether you want to fix a typo, write a new module, or discuss kernel architecture, we welcome you!
+            </p>
+            <div class="community-actions">
+              <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" class="btn btn-discord">
+                <i class="icon icon-discord icon-colored"></i>
+                <span>Join Discord (1,000+ Members)</span>
+              </a>
+              <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+                <i class="icon icon-github"></i>
+                <span>Contribute on GitHub</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="community-contributors">
+            <h4 class="contributors-title">Thanks to our Amazing Contributors</h4>
+            <a href="https://github.com/linuxcollective/linuxcollective.github.io/graphs/contributors" target="_blank" rel="noopener noreferrer" class="contributors-link" title="View all contributors on GitHub">
+              <img src="https://contrib.rocks/image?repo=linuxcollective/linuxcollective.github.io" alt="Contributors" class="contributors-img" loading="lazy">
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 {{ end }}
-

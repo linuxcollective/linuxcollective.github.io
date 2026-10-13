@@ -1,4 +1,5 @@
 [en]
 contentDir = 'content/en'
 languageName = 'English'
+label = 'English'
 weight = 1

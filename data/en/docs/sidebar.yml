@@ -1,12 +1,36 @@
-- title: Documentation
+- title: Getting Started
   pages:
   - title: Overview
+  - title: Learning Roadmap
+    slug: roadmap
 
-- title: Linux evoluation
+- title: Linux Foundations & Distros
   pages:
+  - title: Shell & systemd Admin
+    slug: shell-and-sysadmin
   - title: Linux History
+    slug: linux-history
   - title: Linux Distros
-  - title: level & Layer abstraction
+    slug: linux-distros
+
+- title: Architecture & Core Subsystems
+  pages:
+  - title: Level & Layer Abstraction
+    slug: level-layer-abstraction
   - title: Linux Kernel
+    slug: linux-kernel
   - title: Linux Kernel Subsystem
+    slug: linux-kernel-subsystem
   - title: Process Management
+    slug: process-management
+  - title: Storage & io_uring
+    slug: storage-and-io
+
+- title: Advanced Systems & Kernel Dev
+  pages:
+  - title: Container Primitives
+    slug: container-primitives
+  - title: Performance & eBPF
+    slug: ebpf-and-observability
+  - title: Kernel Drivers & LKML
+    slug: kernel-drivers-and-modules

@@ -1,48 +1,101 @@
+/* ==========================================================================
+   Documentation Sidebar Styles
+   ========================================================================== */
+
 #sidebar {
-  padding: 0 20px;
+  padding: 24px 16px;
+  background: var(--background);
 }
 
-.sidebar-section, .sidebar-link {
-  padding: 7px 0;
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-family-brand);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color2);
+}
+
+.sidebar-nav-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sidebar-group {
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-section {
-  margin-top: 40px;
-  font-weight: 600;
-  color: var(--color2)
+  font-family: var(--font-family-brand);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color3);
+  margin-bottom: 10px;
+  padding: 0 8px;
+}
+
+.sidebar-links-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .sidebar-link {
-  padding-left: 10px;
-  color: var(--color3);
-  border-left: 1px solid var(--border-color);
-  margin-left: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--color);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
-.sidebar-link::before {
-  content: '';
-  display: inline-block;
+.sidebar-link-bullet {
   width: 6px;
   height: 6px;
-  background: var(--border-color);
   border-radius: 50%;
-  position: relative;
-  left: -13.5px;
-  top: -3px;
+  background: var(--border-color);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .sidebar-link:hover {
-  color: var(--color-hover);
-  font-weight: 600;
-  font-size: 98%;
+  color: var(--color2);
+  background: var(--background-fg2);
+}
+
+.sidebar-link:hover .sidebar-link-bullet {
+  background: var(--color-anchor);
 }
 
 .sidebar-link.current {
   color: var(--color-anchor);
+  background: var(--badge-bg);
   font-weight: 600;
-  font-size: 98%;
 }
 
-.sidebar-link.current::before, .sidebar-link:hover::before {
+.sidebar-link.current .sidebar-link-bullet {
   background: var(--color-anchor);
+  box-shadow: 0 0 6px var(--color-anchor);
+  transform: scale(1.3);
 }

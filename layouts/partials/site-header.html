@@ -1,56 +1,76 @@
 <header id="site-header">
-  <!-- brand -->
-  <div id="site-header-brand">
-    <a href="/">{{ .Site.Title }}</a>
-  </div>
-
-  <!-- controls -->
-  <div id="site-header-controls">
-    <!-- theme selector -->
-    <div class="dropdown">
-      <button class="dropdown-btn" aria-haspopup="menu" aria-label="theme selector">
-        <i class="icon icon-brightness"></i>
-        <i class="icon icon-select"></i>
-      </button>
-      <ul role="menu" class="dropdown-menu">
-        <li role="menuitem"><button class="color-scheme" data-value="light"><i class="icon icon-light-mode"></i> Light</button></li>
-        <li role="menuitem"><button class="color-scheme" data-value="dark"><i class="icon icon-dark-mode"></i> Dark &nbsp;</button></li>
-        <li role="menuitem"><button class="color-scheme" data-value="night"><i class="icon icon-night-mode"></i> Night</button></li>
-      </ul>
+  <div class="site-header-inner">
+    <!-- brand -->
+    <div id="site-header-brand">
+      <a href="/" class="brand-link">
+        <span class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="3" width="20" height="18" rx="4" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-width="1.75"/>
+            <path d="M7 9L10.5 12L7 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.5 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">{{ .Site.Title }}</span>
+        <span class="brand-badge">Open Source</span>
+      </a>
     </div>
 
-    <!-- language selector -->
-    <div class="dropdown">
-      <button class="dropdown-btn" aria-haspopup="menu" aria-label="language selector">
-        <i class="icon icon-translate"></i>
-        <i class="icon icon-select"></i>
-      </button>
-      <ul role="menu" class="dropdown-menu">
-        {{ if .IsTranslated }}
-          {{ range .AllTranslations }}
-          <li role="menuitem"><a href="{{ .Permalink }}">{{ .Language.LanguageName }}</a></li>
+    <!-- main menu -->
+    <div id="site-header-menu">
+      <nav>
+        <ul>
+          {{ $currentPageURL := .Permalink }}
+          {{ $isHomePage := eq $currentPageURL ($.Site.BaseURL | absLangURL) }}
+          {{ range .Site.Menus.main }}
+            {{ $isActive := or (and (eq .URL "/") $isHomePage) (and (ne .URL "/") (in $currentPageURL .URL)) }}
+            <li>
+              <a href="{{ .URL }}" {{ if $isActive }} class="active"{{ end }} {{ if hasPrefix .URL "http" }} target="_blank" rel="noopener noreferrer"{{ end }}>
+                {{ .Pre | safeHTML }}
+                <span>{{ .Name }}</span>
+              </a>
+            </li>
           {{ end }}
-        {{ else }}
-          <li role="menuitem"><a href="#">{{ .Language.LanguageName }}</a></li>
-        {{ end }}
-      </ul>
+        </ul>
+      </nav>
+    </div>
+
+    <!-- controls -->
+    <div id="site-header-controls">
+      <!-- search if enabled -->
+      <div id="site-header-search"></div>
+
+      <!-- github star link -->
+      <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="header-action-btn github-btn" title="GitHub Repository" aria-label="GitHub Repository">
+        <i class="icon icon-github"></i>
+        <span class="btn-text">GitHub</span>
+      </a>
+
+      <!-- discord link -->
+      <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" class="header-action-btn discord-btn" title="Join Discord Community" aria-label="Discord Community">
+        <i class="icon icon-discord icon-colored"></i>
+      </a>
+
+      <!-- theme selector -->
+      <div class="dropdown theme-dropdown">
+        <button class="dropdown-btn" aria-haspopup="menu" aria-label="Toggle theme">
+          <i class="icon icon-brightness"></i>
+          <i class="icon icon-select"></i>
+        </button>
+        <ul role="menu" class="dropdown-menu">
+          <li role="menuitem"><button class="color-scheme" data-value="light"><i class="icon icon-light-mode"></i> Light</button></li>
+          <li role="menuitem"><button class="color-scheme" data-value="dark"><i class="icon icon-dark-mode"></i> Dark</button></li>
+          <li role="menuitem"><button class="color-scheme" data-value="night"><i class="icon icon-night-mode"></i> Night</button></li>
+        </ul>
+      </div>
+
+      <!-- mobile menu toggle -->
+      <button id="site-header-mobile-toggle" aria-label="Toggle navigation menu" class="mobile-toggle-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
     </div>
   </div>
-
-  <!-- main menu -->
-  <div id="site-header-menu">
-    <nav>
-      <ul>
-        {{ $currentPageURL := .Permalink }}
-        {{ $isHomePage := eq $currentPageURL ($.Site.BaseURL | absLangURL) }}
-        {{ range .Site.Menus.main }}
-          {{ $isActive := or (and (eq .URL "/") $isHomePage) (and (ne .URL "/") (in $currentPageURL .URL)) }}
-          <li><a href="{{ .URL }}" {{ if $isActive }} class="active"{{ end }}>{{ .Pre }}{{ .Name }}</a></li>
-        {{ end }}
-      </ul>
-    </nav>
-  </div>
-
-  <!-- search -->
-  <div id="site-header-search"></div>
 </header>

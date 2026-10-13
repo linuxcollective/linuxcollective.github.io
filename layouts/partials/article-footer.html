@@ -21,7 +21,7 @@
     {{ end }}
 
     {{- range $page := $group.pages -}}
-      {{- $pageSlug := $page.title | urlize -}}
+      {{- $pageSlug := or $page.slug ($page.title | urlize) -}}
       {{- $isActivePage := or $isSectionIndex (eq $urlPageSlug $pageSlug) -}}
 
       {{ if $isActivePagePassed }}
@@ -54,13 +54,25 @@
 {{ end }}
 
 <footer id="article-footer">
-  <time id="article-last-updated" datetime="{{ $lastMod }}"><i class="icon icon-calendar"></i>&nbsp;Last updated: {{ $lastMod }}</time>
+  <div class="article-footer-top">
+    <time id="article-last-updated" datetime="{{ $lastMod }}"><i class="icon icon-calendar"></i>&nbsp;Last updated: {{ $lastMod }}</time>
+  </div>
 
-  {{ if ne $prevPageHref "" }}
-    <a id="article-prev-link" href="{{ $prevPageHref }}"><i class="icon icon-prev icon-colored"></i> Prev</a>
-  {{ end }}
+  <div class="article-pagination">
+    {{ if ne $prevPageHref "" }}
+      <a id="article-prev-link" class="pagination-card pagination-prev" href="{{ $prevPageHref }}">
+        <span class="pagination-sub">&larr; Previous</span>
+        <span class="pagination-title">{{ $prevPageTitle }}</span>
+      </a>
+    {{ else }}
+      <div class="pagination-spacer"></div>
+    {{ end }}
 
-  {{ if ne $nextPageHref "" }}
-    <a id="article-next-link" {{ if eq $prevPageHref "" }} data-first-page=true {{ end }} href="{{ $nextPageHref }}">Next <i class="icon icon-next icon-colored"></i></a>
-  {{ end }}
+    {{ if ne $nextPageHref "" }}
+      <a id="article-next-link" class="pagination-card pagination-next" href="{{ $nextPageHref }}">
+        <span class="pagination-sub">Next &rarr;</span>
+        <span class="pagination-title">{{ $nextPageTitle }}</span>
+      </a>
+    {{ end }}
+  </div>
 </footer>

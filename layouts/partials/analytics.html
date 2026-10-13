@@ -1,8 +1,11 @@
-<script async src="https://www.googletagmanager.com/gtag/js?id={{ .Site.GoogleAnalytics }}"></script>
+{{ $ga := or site.Config.Services.GoogleAnalytics.ID site.Params.googleAnalytics }}
+{{ with $ga }}
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ . }}"></script>
 <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
 
-    gtag('config', '{{ .Site.GoogleAnalytics }}');
+    gtag('config', '{{ . }}');
 </script>
+{{ end }}

@@ -1,45 +1,95 @@
 <footer id="site-footer">
-  <!-- copyright -->
-  <div id="site-footer-copyright">
-    <a href="{{ .Site.Params.authorURL }}" target="_blank">
-      <i class="icon icon-copyright"></i> {{ if .Site.Params.projectStartYear }}{{ .Site.Params.projectStartYear }}-{{ end }}{{ .Site.Params.currentYear }} {{ .Site.Params.author }}
-    </a>
-  </div>
+  <div class="site-footer-container">
+    <div class="site-footer-grid">
+      <!-- Col 1: Brand & About -->
+      <div class="footer-col footer-col-brand">
+        <div class="footer-brand">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="3" width="20" height="18" rx="4" fill="currentColor" fill-opacity="0.12" stroke="currentColor" stroke-width="1.75"/>
+            <path d="M7 9L10.5 12L7 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.5 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span class="footer-brand-title">{{ .Site.Title }}</span>
+        </div>
+        <p class="footer-tagline">
+          An open-source knowledge hub and community deep-dive initiative exploring Linux architecture, kernel internals, and modern systems engineering.
+        </p>
+        <div class="footer-social-links">
+          {{ with .Site.Params.githubURL }}
+          <a href="{{ . }}" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon-link">
+            <i class="icon icon-github"></i>
+          </a>
+          {{ end }}
+          {{ with .Site.Params.discordURL }}
+          <a href="{{ . }}" target="_blank" rel="noopener noreferrer" aria-label="Discord" class="social-icon-link">
+            <i class="icon icon-discord icon-colored"></i>
+          </a>
+          {{ end }}
+          {{ with .Site.Params.youtubeURL }}
+          <a href="{{ . }}" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="social-icon-link">
+            <i class="icon icon-youtube icon-colored"></i>
+          </a>
+          {{ end }}
+          {{ with .Site.Params.twitterURL }}
+          <a href="{{ . }}" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" class="social-icon-link">
+            <i class="icon icon-twitter icon-colored"></i>
+          </a>
+          {{ end }}
+        </div>
+      </div>
 
-  <!-- social -->
-  <div id="site-footer-social">
+      <!-- Col 2: Documentation Tracks -->
+      <div class="footer-col">
+        <h4 class="footer-heading">Documentation</h4>
+        <ul class="footer-links">
+          <li><a href="/docs/overview/">Getting Started</a></li>
+          <li><a href="/docs/roadmap/">Engineering Roadmap</a></li>
+          <li><a href="/docs/linux-history/">Linux History</a></li>
+          <li><a href="/docs/linux-distros/">Linux Distributions</a></li>
+          <li><a href="/docs/level-layer-abstraction/">Levels & Abstractions</a></li>
+          <li><a href="/docs/linux-kernel/">Linux Kernel Internals</a></li>
+          <li><a href="/docs/linux-kernel-subsystem/">Kernel Subsystems</a></li>
+          <li><a href="/docs/process-management/">Process Management</a></li>
+        </ul>
+      </div>
 
-    {{with .Site.Params.facebookURL}}
-    <a href="{{.}}" target="_blank" aria-label="facebook url">
-      <i class="icon icon-facebook icon-colored"></i>
-    </a>
-    {{end}}
+      <!-- Col 3: Community & Projects -->
+      <div class="footer-col">
+        <h4 class="footer-heading">Community</h4>
+        <ul class="footer-links">
+          <li><a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer">CloudNativeFolks Discord</a></li>
+          <li><a href="https://blog.cloudnativefolks.org" target="_blank" rel="noopener noreferrer">Community Blog</a></li>
+          <li><a href="https://www.youtube.com/@CloudNativeFolks" target="_blank" rel="noopener noreferrer">YouTube Channel</a></li>
+          <li><a href="https://twitter.com/i/communities/1499311438745468931" target="_blank" rel="noopener noreferrer">Twitter / X Community</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/graphs/contributors" target="_blank" rel="noopener noreferrer">Contributors Showcase</a></li>
+        </ul>
+      </div>
 
-    {{with .Site.Params.twitterURL}}
-    <a href="{{.}}" target="_blank" aria-label="twitter url">
-      <i class="icon icon-twitter icon-colored"></i>
-    </a>
-    {{end}}
+      <!-- Col 4: Open Source -->
+      <div class="footer-col">
+        <h4 class="footer-heading">Open Source</h4>
+        <ul class="footer-links">
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/issues" target="_blank" rel="noopener noreferrer">Report an Issue</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/pulls" target="_blank" rel="noopener noreferrer">Submit Contribution</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License (MIT)</a></li>
+        </ul>
+        <div class="footer-badge-wrapper">
+          <a href="https://visitorbadge.io/status?path=https%3A%2F%2Flinuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="visitor-badge-link">
+            <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Flinuxcollective.github.io&label=VISITORS&countColor=%232563eb&style=flat-square" alt="Visitor Counter" loading="lazy" />
+          </a>
+        </div>
+      </div>
+    </div>
 
-    {{with .Site.Params.githubURL}}
-    <a href="{{.}}" target="_blank" aria-label="github url">
-      <i class="icon icon-github icon-colored"></i>
-    </a>
-    {{end}}
-
-    {{with .Site.Params.youtubeURL}}
-    <a href="{{.}}" target="_blank" aria-label="youtube url">
-      <i class="icon icon-youtube icon-colored"></i>
-    </a>
-    {{end}}
-
-  </div>
-
-  <!-- fund -->
-  <a href="https://visitorbadge.io/status?path=https%3A%2F%2Flinuxcollective.github.io"><img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Flinuxcollective.github.io&label=VISITORS&countColor=%23263759&style=plastic" /></a>
-
-  <!-- love -->
-  <div id="site-footer-love">
-    Made with <i class="icon icon-love icon-colored"></i> &nbsp;from&nbsp;<a href="https://blog.cloudnativefolks.org" target="_blank">@CloudNativeFollks</a>
+    <!-- Bottom Bar -->
+    <div class="site-footer-bottom">
+      <div class="footer-bottom-copy">
+        &copy; {{ if .Site.Params.projectStartYear }}{{ .Site.Params.projectStartYear }}-{{ end }}{{ .Site.Params.currentYear }} <a href="{{ .Site.Params.authorURL }}" target="_blank" rel="noopener noreferrer">{{ .Site.Params.author }}</a>. Built for the open source community.
+      </div>
+      <div class="footer-bottom-love">
+        Engineered with <i class="icon icon-love icon-colored"></i> by <a href="https://blog.cloudnativefolks.org" target="_blank" rel="noopener noreferrer">@CloudNativeFolks</a>
+      </div>
+    </div>
   </div>
 </footer>

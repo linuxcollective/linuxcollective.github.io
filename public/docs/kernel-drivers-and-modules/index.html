@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta name="author" content="CloudNativeFolks">
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+
+
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://linuxcollective.github.io/docs/kernel-drivers-and-modules/">
+<meta property="og:title" content="Kernel Drivers, Concurrency &amp; LKML Development · Linux Collective">
+<meta property="og:description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta property="og:image" content="https://linuxcollective.github.io//img/icon/Linux%20Collective.png">
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://linuxcollective.github.io/docs/kernel-drivers-and-modules/">
+<meta name="twitter:title" content="Kernel Drivers, Concurrency &amp; LKML Development · Linux Collective">
+<meta name="twitter:description" content="Open-source Linux knowledge hub and engineering deep-dives covering Linux evolution, kernel architecture, process management, and cloud native systems.">
+<meta name="twitter:image" content="https://linuxcollective.github.io//img/icon/Linux%20Collective.png">
+
+<title>Kernel Drivers, Concurrency &amp; LKML Development · Linux Collective</title>
+
+<link rel="canonical" href="https://linuxcollective.github.io/docs/kernel-drivers-and-modules/">
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/scss/base.css" integrity="">
+
+
+
+<link rel="stylesheet" href="/scss/theme/default.css" integrity="">
+
+
+
+  
+
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/img/icon/favicon.ico">
+<link rel="icon" href="/img/icon/icon-16.png" sizes="16x16" type="image/png">
+<link rel="icon" href="/img/icon/icon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/img/icon/icon-180.png" sizes="180x180">
+
+
+    <script 
+     src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/quizdown.js">
+  </script>
+  <script 
+      src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/extensions/quizdownKatex.js">
+  </script>
+  <script 
+      src="https://cdn.jsdelivr.net/npm/quizdown@latest/public/build/extensions/quizdownHighlight.js">
+  </script>
+  <script>quizdown.register(quizdownHighlight).register(quizdownKatex).init()</script> 
+  </head>
+  <body>
+    <header id="site-header">
+  <div class="site-header-inner">
+    
+    <div id="site-header-brand">
+      <a href="/" class="brand-link">
+        <span class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="3" width="20" height="18" rx="4" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-width="1.75"/>
+            <path d="M7 9L10.5 12L7 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.5 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">Linux Collective</span>
+        <span class="brand-badge">Open Source</span>
+      </a>
+    </div>
+
+    
+    <div id="site-header-menu">
+      <nav>
+        <ul>
+          
+          
+          
+            
+            <li>
+              <a href="/"  >
+                <i class='icon icon-home'></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/"  class="active" >
+                <i class='icon icon-book'></i>
+                <span>Docs</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/roadmap/"  >
+                <i class='icon icon-book'></i>
+                <span>Roadmap</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="/docs/linux-kernel/"  >
+                <i class='icon icon-kernel'></i>
+                <span>Kernel</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="https://discord.gg/rEvr7vq"   target="_blank" rel="noopener noreferrer">
+                <i class='icon icon-discord'></i>
+                <span>Community</span>
+              </a>
+            </li>
+          
+            
+            <li>
+              <a href="https://github.com/linuxcollective/linuxcollective.github.io"   target="_blank" rel="noopener noreferrer">
+                <i class='icon icon-github'></i>
+                <span>GitHub</span>
+              </a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+
+    
+    <div id="site-header-controls">
+      
+      <div id="site-header-search"></div>
+
+      
+      <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="header-action-btn github-btn" title="GitHub Repository" aria-label="GitHub Repository">
+        <i class="icon icon-github"></i>
+        <span class="btn-text">GitHub</span>
+      </a>
+
+      
+      <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" class="header-action-btn discord-btn" title="Join Discord Community" aria-label="Discord Community">
+        <i class="icon icon-discord icon-colored"></i>
+      </a>
+
+      
+      <div class="dropdown theme-dropdown">
+        <button class="dropdown-btn" aria-haspopup="menu" aria-label="Toggle theme">
+          <i class="icon icon-brightness"></i>
+          <i class="icon icon-select"></i>
+        </button>
+        <ul role="menu" class="dropdown-menu">
+          <li role="menuitem"><button class="color-scheme" data-value="light"><i class="icon icon-light-mode"></i> Light</button></li>
+          <li role="menuitem"><button class="color-scheme" data-value="dark"><i class="icon icon-dark-mode"></i> Dark</button></li>
+          <li role="menuitem"><button class="color-scheme" data-value="night"><i class="icon icon-night-mode"></i> Night</button></li>
+        </ul>
+      </div>
+
+      
+      <button id="site-header-mobile-toggle" aria-label="Toggle navigation menu" class="mobile-toggle-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+    
+<div id="site-main-content-wrapper">
+  
+  
+    <aside id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-header-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span>Course Modules</span>
+    </div>
+    <span class="btn-close" aria-label="Close sidebar"><i class="icon icon-close"></i></span>
+  </div>
+
+  <div class="sidebar-nav-container"><div class="sidebar-group">
+        <strong class="sidebar-section">Getting Started</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/overview/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Overview</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/roadmap/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Learning Roadmap</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Linux Foundations &amp; Distros</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/shell-and-sysadmin/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Shell &amp; systemd Admin</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-history/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux History</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-distros/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Distros</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Architecture &amp; Core Subsystems</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/level-layer-abstraction/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Level &amp; Layer Abstraction</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-kernel/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Kernel</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/linux-kernel-subsystem/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Linux Kernel Subsystem</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/process-management/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Process Management</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/storage-and-io/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Storage &amp; io_uring</span>
+              </a>
+
+            
+        </div>
+      </div><div class="sidebar-group">
+        <strong class="sidebar-section">Advanced Systems &amp; Kernel Dev</strong>
+
+        <div class="sidebar-links-list">
+              
+              <a class="sidebar-link " href="/docs/container-primitives/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Container Primitives</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link " href="/docs/ebpf-and-observability/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Performance &amp; eBPF</span>
+              </a>
+
+            
+              
+              <a class="sidebar-link current" href="/docs/kernel-drivers-and-modules/">
+                <span class="sidebar-link-bullet"></span>
+                <span class="sidebar-link-title">Kernel Drivers &amp; LKML</span>
+              </a>
+
+            
+        </div>
+      </div>
+  </div>
+</aside>
+  
+  <main>
+    <article id="article">
+      <nav id="article-nav">
+  <button id="article-nav-menu-btn"><i class="icon icon-menu"></i> On this section</button>
+  <button id="article-nav-toc-btn"><i class="icon icon-toc"></i> On this page</button>
+</nav>
+      <header id="article-header">
+  
+  <nav class="article-breadcrumbs" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/docs/overview/">Documentation</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-current">Kernel Drivers, Concurrency &amp; LKML Development</span>
+  </nav>
+
+  <h1 class="article-title">Kernel Drivers, Concurrency &amp; LKML Development</h1>
+
+  <div class="article-meta-bar">
+    <span class="article-meta-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      9 min read
+    </span>
+    <span class="article-meta-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      1616 words
+    </span>
+    
+    <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/a10.kernel-drivers-and-modules.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
+      <i class="icon icon-github"></i>
+      <span>Edit on GitHub</span>
+    </a>
+    
+  </div>
+</header>
+      <div id="article-content">
+        
+        
+        <blockquote>
+<p><em>&ldquo;If you want to write kernel code, you need to understand that the kernel is an unforgiving environment. You have no libc, no dynamic stack growth, no memory protection from yourself, and if you corrupt a pointer or deadlock a spinlock, you bring down the entire operating system.&rdquo;</em><br>
+— <strong>Linus Torvalds</strong></p>
+</blockquote>
+<p>Developing code inside Ring 0 requires a fundamental shift in programming mindset. In user space, a segmentation fault (<code>SIGSEGV</code>) terminates a single offending process. In kernel space:</p>
+<ul>
+<li>There is <strong>no glibc</strong> or standard C library; only internal kernel primitives (<code>kmalloc</code>, <code>printk</code>, <code>memmove</code>).</li>
+<li>The kernel stack is strictly limited (typically <strong>8KB to 16KB per task</strong>), prohibiting large stack-allocated arrays.</li>
+<li>Memory protection is absent: any rogue pointer write can corrupt the page tables, scheduling runqueues, or file buffers of the entire host.</li>
+</ul>
+<p>This guide provides a comprehensive, production-grade walkthrough for developing Linux Loadable Kernel Modules (LKMs), writing character device drivers, implementing concurrency primitives, and formatting patches for upstream Linux Kernel Mailing List (LKML) submission.</p>
+<hr>
+<h2 id="1-anatomy-of-a-character-device-driver">1. Anatomy of a Character Device Driver</h2>
+<p>Device drivers bridge hardware peripherals or virtual abstractions to the Virtual File System. In Unix, character devices stream bytes sequentially (like serial ports, terminals, or <code>/dev/urandom</code>).</p>
+<pre tabindex="0"><code>+--------------------------------------------------------------------------+
+| USER SPACE: open(&#34;/dev/my_dev&#34;), read(fd, buf, len), write(fd, buf, len)|
++--------------------------------------------------------------------------+
+       | Traps via system call into Ring 0
+       v
++--------------------------------------------------------------------------+
+| VFS (Virtual File System)                                                |
+|   Resolves path to struct inode -&gt; struct cdev                           |
+|   Extracts struct file_operations registered to Device Major:Minor       |
++--------------------------------------------------------------------------+
+       |
+       v Dispatches directly to your driver function pointers
++==========================================================================+
+| YOUR KERNEL CHARACTER DRIVER                                             |
+|                                                                          |
+|   my_dev_open()    -&gt; Allocates per-instance state                       |
+|   my_dev_read()    -&gt; Validates buffer, copy_to_user()                   |
+|   my_dev_write()   -&gt; copy_from_user(), acquires kernel mutex            |
+|   my_dev_release() -&gt; Cleans up resources                                |
++==========================================================================+
+</code></pre><h3 id="major-and-minor-numbers">Major and Minor Numbers</h3>
+<p>Every device node in <code>/dev</code> is identified by a <strong>Major Number</strong> and a <strong>Minor Number</strong> (packed into a 32-bit <code>dev_t</code> type):</p>
+<ul>
+<li><strong>Major Number</strong>: Identifies the driver associated with the device (e.g., Major 1 for memory devices, Major 4 for TTYs).</li>
+<li><strong>Minor Number</strong>: Identifies the specific device instance managed by that driver.</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/* Dynamic device number allocation */</span>
+</span></span><span class="line"><span class="cl"><span class="kt">dev_t</span> <span class="n">dev_num</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nf">alloc_chrdev_region</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dev_num</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#34;my_char_device&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="n">major</span> <span class="o">=</span> <span class="nf">MAJOR</span><span class="p">(</span><span class="n">dev_num</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="n">minor</span> <span class="o">=</span> <span class="nf">MINOR</span><span class="p">(</span><span class="n">dev_num</span><span class="p">);</span>
+</span></span></code></pre></div><h3 id="the-file_operations-table">The <code>file_operations</code> Table</h3>
+<p>The kernel interfaces with your driver through function pointers defined in <code>struct file_operations</code> (defined in <code>include/linux/fs.h</code>):</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">file_operations</span> <span class="n">my_fops</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="p">.</span><span class="n">owner</span>          <span class="o">=</span> <span class="n">THIS_MODULE</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">.</span><span class="n">open</span>           <span class="o">=</span> <span class="n">my_dev_open</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">.</span><span class="n">release</span>        <span class="o">=</span> <span class="n">my_dev_release</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">.</span><span class="n">read</span>           <span class="o">=</span> <span class="n">my_dev_read</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">.</span><span class="n">write</span>          <span class="o">=</span> <span class="n">my_dev_write</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">.</span><span class="n">unlocked_ioctl</span> <span class="o">=</span> <span class="n">my_dev_ioctl</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></div><hr>
+<h2 id="2-crossing-user-kernel-boundaries-safely">2. Crossing User-Kernel Boundaries Safely</h2>
+<p>A classic vulnerability in kernel drivers is direct pointer dereferencing of user space addresses:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/* CRITICAL SECURITY BUG: NEVER DO THIS IN RING 0! */</span>
+</span></span><span class="line"><span class="cl"><span class="kt">char</span> <span class="o">*</span><span class="n">user_ptr</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">arg</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="o">*</span><span class="n">user_ptr</span> <span class="o">=</span> <span class="sc">&#39;A&#39;</span><span class="p">;</span> <span class="cm">/* May cause kernel panic, page fault, or Meltdown leak */</span>
+</span></span></code></pre></div><h3 id="why-direct-dereferencing-fails">Why Direct Dereferencing Fails:</h3>
+<ol>
+<li>The user space pointer could point to unmapped memory, triggering a page fault in an atomic context that deadlocks the kernel.</li>
+<li>The user space pointer could point into kernel address space (<code>0xFFFF800000000000</code>+), allowing an unprivileged user process to overwrite arbitrary kernel memory.</li>
+</ol>
+<h3 id="the-canonical-boundary-primitives">The Canonical Boundary Primitives:</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/uaccess.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/* Copy data from user space into kernel space buffer */</span>
+</span></span><span class="line"><span class="cl"><span class="kt">unsigned</span> <span class="kt">long</span> <span class="nf">copy_from_user</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">to</span><span class="p">,</span> <span class="k">const</span> <span class="kt">void</span> <span class="n">__user</span> <span class="o">*</span><span class="n">from</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">n</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/* Copy data from kernel space buffer to user space */</span>
+</span></span><span class="line"><span class="cl"><span class="kt">unsigned</span> <span class="kt">long</span> <span class="nf">copy_to_user</span><span class="p">(</span><span class="kt">void</span> <span class="n">__user</span> <span class="o">*</span><span class="n">to</span><span class="p">,</span> <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">from</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">n</span><span class="p">);</span>
+</span></span></code></pre></div><p>Both functions return the number of uncopied bytes. A return value of <code>0</code> indicates complete success; any non-zero value indicates an invalid address (must return <code>-EFAULT</code>).</p>
+<hr>
+<h2 id="3-kernel-synchronization--concurrency">3. Kernel Synchronization &amp; Concurrency</h2>
+<p>Linux is a preemptible Symmetric Multiprocessing (SMP) operating system. Multiple CPU cores can execute driver code simultaneously.</p>
+<h3 id="1-spinlocks-spinlock_t">1. Spinlocks (<code>spinlock_t</code>)</h3>
+<ul>
+<li><strong>Mechanism</strong>: The CPU loops in a tight polling loop (&ldquo;spins&rdquo;) until the lock becomes available.</li>
+<li><strong>Rules</strong>:
+<ul>
+<li><strong>NEVER SLEEP while holding a spinlock!</strong> (Cannot call <code>kmalloc(..., GFP_KERNEL)</code>, <code>copy_to_user()</code>, <code>msleep()</code>, or mutexes).</li>
+<li>Used in <strong>interrupt handlers</strong> (top halves) and performance-critical low-latency paths.</li>
+<li>Must use <code>spin_lock_irqsave()</code> if shared between interrupt context and process context to prevent single-core deadlocks.</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">spinlock_t</span> <span class="n">my_lock</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nf">spin_lock_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">my_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">flags</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nf">spin_lock_irqsave</span><span class="p">(</span><span class="o">&amp;</span><span class="n">my_lock</span><span class="p">,</span> <span class="n">flags</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="cm">/* Critical section: cannot sleep! */</span>
+</span></span><span class="line"><span class="cl"><span class="nf">spin_unlock_irqrestore</span><span class="p">(</span><span class="o">&amp;</span><span class="n">my_lock</span><span class="p">,</span> <span class="n">flags</span><span class="p">);</span>
+</span></span></code></pre></div><h3 id="2-mutexes-struct-mutex">2. Mutexes (<code>struct mutex</code>)</h3>
+<ul>
+<li><strong>Mechanism</strong>: If the lock is held, the calling task is moved to <code>TASK_UNINTERRUPTIBLE</code> state, removed from the runqueue, and sleeps until awakened.</li>
+<li><strong>Rules</strong>:
+<ul>
+<li><strong>Can only be used in process context</strong> (system calls, kernel threads).</li>
+<li>Prohibited in interrupt context.</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">mutex</span> <span class="n">my_mutex</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nf">mutex_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">my_mutex</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="nf">mutex_lock_interruptible</span><span class="p">(</span><span class="o">&amp;</span><span class="n">my_mutex</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="o">-</span><span class="n">ERESTARTSYS</span><span class="p">;</span> <span class="cm">/* Interrupted by signal */</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/* Critical section: can sleep, copy to/from user, allocate memory */</span>
+</span></span><span class="line"><span class="cl"><span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">my_mutex</span><span class="p">);</span>
+</span></span></code></pre></div><h3 id="3-read-copy-update-rcu">3. Read-Copy-Update (RCU)</h3>
+<p>RCU is the cornerstone of high-performance Linux kernel scalability:</p>
+<ul>
+<li><strong>Readers</strong>: Acquire <code>rcu_read_lock()</code>, read shared data with <strong>zero atomic bus locks</strong>, and call <code>rcu_read_unlock()</code>.</li>
+<li><strong>Writers</strong>: Allocate a fresh copy of the data, modify the copy, publish the pointer via <code>rcu_assign_pointer()</code>, and call <code>synchronize_rcu()</code> to wait for all pre-existing readers to finish before freeing the old memory.</li>
+</ul>
+<hr>
+<h2 id="4-hands-on-practical-labs">4. Hands-On Practical Labs</h2>
+<h3 id="lab-101-building-a-thread-safe-character-device-driver-in-c">Lab 10.1: Building a Thread-Safe Character Device Driver in C</h3>
+<p>In this lab, we develop, compile, and insert a complete character device driver (<code>/dev/ringbuf_dev</code>) that implements an in-kernel circular ring buffer with mutex synchronization.</p>
+<h4 id="1-driver-source-ringbuf_devc">1. Driver Source: <code>ringbuf_dev.c</code></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/init.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/module.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/fs.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/cdev.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/device.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/slab.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/uaccess.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;linux/mutex.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cp">#define DEVICE_NAME &#34;ringbuf_dev&#34;
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define CLASS_NAME  &#34;ringbuf_class&#34;
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define BUFFER_SIZE 256
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">MODULE_LICENSE</span><span class="p">(</span><span class="s">&#34;GPL&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nf">MODULE_AUTHOR</span><span class="p">(</span><span class="s">&#34;Linux Collective&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nf">MODULE_DESCRIPTION</span><span class="p">(</span><span class="s">&#34;Thread-Safe Circular Buffer Character Device Driver&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nf">MODULE_VERSION</span><span class="p">(</span><span class="s">&#34;1.0&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">dev_t</span> <span class="n">major_minor</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="k">struct</span> <span class="n">cdev</span> <span class="n">char_cdev</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="k">struct</span> <span class="n">class</span> <span class="o">*</span><span class="n">char_class</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="k">struct</span> <span class="n">device</span> <span class="o">*</span><span class="n">char_device</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/* Device internal state */</span>
+</span></span><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">ring_buffer_dev</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="n">data</span><span class="p">[</span><span class="n">BUFFER_SIZE</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">size_t</span> <span class="n">head</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">size_t</span> <span class="n">tail</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">size_t</span> <span class="n">count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">mutex</span> <span class="n">lock</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="k">struct</span> <span class="n">ring_buffer_dev</span> <span class="n">g_ring</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">dev_open</span><span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inodep</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filep</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">pr_info</span><span class="p">(</span><span class="s">&#34;ringbuf_dev: Device opened successfully</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">dev_release</span><span class="p">(</span><span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inodep</span><span class="p">,</span> <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filep</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">pr_info</span><span class="p">(</span><span class="s">&#34;ringbuf_dev: Device closed</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">ssize_t</span> <span class="nf">dev_read</span><span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filep</span><span class="p">,</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="n">buffer</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">len</span><span class="p">,</span> <span class="kt">loff_t</span> <span class="o">*</span><span class="n">offset</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">size_t</span> <span class="n">bytes_to_read</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">size_t</span> <span class="n">i</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="n">temp_buf</span><span class="p">[</span><span class="n">BUFFER_SIZE</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nf">mutex_lock_interruptible</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g_ring</span><span class="p">.</span><span class="n">lock</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="o">-</span><span class="n">ERESTARTSYS</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">g_ring</span><span class="p">.</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g_ring</span><span class="p">.</span><span class="n">lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span> <span class="cm">/* EOF */</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">bytes_to_read</span> <span class="o">=</span> <span class="nf">min</span><span class="p">(</span><span class="n">len</span><span class="p">,</span> <span class="n">g_ring</span><span class="p">.</span><span class="n">count</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">bytes_to_read</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">temp_buf</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">g_ring</span><span class="p">.</span><span class="n">data</span><span class="p">[</span><span class="n">g_ring</span><span class="p">.</span><span class="n">tail</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="n">g_ring</span><span class="p">.</span><span class="n">tail</span> <span class="o">=</span> <span class="p">(</span><span class="n">g_ring</span><span class="p">.</span><span class="n">tail</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">BUFFER_SIZE</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="n">g_ring</span><span class="p">.</span><span class="n">count</span> <span class="o">-=</span> <span class="n">bytes_to_read</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g_ring</span><span class="p">.</span><span class="n">lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* Copy data safely to user space outside lock */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nf">copy_to_user</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">temp_buf</span><span class="p">,</span> <span class="n">bytes_to_read</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="o">-</span><span class="n">EFAULT</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">pr_info</span><span class="p">(</span><span class="s">&#34;ringbuf_dev: Read %zu bytes</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">bytes_to_read</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">bytes_to_read</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">ssize_t</span> <span class="nf">dev_write</span><span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filep</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="n">buffer</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">len</span><span class="p">,</span> <span class="kt">loff_t</span> <span class="o">*</span><span class="n">offset</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">size_t</span> <span class="n">bytes_to_write</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">size_t</span> <span class="n">i</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="n">temp_buf</span><span class="p">[</span><span class="n">BUFFER_SIZE</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">bytes_to_write</span> <span class="o">=</span> <span class="nf">min</span><span class="p">(</span><span class="n">len</span><span class="p">,</span> <span class="p">(</span><span class="kt">size_t</span><span class="p">)</span><span class="n">BUFFER_SIZE</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* Copy data from user space first */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nf">copy_from_user</span><span class="p">(</span><span class="n">temp_buf</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="n">bytes_to_write</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="o">-</span><span class="n">EFAULT</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nf">mutex_lock_interruptible</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g_ring</span><span class="p">.</span><span class="n">lock</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="o">-</span><span class="n">ERESTARTSYS</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">bytes_to_write</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">g_ring</span><span class="p">.</span><span class="n">data</span><span class="p">[</span><span class="n">g_ring</span><span class="p">.</span><span class="n">head</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_buf</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="n">g_ring</span><span class="p">.</span><span class="n">head</span> <span class="o">=</span> <span class="p">(</span><span class="n">g_ring</span><span class="p">.</span><span class="n">head</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">BUFFER_SIZE</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">g_ring</span><span class="p">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="n">BUFFER_SIZE</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">g_ring</span><span class="p">.</span><span class="n">count</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">else</span>
+</span></span><span class="line"><span class="cl">            <span class="n">g_ring</span><span class="p">.</span><span class="n">tail</span> <span class="o">=</span> <span class="p">(</span><span class="n">g_ring</span><span class="p">.</span><span class="n">tail</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">BUFFER_SIZE</span><span class="p">;</span> <span class="cm">/* Overwrite oldest */</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g_ring</span><span class="p">.</span><span class="n">lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">pr_info</span><span class="p">(</span><span class="s">&#34;ringbuf_dev: Wrote %zu bytes</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">bytes_to_write</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">bytes_to_write</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">file_operations</span> <span class="n">fops</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="p">.</span><span class="n">owner</span>   <span class="o">=</span> <span class="n">THIS_MODULE</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">.</span><span class="n">open</span>    <span class="o">=</span> <span class="n">dev_open</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">.</span><span class="n">release</span> <span class="o">=</span> <span class="n">dev_release</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">.</span><span class="n">read</span>    <span class="o">=</span> <span class="n">dev_read</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">.</span><span class="n">write</span>   <span class="o">=</span> <span class="n">dev_write</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="n">__init</span> <span class="nf">ringbuf_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">ret</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">pr_info</span><span class="p">(</span><span class="s">&#34;ringbuf_dev: Initializing character driver...</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 1. Allocate dynamic major/minor number */</span>
+</span></span><span class="line"><span class="cl">    <span class="n">ret</span> <span class="o">=</span> <span class="nf">alloc_chrdev_region</span><span class="p">(</span><span class="o">&amp;</span><span class="n">major_minor</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">DEVICE_NAME</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">pr_err</span><span class="p">(</span><span class="s">&#34;ringbuf_dev: Failed to allocate major number</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 2. Initialize cdev structure */</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">cdev_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">char_cdev</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">fops</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">char_cdev</span><span class="p">.</span><span class="n">owner</span> <span class="o">=</span> <span class="n">THIS_MODULE</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">ret</span> <span class="o">=</span> <span class="nf">cdev_add</span><span class="p">(</span><span class="o">&amp;</span><span class="n">char_cdev</span><span class="p">,</span> <span class="n">major_minor</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">unregister_chrdev_region</span><span class="p">(</span><span class="n">major_minor</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">pr_err</span><span class="p">(</span><span class="s">&#34;ringbuf_dev: Failed to add cdev</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 3. Create sysfs class and /dev node */</span>
+</span></span><span class="line"><span class="cl">    <span class="n">char_class</span> <span class="o">=</span> <span class="nf">class_create</span><span class="p">(</span><span class="n">CLASS_NAME</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nf">IS_ERR</span><span class="p">(</span><span class="n">char_class</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">cdev_del</span><span class="p">(</span><span class="o">&amp;</span><span class="n">char_cdev</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">unregister_chrdev_region</span><span class="p">(</span><span class="n">major_minor</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nf">PTR_ERR</span><span class="p">(</span><span class="n">char_class</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">char_device</span> <span class="o">=</span> <span class="nf">device_create</span><span class="p">(</span><span class="n">char_class</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">major_minor</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">DEVICE_NAME</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nf">IS_ERR</span><span class="p">(</span><span class="n">char_device</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">class_destroy</span><span class="p">(</span><span class="n">char_class</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">cdev_del</span><span class="p">(</span><span class="o">&amp;</span><span class="n">char_cdev</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">unregister_chrdev_region</span><span class="p">(</span><span class="n">major_minor</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nf">PTR_ERR</span><span class="p">(</span><span class="n">char_device</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* Initialize internal mutex and ring state */</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">mutex_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g_ring</span><span class="p">.</span><span class="n">lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">g_ring</span><span class="p">.</span><span class="n">head</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">g_ring</span><span class="p">.</span><span class="n">tail</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">g_ring</span><span class="p">.</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">pr_info</span><span class="p">(</span><span class="s">&#34;ringbuf_dev: Device registered successfully with Major: %d Minor: %d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="nf">MAJOR</span><span class="p">(</span><span class="n">major_minor</span><span class="p">),</span> <span class="nf">MINOR</span><span class="p">(</span><span class="n">major_minor</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">static</span> <span class="kt">void</span> <span class="n">__exit</span> <span class="nf">ringbuf_exit</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">device_destroy</span><span class="p">(</span><span class="n">char_class</span><span class="p">,</span> <span class="n">major_minor</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">class_destroy</span><span class="p">(</span><span class="n">char_class</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">cdev_del</span><span class="p">(</span><span class="o">&amp;</span><span class="n">char_cdev</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">unregister_chrdev_region</span><span class="p">(</span><span class="n">major_minor</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">mutex_destroy</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g_ring</span><span class="p">.</span><span class="n">lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">pr_info</span><span class="p">(</span><span class="s">&#34;ringbuf_dev: Device unregistered cleanly</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">module_init</span><span class="p">(</span><span class="n">ringbuf_init</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nf">module_exit</span><span class="p">(</span><span class="n">ringbuf_exit</span><span class="p">);</span>
+</span></span></code></pre></div><h4 id="2-kernel-module-makefile">2. Kernel Module <code>Makefile</code></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-makefile" data-lang="makefile"><span class="line"><span class="cl"><span class="nv">obj-m</span> <span class="o">+=</span> ringbuf_dev.o
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nv">KDIR</span> <span class="o">?=</span> /lib/modules/<span class="k">$(</span>shell uname -r<span class="k">)</span>/build
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">all</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">	make -C <span class="k">$(</span>KDIR<span class="k">)</span> <span class="nv">M</span><span class="o">=</span><span class="k">$(</span>PWD<span class="k">)</span> modules
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">clean</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">	make -C <span class="k">$(</span>KDIR<span class="k">)</span> <span class="nv">M</span><span class="o">=</span><span class="k">$(</span>PWD<span class="k">)</span> clean
+</span></span></code></pre></div><h4 id="3-compilation--loading">3. Compilation &amp; Loading</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Compile against current kernel headers</span>
+</span></span><span class="line"><span class="cl">make
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Insert module into Ring 0</span>
+</span></span><span class="line"><span class="cl">sudo insmod ringbuf_dev.ko
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Verify device node creation in /dev</span>
+</span></span><span class="line"><span class="cl">ls -l /dev/ringbuf_dev
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Inspect kernel log output</span>
+</span></span><span class="line"><span class="cl">sudo dmesg <span class="p">|</span> tail -n <span class="m">10</span>
+</span></span></code></pre></div><hr>
+<h3 id="lab-102-testing-the-driver-from-user-space">Lab 10.2: Testing the Driver from User Space</h3>
+<p>Test writing and reading from your custom character device:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Write data into the kernel buffer</span>
+</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="s2">&#34;Linux Kernel Ring 0 Message&#34;</span> <span class="p">|</span> sudo tee /dev/ringbuf_dev
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Read data out of the kernel buffer</span>
+</span></span><span class="line"><span class="cl">sudo cat /dev/ringbuf_dev
+</span></span></code></pre></div><p>Output:</p>
+<pre tabindex="0"><code>Linux Kernel Ring 0 Message
+</code></pre><p>Verify clean unloading:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo rmmod ringbuf_dev
+</span></span><span class="line"><span class="cl">sudo dmesg <span class="p">|</span> tail -n <span class="m">5</span>
+</span></span></code></pre></div><hr>
+<h3 id="lab-103-formatting-upstream-patches-for-lkml--checkpatchpl">Lab 10.3: Formatting Upstream Patches for LKML &amp; <code>checkpatch.pl</code></h3>
+<p>The Linux kernel maintainer community strictly enforces code style standards. All patches must pass the <code>checkpatch.pl</code> validation script.</p>
+<h4 id="1-commit-message-guidelines">1. Commit Message Guidelines</h4>
+<p>A kernel commit message must follow this exact convention:</p>
+<pre tabindex="0"><code>subsystem: brief summary in imperative mood (&lt; 72 chars)
+
+Explain the problem being solved. Include architectural context, 
+why current code is flawed, and why this fix is correct.
+Wrap lines at 72 characters.
+
+Fixes: 1234567890ab (&#34;original commit that introduced bug&#34;)
+Signed-off-by: Your Name &lt;your.email@domain.com&gt;
+</code></pre><h4 id="2-running-checkpatchpl">2. Running <code>checkpatch.pl</code></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Download or locate kernel checkpatch script</span>
+</span></span><span class="line"><span class="cl">/usr/src/linux-headers-<span class="k">$(</span>uname -r<span class="k">)</span>/scripts/checkpatch.pl --strict --file ringbuf_dev.c
+</span></span></code></pre></div><h4 id="3-generating-the-upstream-patch">3. Generating the Upstream Patch</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">git format-patch -1 HEAD --subject-prefix<span class="o">=</span><span class="s2">&#34;PATCH net-next&#34;</span>
+</span></span></code></pre></div><hr>
+<h2 id="5-summary-checklist">5. Summary Checklist</h2>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> <strong>Character Drivers</strong>: Mastered Major/Minor numbers, <code>cdev</code>, and <code>file_operations</code>.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Memory Safety</strong>: Protected kernel boundaries using <code>copy_to_user</code> and <code>copy_from_user</code>.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Concurrency</strong>: Applied Spinlocks in atomic context and Mutexes in process context.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>RCU Synchronization</strong>: Understood lockless reads and grace period deferred reclamation.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>Kernel Module Lab</strong>: Developed, compiled, and tested a complete character device driver in C.</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>LKML Patching</strong>: Practiced the upstream patch workflow and style validation with <code>checkpatch.pl</code>.</li>
+</ul>
+
+      </div>
+      
+
+
+
+
+
+
+
+
+  
+  
+  
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+        
+          
+        
+
+      
+    
+        
+
+      
+    
+
+
+<footer id="article-footer">
+  <div class="article-footer-top">
+    <time id="article-last-updated" datetime="0001-01-01"><i class="icon icon-calendar"></i>&nbsp;Last updated: 0001-01-01</time>
+  </div>
+
+  <div class="article-pagination">
+    
+      <a id="article-prev-link" class="pagination-card pagination-prev" href="/docs/ebpf-and-observability/">
+        <span class="pagination-sub">&larr; Previous</span>
+        <span class="pagination-title">Performance &amp; eBPF</span>
+      </a>
+    
+
+    
+  </div>
+</footer>
+    </article>
+    <aside id="toc">
+  <span class="btn-close"><i class="icon icon-close"></i></span>
+  <div class="sticky">
+    <strong><i class="icon icon-toc"></i> On this page</strong>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-anatomy-of-a-character-device-driver">1. Anatomy of a Character Device Driver</a>
+      <ul>
+        <li><a href="#major-and-minor-numbers">Major and Minor Numbers</a></li>
+        <li><a href="#the-file_operations-table">The <code>file_operations</code> Table</a></li>
+      </ul>
+    </li>
+    <li><a href="#2-crossing-user-kernel-boundaries-safely">2. Crossing User-Kernel Boundaries Safely</a>
+      <ul>
+        <li><a href="#why-direct-dereferencing-fails">Why Direct Dereferencing Fails:</a></li>
+        <li><a href="#the-canonical-boundary-primitives">The Canonical Boundary Primitives:</a></li>
+      </ul>
+    </li>
+    <li><a href="#3-kernel-synchronization--concurrency">3. Kernel Synchronization &amp; Concurrency</a>
+      <ul>
+        <li><a href="#1-spinlocks-spinlock_t">1. Spinlocks (<code>spinlock_t</code>)</a></li>
+        <li><a href="#2-mutexes-struct-mutex">2. Mutexes (<code>struct mutex</code>)</a></li>
+        <li><a href="#3-read-copy-update-rcu">3. Read-Copy-Update (RCU)</a></li>
+      </ul>
+    </li>
+    <li><a href="#4-hands-on-practical-labs">4. Hands-On Practical Labs</a>
+      <ul>
+        <li><a href="#lab-101-building-a-thread-safe-character-device-driver-in-c">Lab 10.1: Building a Thread-Safe Character Device Driver in C</a></li>
+        <li><a href="#lab-102-testing-the-driver-from-user-space">Lab 10.2: Testing the Driver from User Space</a></li>
+        <li><a href="#lab-103-formatting-upstream-patches-for-lkml--checkpatchpl">Lab 10.3: Formatting Upstream Patches for LKML &amp; <code>checkpatch.pl</code></a></li>
+      </ul>
+    </li>
+    <li><a href="#5-summary-checklist">5. Summary Checklist</a></li>
+  </ul>
+</nav>
+  </div>
+</aside>
+  </main>
+</div>
+
+    <footer id="site-footer">
+  <div class="site-footer-container">
+    <div class="site-footer-grid">
+      
+      <div class="footer-col footer-col-brand">
+        <div class="footer-brand">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="3" width="20" height="18" rx="4" fill="currentColor" fill-opacity="0.12" stroke="currentColor" stroke-width="1.75"/>
+            <path d="M7 9L10.5 12L7 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12.5 15H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span class="footer-brand-title">Linux Collective</span>
+        </div>
+        <p class="footer-tagline">
+          An open-source knowledge hub and community deep-dive initiative exploring Linux architecture, kernel internals, and modern systems engineering.
+        </p>
+        <div class="footer-social-links">
+          
+          <a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon-link">
+            <i class="icon icon-github"></i>
+          </a>
+          
+          
+          <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer" aria-label="Discord" class="social-icon-link">
+            <i class="icon icon-discord icon-colored"></i>
+          </a>
+          
+          
+          <a href="https://www.youtube.com/@CloudNativeFolks" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="social-icon-link">
+            <i class="icon icon-youtube icon-colored"></i>
+          </a>
+          
+          
+          <a href="https://twitter.com/i/communities/1499311438745468931" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" class="social-icon-link">
+            <i class="icon icon-twitter icon-colored"></i>
+          </a>
+          
+        </div>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Documentation</h4>
+        <ul class="footer-links">
+          <li><a href="/docs/overview/">Getting Started</a></li>
+          <li><a href="/docs/roadmap/">Engineering Roadmap</a></li>
+          <li><a href="/docs/linux-history/">Linux History</a></li>
+          <li><a href="/docs/linux-distros/">Linux Distributions</a></li>
+          <li><a href="/docs/level-layer-abstraction/">Levels & Abstractions</a></li>
+          <li><a href="/docs/linux-kernel/">Linux Kernel Internals</a></li>
+          <li><a href="/docs/linux-kernel-subsystem/">Kernel Subsystems</a></li>
+          <li><a href="/docs/process-management/">Process Management</a></li>
+        </ul>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Community</h4>
+        <ul class="footer-links">
+          <li><a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer">CloudNativeFolks Discord</a></li>
+          <li><a href="https://blog.cloudnativefolks.org" target="_blank" rel="noopener noreferrer">Community Blog</a></li>
+          <li><a href="https://www.youtube.com/@CloudNativeFolks" target="_blank" rel="noopener noreferrer">YouTube Channel</a></li>
+          <li><a href="https://twitter.com/i/communities/1499311438745468931" target="_blank" rel="noopener noreferrer">Twitter / X Community</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/graphs/contributors" target="_blank" rel="noopener noreferrer">Contributors Showcase</a></li>
+        </ul>
+      </div>
+
+      
+      <div class="footer-col">
+        <h4 class="footer-heading">Open Source</h4>
+        <ul class="footer-links">
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/issues" target="_blank" rel="noopener noreferrer">Report an Issue</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/pulls" target="_blank" rel="noopener noreferrer">Submit Contribution</a></li>
+          <li><a href="https://github.com/linuxcollective/linuxcollective.github.io/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License (MIT)</a></li>
+        </ul>
+        <div class="footer-badge-wrapper">
+          <a href="https://visitorbadge.io/status?path=https%3A%2F%2Flinuxcollective.github.io" target="_blank" rel="noopener noreferrer" class="visitor-badge-link">
+            <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Flinuxcollective.github.io&label=VISITORS&countColor=%232563eb&style=flat-square" alt="Visitor Counter" loading="lazy" />
+          </a>
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="site-footer-bottom">
+      <div class="footer-bottom-copy">
+        &copy; 2022-2026 <a href="https://discord.gg/rEvr7vq" target="_blank" rel="noopener noreferrer">CloudNativeFolks</a>. Built for the open source community.
+      </div>
+      <div class="footer-bottom-love">
+        Engineered with <i class="icon icon-love icon-colored"></i> by <a href="https://blog.cloudnativefolks.org" target="_blank" rel="noopener noreferrer">@CloudNativeFolks</a>
+      </div>
+    </div>
+  </div>
+</footer>
+    
+
+
+
+
+
+
+<script type="text/javascript" src="/js/base.min.js"></script>
+
+
+
+  
+  <script src="/js/component/docsearch.min.js"></script>
+  <script type="application/javascript">
+      docsearch({
+          container: '#site-header-search',
+          appId: '',
+          indexName: '',
+          apiKey: '',
+      });
+  </script>
+
+  </body>
+</html>
