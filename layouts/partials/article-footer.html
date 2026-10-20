@@ -5,9 +5,9 @@
 {{ $prevPageHref := "" }}
 {{ $nextPageHref := "" }}
 
-{{ $dataLocale := index .Site.Data .Site.Language.Lang }}
+{{ $dataLocale := index hugo.Data .Site.Language.Lang }}
 {{ if isset $dataLocale .Section }}
-  {{ $data := index .Site.Data .Site.Language.Lang .Section "sidebar"}}
+  {{ $data := index hugo.Data .Site.Language.Lang .Section "sidebar"}}
   {{- $url := split .Permalink "/" -}}
   {{- $urlPageSlug := index $url (sub (len $url) 2) -}}
 

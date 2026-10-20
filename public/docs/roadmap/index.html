@@ -333,11 +333,11 @@
   <div class="article-meta-bar">
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      9 min read
+      22 min read
     </span>
     <span class="article-meta-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      1595 words
+      3968 words
     </span>
     
     <a href="https://github.com/linuxcollective/linuxcollective.github.io/edit/main/content/docs/roadmap.md" target="_blank" rel="noopener noreferrer" class="article-edit-link">
@@ -353,239 +353,458 @@
         <blockquote>
 <p><em>&ldquo;Talk is cheap. Show me the code.&rdquo;</em> — <strong>Linus Torvalds</strong></p>
 </blockquote>
-<p>A step-by-step path from your first terminal command to writing kernel drivers and submitting patches upstream. Each tier builds on the previous one — follow them in order.</p>
+<p>The <strong>Linux Systems Engineering Roadmap</strong> is a comprehensive, progressive learning curriculum designed to take engineers from their first terminal pipeline all the way to authoring loadable kernel modules, diagnosing low-level performance bottlenecks, and submitting upstream patches to the Linux Kernel Mailing List (LKML).</p>
+<p>Inspired by Brian Ward&rsquo;s foundational guide <em>How Linux Works: What Every Superuser Should Know</em> and Robert Love&rsquo;s <em>Linux Kernel Development</em>, each tier builds directly upon the hardware, architectural, and operational concepts established in the previous tier.</p>
 <hr>
-<h2 id="the-10-tier-learning-path">The 10-Tier Learning Path</h2>
-<pre tabindex="0"><code> Tier 10 ─ Kernel Drivers &amp; Upstream Patches        ← You write kernel code
- Tier 09 ─ Performance Engineering &amp; eBPF            ← You trace the kernel live
- Tier 08 ─ Containers from Scratch                   ← You build Docker by hand
- Tier 07 ─ Storage, Filesystems &amp; io_uring           ← You master disk I/O
- Tier 06 ─ Processes, Threads &amp; Context Switching    ← You understand task_struct
- Tier 05 ─ Kernel Subsystems (VFS, MM, Sched, Net)   ← You read kernel source
- Tier 04 ─ Kernel Architecture &amp; Boot Sequence       ← You compile a kernel
- Tier 03 ─ Protection Rings, MMU &amp; System Calls      ← You cross the Ring 0 boundary
- Tier 02 ─ systemd, Storage &amp; Networking             ← You administer servers
- Tier 01 ─ Shell, Permissions &amp; POSIX Basics         ← You start here
+<h2 id="the-4-progression-phases">The 4 Progression Phases</h2>
+<p>The curriculum is structured across <strong>four progressive phases</strong> spanning <strong>10 mastery tiers</strong> and <strong>11 comprehensive documentation modules</strong>:</p>
+<pre tabindex="0"><code>+-----------------------------------------------------------------------------------+
+|  PHASE 1: Systems Foundations &amp; Distro Ecosystem (Tiers 01 - 02 | Modules 01 - 03)|
+|  Shell pipelines, POSIX standards, device nodes (/dev), systemd, LVM &amp; networks   |
++-----------------------------------------------------------------------------------+
+                                         │
+                                         ▼
++-----------------------------------------------------------------------------------+
+|  PHASE 2: Hardware Isolation, Protection Rings &amp; Boot (Tiers 03 - 04 | Mod 04 - 05)|
+|  CPU Rings (Ring 0 vs 3), MMU paging, dynamic linking, initramfs &amp; kernel compile|
++-----------------------------------------------------------------------------------+
+                                         │
+                                         ▼
++-----------------------------------------------------------------------------------+
+|  PHASE 3: Core Subsystems, Schedulers &amp; High-Speed I/O (Tiers 05 - 07 | Mod 06 - 08)|
+|  VFS, Buddy/SLUB, EEVDF, Netfilter 5 hooks, signals, /proc/&lt;PID&gt; &amp; io_uring       |
++-----------------------------------------------------------------------------------+
+                                         │
+                                         ▼
++-----------------------------------------------------------------------------------+
+|  PHASE 4: Containers, Observability &amp; Kernel Dev (Tiers 08 - 10 | Modules 09 - 11)|
+|  Namespaces &amp; cgroups, Load Average triage, eBPF &amp; Flame Graphs, Character Drivers|
++-----------------------------------------------------------------------------------+
 </code></pre><hr>
-<h2 id="tier-01--shell-permissions--posix-basics">Tier 01 — Shell, Permissions &amp; POSIX Basics</h2>
-<p>📖 <strong><a href="/docs/shell-and-sysadmin/">Full Guide →</a></strong></p>
-<p><strong>What you learn:</strong> The Unix philosophy, filesystem hierarchy, file permissions, device nodes, and shell scripting (inspired by <em>How Linux Works</em>, Chapters 1–3).</p>
+<h2 id="the-10-tier-mastery-pyramid">The 10-Tier Mastery Pyramid</h2>
+<pre tabindex="0"><code>===================================================================================
+                     LINUX SYSTEMS ENGINEERING ROADMAP (10 TIERS)
+===================================================================================
+ [TIER 10]  Kernel Drivers, Concurrency &amp; LKML Patches   │ You write Ring 0 C/Rust
+ [TIER 09]  Performance Engineering, Triage &amp; eBPF       │ You trace kernel live
+ [TIER 08]  Container Primitives from Scratch            │ You build Docker by hand
+ [TIER 07]  Storage Layer, Filesystems &amp; io_uring        │ You master blk-mq &amp; rings
+ [TIER 06]  Process Lifecycles, Signals &amp; /proc Internals│ You dissect task_struct
+ [TIER 05]  Kernel Subsystems (VFS, MM, EEVDF, NET, IPC) │ You trace packets &amp; pages
+ [TIER 04]  Kernel Architecture, Boot &amp; initramfs        │ You compile &amp; boot QEMU
+ [TIER 03]  Privilege Rings, MMU &amp; Dynamic Linking       │ You cross Ring 0 boundary
+ [TIER 02]  Distro Architectures, systemd &amp; Modern Net   │ You administer servers
+ [TIER 01]  Shell Pipelines, POSIX &amp; Device Nodes (/dev) │ You start here
+===================================================================================
+</code></pre><hr>
+<h2 id="curriculum-modules--tiers-cross-reference">Curriculum Modules &amp; Tiers Cross-Reference</h2>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: left">Module</th>
+					<th style="text-align: left">Tier</th>
+					<th style="text-align: left">Title</th>
+					<th style="text-align: left">Core Focus &amp; Mechanics</th>
+					<th style="text-align: left">Direct Guide Link</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: left"><strong>00</strong></td>
+					<td style="text-align: left">—</td>
+					<td style="text-align: left"><strong>Engineering Roadmap</strong></td>
+					<td style="text-align: left">Complete 10-tier curriculum, milestones, lab projects, and reading paths.</td>
+					<td style="text-align: left"><a href="/docs/roadmap/">Roadmap Guide</a></td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>01</strong></td>
+					<td style="text-align: left"><strong>01, 02</strong></td>
+					<td style="text-align: left"><strong>Foundations &amp; systemd</strong></td>
+					<td style="text-align: left">POSIX permissions (SUID/SGID/Sticky), <code>/dev</code>, <code>sysfs</code>, <code>udev</code>, LVM, <code>systemd</code>, PAM.</td>
+					<td style="text-align: left"><a href="/docs/shell-and-sysadmin/">Foundations Guide</a></td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>02</strong></td>
+					<td style="text-align: left"><strong>01</strong></td>
+					<td style="text-align: left"><strong>Linux History &amp; Evolution</strong></td>
+					<td style="text-align: left">Unix ancestry, 1991 MINIX origins, Tanenbaum debate, GPLv2 licensing.</td>
+					<td style="text-align: left"><a href="/docs/linux-history/">History Guide</a></td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>03</strong></td>
+					<td style="text-align: left"><strong>02</strong></td>
+					<td style="text-align: left"><strong>Distribution Landscape</strong></td>
+					<td style="text-align: left">Distro trees (Debian, RHEL, Arch, Alpine), <code>glibc</code> vs <code>musl</code>, package formats.</td>
+					<td style="text-align: left"><a href="/docs/linux-distros/">Distros Guide</a></td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>04</strong></td>
+					<td style="text-align: left"><strong>03</strong></td>
+					<td style="text-align: left"><strong>Level &amp; Layer Abstraction</strong></td>
+					<td style="text-align: left">Ring 0 vs Ring 3, virtual address space, page tables, <code>syscall</code>, dynamic linker.</td>
+					<td style="text-align: left"><a href="/docs/level-layer-abstraction/">Abstraction Guide</a></td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>05</strong></td>
+					<td style="text-align: left"><strong>04</strong></td>
+					<td style="text-align: left"><strong>Linux Kernel Architecture</strong></td>
+					<td style="text-align: left">Monolithic tree, LKMs, UEFI &amp; GRUB boot sequence, <code>initramfs</code>, QEMU.</td>
+					<td style="text-align: left"><a href="/docs/linux-kernel/">Kernel Guide</a></td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>06</strong></td>
+					<td style="text-align: left"><strong>05</strong></td>
+					<td style="text-align: left"><strong>Linux Kernel Subsystems</strong></td>
+					<td style="text-align: left">VFS, Buddy/SLUB allocators, EEVDF scheduler, Netfilter 5 hooks, <code>sk_buff</code>, IPC.</td>
+					<td style="text-align: left"><a href="/docs/linux-kernel-subsystem/">Subsystems Guide</a></td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>07</strong></td>
+					<td style="text-align: left"><strong>06</strong></td>
+					<td style="text-align: left"><strong>Process Management</strong></td>
+					<td style="text-align: left"><code>task_struct</code>, <code>fork()</code>/<code>clone()</code>, Copy-on-Write, Signals, nice values, <code>/proc/&lt;PID&gt;/</code>.</td>
+					<td style="text-align: left"><a href="/docs/process-management/">Processes Guide</a></td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>08</strong></td>
+					<td style="text-align: left"><strong>07</strong></td>
+					<td style="text-align: left"><strong>Storage &amp; io_uring</strong></td>
+					<td style="text-align: left">Block layer (<code>blk-mq</code>), ext4 journaling, page cache dirty writeback, <code>io_uring</code>.</td>
+					<td style="text-align: left"><a href="/docs/storage-and-io/">Storage Guide</a></td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>09</strong></td>
+					<td style="text-align: left"><strong>08</strong></td>
+					<td style="text-align: left"><strong>Container Primitives</strong></td>
+					<td style="text-align: left">Hypervisors vs Containers, 7 Namespaces, cgroups v2, OverlayFS, <code>pivot_root</code>, Seccomp.</td>
+					<td style="text-align: left"><a href="/docs/container-primitives/">Containers Guide</a></td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>10</strong></td>
+					<td style="text-align: left"><strong>09</strong></td>
+					<td style="text-align: left"><strong>Performance &amp; eBPF</strong></td>
+					<td style="text-align: left">Superuser triage (<code>vmstat</code>, <code>iostat</code>), Load Average D-state, kprobes, <code>bpftrace</code>, Flame Graphs.</td>
+					<td style="text-align: left"><a href="/docs/ebpf-and-observability/">eBPF Guide</a></td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>11</strong></td>
+					<td style="text-align: left"><strong>10</strong></td>
+					<td style="text-align: left"><strong>Kernel Drivers &amp; LKML</strong></td>
+					<td style="text-align: left">Character drivers, user-kernel boundary, spinlocks, RCU, Rust in kernel, LKML patches.</td>
+					<td style="text-align: left"><a href="/docs/kernel-drivers-and-modules/">Drivers Guide</a></td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="tier-01--shell-pipelines-posix--device-nodes-dev">Tier 01 — Shell Pipelines, POSIX &amp; Device Nodes (<code>/dev</code>)</h2>
+<p>📖 <strong>Full Guides:</strong> <a href="/docs/shell-and-sysadmin/">Shell &amp; sysadmin</a> · <a href="/docs/linux-history/">Linux History &amp; Evolution</a></p>
+<p><strong>What you learn:</strong> The Unix philosophy, POSIX standards, filesystem hierarchy, device nodes, stream redirection, and foundational history (inspired by <em>How Linux Works</em>, Chapters 1–3).</p>
 <p><strong>Key concepts:</strong></p>
 <ul>
-<li><strong>Filesystem Hierarchy Standard (FHS)</strong> — Purpose of <code>/etc</code>, <code>/var</code>, <code>/proc</code>, <code>/sys</code>, <code>/dev</code></li>
-<li><strong>Device Nodes</strong> — Character vs. block devices, major/minor device numbers (<code>ls -l /dev</code>), <code>sysfs</code>, <code>udev</code></li>
-<li><strong>Permission bits</strong> — <code>rwx</code> octal notation, SUID (<code>4000</code>), SGID (<code>2000</code>), Sticky Bit (<code>1000</code>)</li>
-<li><strong>Text pipelines</strong> — Standard input/output/error streams, <code>grep</code>, <code>awk</code>, <code>sed</code>, <code>sort</code>, <code>uniq</code>, <code>xargs</code></li>
-<li><strong>Shell scripting</strong> — Environment variables, subshells, exit statuses, signals (<code>trap</code>), process substitution</li>
+<li><strong>The Unix Heritage &amp; Evolution</strong> — Ken Thompson and Dennis Ritchie at Bell Labs, Unix philosophy (&ldquo;do one thing and do it well&rdquo;), Linus Torvalds&rsquo; 1991 announcement, Tanenbaum-Torvalds debate (monolithic kernel vs microkernel), and GNU GPLv2 licensing.</li>
+<li><strong>Filesystem Hierarchy Standard (FHS)</strong> — The exact roles of <code>/etc</code> (host config), <code>/var</code> (variable data), <code>/proc</code> (virtual kernel process metrics), <code>/sys</code> (hardware device tree), and <code>/dev</code> (device nodes).</li>
+<li><strong>Device Nodes &amp; <code>sysfs</code></strong> — Character vs. block devices, major/minor device numbers (<code>ls -l /dev</code>), dynamic kernel device discovery via <code>sysfs</code> and <code>systemd-udevd</code>.</li>
+<li><strong>Permission Bits &amp; Special Flags</strong> — Standard octal <code>rwx</code> permissions, SUID (<code>4000</code>), SGID (<code>2000</code>), and Sticky Bit (<code>1000</code>) for secure collaboration.</li>
+<li><strong>Text Pipelines &amp; Shell Automation</strong> — Stream redirection (<code>stdin</code>, <code>stdout</code>, <code>stderr</code>), <code>grep</code>, <code>awk</code>, <code>sed</code>, <code>sort</code>, <code>uniq</code>, <code>xargs</code>, signal trapping (<code>trap</code>), subshells, and process substitution.</li>
 </ul>
-<p><strong>Labs:</strong></p>
+<p><strong>Hands-on Labs:</strong></p>
 <ul>
-<li><input disabled="" type="checkbox"> Write a shell script that parses Nginx logs, counts HTTP 500 errors per IP, and shows the top 10</li>
-<li><input disabled="" type="checkbox"> Create a shared directory with SGID + Sticky Bit so team files inherit group and can&rsquo;t be deleted by others</li>
-<li><input disabled="" type="checkbox"> Inspect <code>/dev</code> major/minor device numbers with <code>ls -l</code> and write a custom <code>udev</code> rule</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 1.1</strong>: Author a shell script that parses Nginx web logs, counts HTTP 500 error occurrences per client IP, and outputs the top 10 offenders.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 1.2</strong>: Create a collaborative directory (<code>/srv/engineering</code>) with SGID and Sticky Bit flags so team files automatically inherit group ownership and cannot be deleted by unauthorized peers.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 1.3</strong>: Inspect <code>/dev</code> major/minor numbers with <code>ls -l /dev</code> and write a custom <code>udev</code> rule at <code>/etc/udev/rules.d/99-usb-backup.rules</code> to automatically symlink a designated USB device.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 1.4</strong>: Trace the history of the 1992 Tanenbaum-Torvalds debate and analyze why Linux&rsquo;s pragmatic monolithic design outperformed pure microkernels for general-purpose workloads.</li>
 </ul>
 <hr>
-<h2 id="tier-02--systemd-storage--networking">Tier 02 — systemd, Storage &amp; Networking</h2>
-<p>📖 <strong><a href="/docs/shell-and-sysadmin/">Full Guide →</a></strong></p>
-<p><strong>What you learn:</strong> Managing services, disks, LVM, networks, and SSH on production Linux servers (inspired by <em>How Linux Works</em>, Chapters 4–10).</p>
+<h2 id="tier-02--distro-architectures-systemd--modern-networking">Tier 02 — Distro Architectures, <code>systemd</code> &amp; Modern Networking</h2>
+<p>📖 <strong>Full Guides:</strong> <a href="/docs/linux-distros/">Linux Distributions</a> · <a href="/docs/shell-and-sysadmin/">Production Administration &amp; systemd</a></p>
+<p><strong>What you learn:</strong> Distro ecosystems, dynamic libraries (<code>glibc</code> vs <code>musl</code>), <code>systemd</code> PID 1 lifecycle management, 3-tier LVM storage, and modern network configuration (inspired by <em>How Linux Works</em>, Chapters 4–10).</p>
 <p><strong>Key concepts:</strong></p>
 <ul>
-<li><strong><code>systemd</code></strong> — PID 1, unit files (<code>.service</code>, <code>.socket</code>, <code>.timer</code>), targets, declarative sandboxing (<code>ProtectSystem</code>, <code>PrivateTmp</code>)</li>
-<li><strong>Storage &amp; LVM</strong> — MBR vs. GPT partitions, LVM 3-tier architecture (PV → VG → LV), UUIDs in <code>/etc/fstab</code></li>
-<li><strong>Filesystems</strong> — Inodes, directories as name maps, hard links vs. symlinks, ext4 vs. XFS</li>
-<li><strong>Networking</strong> — <code>ip link/addr/route</code>, socket states with <code>ss -tulpn</code>, <code>nftables</code> firewalls, DNS in <code>/etc/resolv.conf</code></li>
-<li><strong>User management &amp; PAM</strong> — <code>/etc/passwd</code>, <code>/etc/shadow</code>, Pluggable Authentication Modules (<code>/etc/pam.d/</code>)</li>
+<li><strong>Distribution Architecture</strong> — Upstream Linux kernel + C standard library (<code>glibc</code> vs <code>musl</code>) + Init system (<code>systemd</code>, OpenRC, runit) + package management (<code>apt</code>, <code>dnf</code>, <code>pacman</code>, <code>apk</code>). Contrasting Debian/Ubuntu LTS, Enterprise RHEL, Rolling Arch, and minimal container distros (Alpine, Wolfi).</li>
+<li><strong><code>systemd</code> Service Supervision</strong> — PID 1 initialization, unit types (<code>.service</code>, <code>.socket</code>, <code>.timer</code>), target synchronization, socket activation, and declarative security sandboxing (<code>ProtectSystem=strict</code>, <code>PrivateTmp=yes</code>, <code>NoNewPrivileges=yes</code>).</li>
+<li><strong>Disks, Partitions &amp; 3-Tier LVM</strong> — MBR (4 primary partitions, 2TB limit) vs GPT (GUID Partition Table with CRC32), Logical Volume Manager (Physical Volumes <code>PV</code> → Volume Groups <code>VG</code> → Logical Volumes <code>LV</code>), dynamic volume resizing, and persistent mounting via UUIDs in <code>/etc/fstab</code>.</li>
+<li><strong>Modern Networking &amp; Packet Inspection</strong> — The <code>iproute2</code> toolset (<code>ip link</code>, <code>ip addr</code>, <code>ip route</code>), socket state inspection with <code>ss -tulpn</code>, <code>nftables</code> stateful packet filtering, and DNS resolution paths in <code>/etc/resolv.conf</code>.</li>
+<li><strong>User Authentication &amp; PAM</strong> — <code>/etc/passwd</code>, shadow passwords <code>/etc/shadow</code>, Pluggable Authentication Modules (<code>/etc/pam.d/</code>), and hardened SSH bastions with Ed25519 cryptographic keys.</li>
 </ul>
-<p><strong>Labs:</strong></p>
+<p><strong>Hands-on Labs:</strong></p>
 <ul>
-<li><input disabled="" type="checkbox"> Write a <code>systemd</code> service with cgroup limits (<code>MemoryMax=500M</code>, <code>CPUQuota=50%</code>) and security sandboxing</li>
-<li><input disabled="" type="checkbox"> Partition a loop disk with GPT, create an LVM volume group, format as ext4, and mount via <code>/etc/fstab</code></li>
-<li><input disabled="" type="checkbox"> Audit user login flows through PAM and set up an SSH bastion with Ed25519 keys</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 2.1</strong>: Write a hardened <code>systemd</code> service unit for a custom application with strict resource limits (<code>MemoryMax=500M</code>, <code>CPUQuota=50%</code>) and filesystem isolation.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 2.2</strong>: Partition a 2GB loopback disk image with GPT, initialize an LVM volume group, format an ext4 logical volume, and mount it persistently via UUID in <code>/etc/fstab</code>.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 2.3</strong>: Expand an active LVM volume and ext4 filesystem online using <code>pvcreate</code>, <code>vgextend</code>, <code>lvextend -r</code> without unmounting.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 2.4</strong>: Compare static binary sizes and dynamic library dependencies across <code>glibc</code> (Debian) and <code>musl</code> (Alpine) using <code>ldd</code> and <code>readelf</code>.</li>
 </ul>
 <hr>
-<h2 id="tier-03--protection-rings-mmu--system-calls">Tier 03 — Protection Rings, MMU &amp; System Calls</h2>
-<p>📖 <strong><a href="/docs/level-layer-abstraction/">Full Guide →</a></strong></p>
-<p><strong>What you learn:</strong> How CPU hardware enforces isolation between user programs and the kernel.</p>
+<h2 id="tier-03--privilege-rings-mmu-paging--dynamic-linking">Tier 03 — Privilege Rings, MMU Paging &amp; Dynamic Linking</h2>
+<p>📖 <strong>Full Guide:</strong> <a href="/docs/level-layer-abstraction/">Level &amp; Layer Abstraction</a></p>
+<p><strong>What you learn:</strong> Hardware CPU protection boundaries, virtual memory address translation, the C standard library system call bridge, and dynamic link resolution.</p>
 <p><strong>Key concepts:</strong></p>
 <ul>
-<li><strong>CPU rings</strong> — Ring 0 (kernel) vs Ring 3 (user). ARM: EL0/EL1/EL2/EL3</li>
-<li><strong>Virtual address space</strong> — 128 TB user / 128 TB kernel split, non-canonical hole</li>
-<li><strong>Page tables</strong> — PGD → P4D → PUD → PMD → PTE, TLB cache, KPTI</li>
-<li><strong>System calls</strong> — <code>syscall</code> instruction, register conventions (<code>%rax</code>, <code>%rdi</code>, <code>%rsi</code>&hellip;), vDSO</li>
+<li><strong>Hardware CPU Protection Rings</strong> — Intel x86 Ring 0 (kernel privilege) vs Ring 3 (unprivileged user space). ARM Architecture: Exception Levels EL0 (Application), EL1 (Kernel/OS), EL2 (Hypervisor), EL3 (Firmware/Secure Monitor).</li>
+<li><strong>Virtual Address Space</strong> — The 64-bit 128 TB user space / 128 TB kernel space split, non-canonical address holes, and kernel address isolation.</li>
+<li><strong>MMU &amp; Multi-Level Page Tables</strong> — 4-level and 5-level paging hierarchies (PGD → P4D → PUD → PMD → PTE), Translation Lookaside Buffer (TLB) caching, and Kernel Page Table Isolation (KPTI) against Meltdown side-channel attacks.</li>
+<li><strong>System Call Traps &amp; vDSO</strong> — Transitioning user space to kernel space via the <code>syscall</code> instruction, register calling conventions (<code>%rax</code>, <code>%rdi</code>, <code>%rsi</code>, <code>%rdx</code>, <code>%r10</code>, <code>%r8</code>, <code>%r9</code>), and zero-trap virtual dynamic shared objects (vDSO) for clock calls.</li>
+<li><strong>The C Library (glibc / musl) &amp; Dynamic Linking</strong> — Syscall wrappers, <code>errno</code> mapping, buffered standard I/O streams vs unbuffered POSIX syscalls, dynamic ELF linking (<code>/lib64/ld-linux-x86-64.so.2</code>, <code>/etc/ld.so.cache</code>), and Procedure Linkage Table (PLT) / Global Offset Table (GOT) resolution.</li>
 </ul>
-<p><strong>Labs:</strong></p>
+<p><strong>Hands-on Labs:</strong></p>
 <ul>
-<li><input disabled="" type="checkbox"> Write a C program using raw inline assembly <code>syscall</code> (no glibc) to print a message to stdout</li>
-<li><input disabled="" type="checkbox"> Inspect <code>/proc/self/maps</code> and identify <code>.text</code>, <code>[heap]</code>, <code>[stack]</code>, and <code>[vdso]</code> regions</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 3.1</strong>: Write a standalone C program using raw inline x86_64 assembly <code>syscall</code> instructions (bypassing glibc completely) to emit text to stdout and exit cleanly.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 3.2</strong>: Inspect <code>/proc/self/maps</code> and identify <code>.text</code>, <code>.data</code>, <code>[heap]</code>, <code>[stack]</code>, and <code>[vdso]</code> virtual memory mappings.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 3.3</strong>: Author a shared library in C that intercepts <code>getpid()</code> or <code>openat()</code> using <code>LD_PRELOAD</code> to subvert application execution dynamically.</li>
 </ul>
 <hr>
-<h2 id="tier-04--kernel-architecture--boot-sequence">Tier 04 — Kernel Architecture &amp; Boot Sequence</h2>
-<p>📖 <strong><a href="/docs/linux-kernel/">Full Guide →</a></strong></p>
-<p><strong>What you learn:</strong> How the Linux kernel is structured and how a machine boots from power-on to PID 1.</p>
+<h2 id="tier-04--kernel-architecture-lkms--boot-sequence">Tier 04 — Kernel Architecture, LKMs &amp; Boot Sequence</h2>
+<p>📖 <strong>Full Guide:</strong> <a href="/docs/linux-kernel/">Linux Kernel Architecture</a></p>
+<p><strong>What you learn:</strong> The monolithic kernel source tree, authoring loadable kernel modules, early userspace <code>initramfs</code>, and compiling a customized kernel from vanilla source.</p>
 <p><strong>Key concepts:</strong></p>
 <ul>
-<li><strong>Monolithic kernel</strong> — All subsystems in one address space; modularity via Loadable Kernel Modules</li>
-<li><strong>Source tree</strong> — <code>arch/</code>, <code>mm/</code>, <code>fs/</code>, <code>net/</code>, <code>drivers/</code>, <code>kernel/</code>, <code>init/</code>, <code>rust/</code></li>
-<li><strong>LKM basics</strong> — <code>module_init()</code>, <code>module_exit()</code>, <code>EXPORT_SYMBOL_GPL</code>, <code>/proc/kallsyms</code></li>
-<li><strong>Boot pipeline</strong> — UEFI → GRUB → <code>vmlinuz</code> decompress → <code>start_kernel()</code> → initramfs → <code>pivot_root</code> → PID 1</li>
-<li><strong>Preemption</strong> — <code>PREEMPT_NONE</code> (servers) → <code>PREEMPT_VOLUNTARY</code> (desktop) → <code>PREEMPT_RT</code> (real-time)</li>
+<li><strong>Monolithic Architecture</strong> — Single address space execution with dynamic modularity via Loadable Kernel Modules (LKM). Contrasting monolithic designs with microkernels and hybrid models.</li>
+<li><strong>Kernel Source Anatomy</strong> — Navigating <code>arch/</code> (hardware architecture specifics), <code>mm/</code> (memory management), <code>fs/</code> (VFS and filesystems), <code>net/</code> (network stack), <code>drivers/</code> (hardware drivers), <code>kernel/</code> (core schedulers and locking), and <code>rust/</code> (Rust infrastructure).</li>
+<li><strong>Loadable Kernel Modules (LKM)</strong> — Module lifecycle: <code>module_init()</code>, <code>module_exit()</code>, exported symbol tables (<code>EXPORT_SYMBOL_GPL</code>), module parameters (<code>module_param</code>), and runtime symbol inspection via <code>/proc/kallsyms</code>.</li>
+<li><strong>The Boot Pipeline from Silicon to PID 1</strong> — UEFI firmware initialization → GRUB2 bootloader → kernel decompression (<code>vmlinuz</code>) → architecture setup (<code>start_kernel()</code>) → early userspace <code>initramfs</code> (cpio archive) → <code>/init</code> script &amp; storage driver loading → <code>switch_root</code> / <code>pivot_root</code> → systemd PID 1 execution.</li>
+<li><strong>Kernel Preemption Modes</strong> — Server throughput (<code>PREEMPT_NONE</code>), interactive desktop responsiveness (<code>PREEMPT_VOLUNTARY</code>), low-latency preemption (<code>PREEMPT_BUILD</code>), and deterministic real-time computing (<code>PREEMPT_RT</code>).</li>
 </ul>
-<p><strong>Labs:</strong></p>
+<p><strong>Hands-on Labs:</strong></p>
 <ul>
-<li><input disabled="" type="checkbox"> Write a kernel module with configurable parameters, insert it with <code>insmod</code>, verify output in <code>dmesg</code></li>
-<li><input disabled="" type="checkbox"> Download kernel source from kernel.org, configure with <code>make defconfig</code>, compile, and boot in QEMU</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 4.1</strong>: Author a custom loadable kernel module with configurable integer parameters, compile with <code>Kdir</code> Makefiles, insert via <code>insmod</code>, and verify kernel logging in <code>dmesg</code>.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 4.2</strong>: Download the latest stable Linux kernel source from kernel.org, configure with <code>make defconfig</code>, compile on multi-core CPU (<code>make -j$(nproc)</code>), and boot the new kernel inside a minimal QEMU virtual machine.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 4.3</strong>: Unpack a production distribution <code>initramfs</code> cpio archive, audit its loaded storage modules, and analyze its early <code>/init</code> shell orchestration script.</li>
 </ul>
 <hr>
-<h2 id="tier-05--kernel-subsystems-vfs-mm-scheduler-net-ipc">Tier 05 — Kernel Subsystems (VFS, MM, Scheduler, Net, IPC)</h2>
-<p>📖 <strong><a href="/docs/linux-kernel-subsystem/">Full Guide →</a></strong></p>
-<p><strong>What you learn:</strong> The five core engines inside the Linux kernel and how they cooperate.</p>
+<h2 id="tier-05--kernel-subsystems-vfs-mm-eevdf-netfilter--ipc">Tier 05 — Kernel Subsystems: VFS, MM, EEVDF, Netfilter &amp; IPC</h2>
+<p>📖 <strong>Full Guide:</strong> <a href="/docs/linux-kernel-subsystem/">Linux Kernel Subsystems</a></p>
+<p><strong>What you learn:</strong> The five foundational subsystems inside the Linux kernel and their cooperative data structures.</p>
 <p><strong>Key concepts:</strong></p>
 <ol>
-<li><strong>VFS</strong> — <code>super_block</code>, <code>inode</code>, <code>dentry</code>, <code>file</code>; page cache and dirty writeback</li>
-<li><strong>Memory Manager</strong> — Buddy allocator (page frames), SLUB allocator (kernel objects), demand paging, OOM killer</li>
-<li><strong>Scheduler</strong> — <code>SCHED_NORMAL</code>, <code>SCHED_FIFO</code>, <code>SCHED_DEADLINE</code>; CFS → EEVDF (Linux 6.6+); SMP load balancing</li>
-<li><strong>Networking</strong> — <code>sk_buff</code> lifecycle, NAPI polling, Netfilter hooks, eBPF XDP</li>
-<li><strong>IPC</strong> — Signals, pipes, Unix sockets (<code>SCM_RIGHTS</code> fd passing), shared memory + futex</li>
+<li><strong>Virtual File System (VFS)</strong> — Unified filesystem abstraction: <code>struct super_block</code> (filesystem metadata), <code>struct inode</code> (file metadata and block pointers), <code>struct dentry</code> (directory path cache), and <code>struct file</code> (open file descriptors). Page cache integration and dirty buffer writeback.</li>
+<li><strong>Memory Management (MM)</strong> — Two-tier memory allocation: Buddy Allocator (contiguous physical page frames) and SLUB Allocator (fine-grained kernel object caches). Demand paging, minor vs major page faults, virtual memory areas (<code>vm_area_struct</code>), and the Out-Of-Memory (OOM) killer heuristic scoring.</li>
+<li><strong>Process Scheduler (EEVDF)</strong> — Scheduling policies (<code>SCHED_NORMAL</code>, <code>SCHED_FIFO</code>, <code>SCHED_DEADLINE</code>). Evolution from the Completely Fair Scheduler (CFS) to the Earliest Eligible Virtual Deadline First (EEVDF) scheduler in Linux 6.6+, lag compensation, and SMP multi-core load balancing.</li>
+<li><strong>The Network Stack &amp; Netfilter</strong> — Zero-copy socket buffers (<code>struct sk_buff</code>), <code>iproute2</code> management, the 5 Netfilter packet filtering hooks (<code>PREROUTING</code>, <code>INPUT</code>, <code>FORWARD</code>, <code>OUTPUT</code>, <code>POSTROUTING</code>), <code>nftables</code> tables, NAPI interrupt mitigation (<code>ksoftirqd</code>), and line-rate eBPF eXpress Data Path (XDP).</li>
+<li><strong>Inter-Process Communication (IPC)</strong> — Asynchronous signals, anonymous pipes, Unix domain sockets with <code>SCM_RIGHTS</code> file descriptor passing, shared memory (<code>shmget</code>/<code>mmap</code>), and kernel fast userspace mutexes (<code>futex</code>).</li>
 </ol>
-<p><strong>Labs:</strong></p>
+<p><strong>Hands-on Labs:</strong></p>
 <ul>
-<li><input disabled="" type="checkbox"> Monitor page faults with <code>vmstat 1</code> and <code>sar -B</code> while a program allocates and touches 128 MB of memory</li>
-<li><input disabled="" type="checkbox"> Write a C program that passes an open file descriptor over a Unix socket using <code>sendmsg()</code> and <code>SCM_RIGHTS</code></li>
+<li><input disabled="" type="checkbox"> <strong>Lab 5.1</strong>: Allocate and dirty 128 MB of memory in a C program, monitoring minor and major page fault spikes in real time using <code>vmstat 1</code> and <code>sar -B</code>.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 5.2</strong>: Author a C client-server application that passes an open file descriptor over an <code>AF_UNIX</code> domain socket using <code>sendmsg()</code> and <code>SCM_RIGHTS</code>.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 5.3</strong>: Perform live network socket diagnostics using <code>ss -tulpn</code> and capture ICMP/TCP packets directly from the kernel network stack using <code>tcpdump -nn -i any</code>.</li>
 </ul>
 <hr>
-<h2 id="tier-06--processes-threads--context-switching">Tier 06 — Processes, Threads &amp; Context Switching</h2>
-<p>📖 <strong><a href="/docs/process-management/">Full Guide →</a></strong></p>
-<p><strong>What you learn:</strong> How the kernel represents, creates, and switches between running programs.</p>
+<h2 id="tier-06--process-lifecycles-signals--proc-diagnostics">Tier 06 — Process Lifecycles, Signals &amp; <code>/proc</code> Diagnostics</h2>
+<p>📖 <strong>Full Guide:</strong> <a href="/docs/process-management/">Process &amp; Thread Management</a></p>
+<p><strong>What you learn:</strong> How the kernel creates, executes, tracks, and terminates processes and threads, handles asynchronous signals, and exposes runtime state via <code>/proc</code>.</p>
 <p><strong>Key concepts:</strong></p>
 <ul>
-<li><strong><code>task_struct</code></strong> — <code>pid</code> vs <code>tgid</code>, process states (<code>RUNNING</code>, <code>INTERRUPTIBLE</code>, <code>ZOMBIE</code>)</li>
-<li><strong><code>clone()</code> flags</strong> — <code>CLONE_VM</code> (share memory = thread), <code>CLONE_FILES</code>, <code>CLONE_NEWPID</code> (container)</li>
-<li><strong>Copy-On-Write</strong> — <code>fork()</code> shares pages read-only, write triggers page fault → <code>do_wp_page()</code> allocates new frame</li>
-<li><strong><code>execve()</code></strong> — Validates ELF magic (<code>7F 45 4C 46</code>), maps <code>.text</code>/<code>.data</code>/<code>.bss</code>, sets up stack</li>
-<li><strong>Context switch</strong> — Timer interrupt → <code>schedule()</code> → <code>switch_mm()</code> (new CR3) → <code>switch_to()</code> (swap <code>%rsp</code>)</li>
-<li><strong>Zombies</strong> — Why they exist, why <code>kill -9</code> doesn&rsquo;t work on them, how PID 1 reaps orphans</li>
+<li><strong>The &ldquo;No Threads&rdquo; Architecture</strong> — In Linux, threads are simply processes that share memory and file tables. Both processes and threads are represented identically by <code>struct task_struct</code>.</li>
+<li><strong>Identifiers &amp; Lifecycle</strong> — Process ID (<code>pid</code>) vs Thread Group ID (<code>tgid</code>). Process state machine: <code>TASK_RUNNING</code>, <code>TASK_INTERRUPTIBLE</code> (sleeping on I/O), <code>TASK_UNINTERRUPTIBLE</code> (<code>D</code> state blocked on hardware/disk), and <code>EXIT_ZOMBIE</code>.</li>
+<li><strong>Creation &amp; Execution Pipeline</strong> — <code>clone()</code> flags (<code>CLONE_VM</code>, <code>CLONE_FS</code>, <code>CLONE_FILES</code>, <code>CLONE_NEWPID</code>), Copy-On-Write (COW) memory duplication on <code>fork()</code>, and ELF binary parsing and address mapping via <code>execve()</code>.</li>
+<li><strong>Context Switching</strong> — Timer interrupts → <code>schedule()</code> → <code>switch_mm()</code> (reloading CR3 page directory base) → <code>switch_to()</code> (assembly stack and register pointer swap).</li>
+<li><strong>Zombies &amp; Orphan Reaping</strong> — Why zombies consume zero memory yet leak PID table entries, why <code>kill -9</code> cannot kill a zombie, and how PID 1 reaps orphaned child processes via <code>waitpid()</code>.</li>
+<li><strong>Unix Signals &amp; Priorities</strong> — Signal delivery mechanics, catchable signals (<code>SIGHUP</code> for daemon reload, <code>SIGTERM</code> for graceful shutdown) vs uncatchable signals (<code>SIGKILL</code>, <code>SIGSTOP</code>), signal masks, POSIX <code>sigaction</code>, nice values (<code>-20</code> to <code>+19</code>), and <code>chrt</code> real-time scheduling.</li>
+<li><strong>The <code>/proc/&lt;PID&gt;/</code> Anatomy</strong> — Dissecting <code>/proc/&lt;PID&gt;/cmdline</code>, <code>environ</code>, <code>fd/</code> open file descriptors, <code>status</code> (VmRSS, VmPeak, voluntary context switches), <code>limits</code>, and <code>wchan</code> (exact blocked kernel function).</li>
 </ul>
-<p><strong>Labs:</strong></p>
+<p><strong>Hands-on Labs:</strong></p>
 <ul>
-<li><input disabled="" type="checkbox"> Write a C program that creates a zombie process, verify it shows state <code>Z</code> in <code>ps</code>, then reap it with <code>waitpid()</code></li>
-<li><input disabled="" type="checkbox"> Use <code>strace -f</code> on a multi-threaded program and observe the <code>clone()</code> flags</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 6.1</strong>: Write a C program that deliberately creates a zombie process, verify state <code>Z</code> in <code>ps aux</code>, and reap it cleanly using <code>waitpid()</code>.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 6.2</strong>: Trace a multi-threaded application using <code>strace -f</code> and identify the exact <code>clone()</code> flags used by the POSIX pthread library.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 6.3</strong>: Author a daemon in C using <code>sigaction</code> that catches <code>SIGHUP</code> to reload configuration dynamically without stopping, and audit its caught signal mask in <code>/proc/&lt;PID&gt;/status</code>.</li>
 </ul>
 <hr>
-<h2 id="tier-07--storage-filesystems--io_uring">Tier 07 — Storage, Filesystems &amp; io_uring</h2>
-<p>📖 <strong><a href="/docs/storage-and-io/">Full Guide →</a></strong></p>
-<p><strong>What you learn:</strong> How data flows from <code>write()</code> to physical disk, and how <code>io_uring</code> eliminates syscall overhead.</p>
+<h2 id="tier-07--storage-layer-filesystems--io_uring">Tier 07 — Storage Layer, Filesystems &amp; <code>io_uring</code></h2>
+<p>📖 <strong>Full Guide:</strong> <a href="/docs/storage-and-io/">Storage &amp; io_uring</a></p>
+<p><strong>What you learn:</strong> The lifecycle of a disk I/O request through the block layer, filesystem internals, page cache writeback tuning, and modern asynchronous zero-syscall <code>io_uring</code>.</p>
 <p><strong>Key concepts:</strong></p>
 <ul>
-<li><strong>Block layer</strong> — <code>struct bio</code>, multi-queue <code>blk-mq</code>, I/O schedulers (<code>mq-deadline</code>, <code>bfq</code>, <code>none</code>)</li>
-<li><strong>Direct I/O</strong> — <code>O_DIRECT</code> bypasses page cache; requires aligned buffers</li>
-<li><strong>Filesystems</strong> — Ext4 (journaling modes), XFS (allocation groups), Btrfs (COW snapshots)</li>
-<li><strong>Page cache tuning</strong> — <code>vm.dirty_ratio</code>, <code>vm.dirty_background_ratio</code>, <code>[kworker]</code> flusher threads</li>
-<li><strong><code>io_uring</code></strong> — Shared-memory SQ/CQ ring buffers, zero-copy I/O, <code>SQPOLL</code> mode for zero-syscall I/O</li>
+<li><strong>The Linux Block Layer</strong> — From filesystem <code>write()</code> to physical storage: <code>struct bio</code> request structures, multi-queue architecture (<code>blk-mq</code>), and hardware I/O schedulers (<code>mq-deadline</code>, <code>bfq</code>, <code>none</code> for NVMe).</li>
+<li><strong>Filesystem Architectures</strong> — Ext4 (journaling modes: <code>journal</code>, <code>ordered</code>, <code>writeback</code>), XFS (allocation groups and parallel allocation), and Btrfs (Copy-On-Write snapshots and subvolumes).</li>
+<li><strong>Inodes, Dentries &amp; Ghost Files</strong> — Inodes (metadata and data blocks) vs Dentries (name resolution cache), hard links vs soft links, and diagnosing ghost unlinked open files leaking disk capacity (<code>lsof +L1</code>).</li>
+<li><strong>Page Cache &amp; Dirty Writeback Tuning</strong> — Page cache buffering, Direct I/O (<code>O_DIRECT</code>), dirty ratio thresholds (<code>vm.dirty_ratio</code>, <code>vm.dirty_background_ratio</code>), and flushing via kernel <code>kworker</code> threads.</li>
+<li><strong>Modern Asynchronous <code>io_uring</code></strong> — Eliminating system call overhead via shared-memory ring buffers: Submission Queue (<code>SQ</code>) and Completion Queue (<code>CQ</code>), batching, zero-copy registered buffers, and kernel-side polling mode (<code>IORING_SETUP_SQPOLL</code>) for zero-syscall I/O.</li>
 </ul>
-<p><strong>Labs:</strong></p>
+<p><strong>Hands-on Labs:</strong></p>
 <ul>
-<li><input disabled="" type="checkbox"> Write a C program using <code>liburing</code> to read a file asynchronously via submission/completion queues</li>
-<li><input disabled="" type="checkbox"> Benchmark <code>io_uring</code> vs <code>libaio</code> vs <code>psync</code> using <code>fio</code> with varying queue depths</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 7.1</strong>: Author a C program using <code>liburing</code> that performs asynchronous file reads via submission and completion queue ring buffers.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 7.2</strong>: Benchmark <code>io_uring</code> against legacy <code>libaio</code> and synchronous POSIX <code>psync</code> using <code>fio</code> across varying queue depths (1 to 128).</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 7.3</strong>: Trace disk block I/O request latency using BCC tools (<code>biosnoop</code>, <code>biolatency</code>) and analyze queue dispatch times.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 7.4</strong>: Simulate a ghost unlinked open file leak in C, detect the invisible disk space loss using <code>lsof +L1</code> and <code>/proc/&lt;PID&gt;/fd</code>, and reclaim the space.</li>
 </ul>
 <hr>
-<h2 id="tier-08--containers-from-scratch">Tier 08 — Containers from Scratch</h2>
-<p>📖 <strong><a href="/docs/container-primitives/">Full Guide →</a></strong></p>
-<p><strong>What you learn:</strong> Containers are just processes. You&rsquo;ll build one from raw kernel primitives — no Docker needed.</p>
+<h2 id="tier-08--container-primitives--sandboxing-from-scratch">Tier 08 — Container Primitives &amp; Sandboxing from Scratch</h2>
+<p>📖 <strong>Full Guide:</strong> <a href="/docs/container-primitives/">Container Primitives</a></p>
+<p><strong>What you learn:</strong> Building a production-grade container runtime from raw kernel primitives without Docker or containerd, contrasting hypervisors with containers, and applying defense-in-depth isolation.</p>
 <p><strong>Key concepts:</strong></p>
 <ul>
-<li><strong>Namespaces</strong> — The 7 isolation boundaries: PID, NET, MNT, UTS, IPC, USER, CGROUP</li>
-<li><strong>cgroups v2</strong> — Unified hierarchy at <code>/sys/fs/cgroup</code>; <code>memory.max</code>, <code>cpu.max</code>, <code>pids.max</code>, <code>io.max</code></li>
-<li><strong>OverlayFS</strong> — Layered filesystem (read-only lower + read-write upper = merged view)</li>
-<li><strong><code>pivot_root</code></strong> — Secure root filesystem swap (vs. escapable <code>chroot</code>)</li>
-<li><strong>Security</strong> — Linux capabilities, Seccomp-BPF syscall filtering, AppArmor/SELinux</li>
+<li><strong>Hypervisors vs. Containers</strong> — Type 1 (bare-metal) and Type 2 hypervisors, hardware virtualization (Intel VT-x / AMD-V) and QEMU hardware emulation vs. container zero-emulation direct CPU execution.</li>
+<li><strong>The 7 Linux Namespaces</strong> — Virtualizing global kernel resources:
+<ol>
+<li><code>PID</code> (process tree isolation)</li>
+<li><code>NET</code> (network interfaces, IP routing, firewall rules)</li>
+<li><code>MNT</code> (mount points and filesystem tree)</li>
+<li><code>UTS</code> (hostname and domain name)</li>
+<li><code>IPC</code> (POSIX message queues and shared memory)</li>
+<li><code>USER</code> (root in container mapped to unprivileged user on host)</li>
+<li><code>CGROUP</code> (virtualized view of cgroups)</li>
+</ol>
+</li>
+<li><strong>Control Groups v2 (cgroups v2)</strong> — The unified hierarchy mounted at <code>/sys/fs/cgroup/</code>: setting hard memory limits (<code>memory.max</code>), CPU bandwidth constraints (<code>cpu.max</code>), process fork bomb protection (<code>pids.max</code>), and I/O rate limits (<code>io.max</code>).</li>
+<li><strong>Layered Filesystems &amp; <code>pivot_root</code></strong> — OverlayFS mechanics (<code>lowerdir</code> read-only image layers + <code>upperdir</code> read-write container layer + <code>workdir</code> atomic merge = <code>merged</code> view). Why <code>pivot_root</code> is secure while <code>chroot</code> can be escaped.</li>
+<li><strong>Container Security &amp; Sandboxing</strong> — Linux capabilities (<code>cap_net_admin</code>, <code>cap_sys_admin</code>), Seccomp-BPF system call filtering, and Mandatory Access Control (AppArmor / SELinux).</li>
 </ul>
-<p><strong>Labs:</strong></p>
+<p><strong>Hands-on Labs:</strong></p>
 <ul>
-<li><input disabled="" type="checkbox"> Build a container runtime using <code>unshare</code>, <code>pivot_root</code>, and an Alpine rootfs in a shell script</li>
-<li><input disabled="" type="checkbox"> Create a cgroup with <code>memory.max=50M</code>, run a process that allocates 100 MB, and observe the OOM kill in <code>dmesg</code></li>
-<li><input disabled="" type="checkbox"> Write a Seccomp-BPF filter in C that kills a process when it attempts <code>mkdir()</code></li>
+<li><input disabled="" type="checkbox"> <strong>Lab 8.1</strong>: Build an entire isolated container runtime from scratch in a shell script using <code>unshare</code>, <code>pivot_root</code>, and an Alpine rootfs root.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 8.2</strong>: Create a custom cgroup v2 slice with <code>memory.max=50M</code>, execute a workload that allocates 100 MB of RAM, and verify the kernel OOM killer invocation in <code>dmesg</code>.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 8.3</strong>: Author a Seccomp-BPF filter in C that inspects system call numbers and terminates a process with <code>SIGSYS</code> if it attempts unauthorized system calls like <code>mkdir()</code>.</li>
 </ul>
 <hr>
-<h2 id="tier-09--performance-engineering--ebpf">Tier 09 — Performance Engineering &amp; eBPF</h2>
-<p>📖 <strong><a href="/docs/ebpf-and-observability/">Full Guide →</a></strong></p>
-<p><strong>What you learn:</strong> How to find and fix performance bottlenecks using kernel tracing and eBPF programs.</p>
+<h2 id="tier-09--performance-engineering-systems-triage--ebpf">Tier 09 — Performance Engineering, Systems Triage &amp; eBPF</h2>
+<p>📖 <strong>Full Guide:</strong> <a href="/docs/ebpf-and-observability/">Performance &amp; eBPF</a></p>
+<p><strong>What you learn:</strong> Classical superuser metrics triage, resolving the Load Average paradox, Brendan Gregg&rsquo;s performance methodologies, and deep dynamic kernel observability via eBPF.</p>
 <p><strong>Key concepts:</strong></p>
 <ul>
-<li><strong>Methodology</strong> — Brendan Gregg&rsquo;s USE (Utilization/Saturation/Errors) and RED (Rate/Errors/Duration)</li>
-<li><strong>Probe types</strong> — Tracepoints (stable/static), kprobes (dynamic kernel), uprobes (dynamic userspace), PMU counters</li>
-<li><strong>eBPF</strong> — In-kernel VM with verifier + JIT; BPF maps (hash, ringbuf, per-CPU); attach to any hook point</li>
-<li><strong>Tools</strong> — <code>perf record/script</code>, <code>bpftrace</code> one-liners, BCC tools (<code>execsnoop</code>, <code>biolatency</code>, <code>tcpconnect</code>)</li>
-<li><strong>Flame Graphs</strong> — Visualize CPU call stacks; wide plateaus = hotspots</li>
+<li><strong>Classical Superuser Triage Toolkit</strong> — High-speed triage with <code>uptime</code>, <code>vmstat 1</code>, <code>iostat -xz 1</code>, and <code>mpstat -P ALL 1</code>.</li>
+<li><strong>The Load Average Paradox</strong> — Why Linux load average includes tasks in <code>TASK_UNINTERRUPTIBLE</code> (<code>D</code> state) waiting for disk I/O or locks, and why a system can report a load average of 20.0 with 0% CPU utilization.</li>
+<li><strong>Brendan Gregg&rsquo;s Methodologies</strong> — The <strong>USE Method</strong> (Utilization, Saturation, Errors for every resource) and the <strong>RED Method</strong> (Rate, Errors, Duration for services).</li>
+<li><strong>Linux Probe Hierarchy</strong> — Static Tracepoints (stable ABI in <code>/sys/kernel/debug/tracing/events</code>), Dynamic kprobes/kretprobes (kernel function entry/return), Dynamic Userspace uprobes/uretprobes (glibc and application binaries), and Hardware PMU counters.</li>
+<li><strong>The eBPF Virtual Machine Architecture</strong> — Sandboxed RISC virtual machine inside the kernel: in-kernel static verifier (preventing panics and infinite loops), JIT compilation to native machine code, BPF maps (hash, array, ring buffers, per-CPU), and attach points (kprobes, tracepoints, XDP, TC).</li>
+<li><strong>Observability Tooling &amp; Flame Graphs</strong> — Writing high-level <code>bpftrace</code> scripts, leveraging BCC production diagnostic tools (<code>execsnoop</code>, <code>biolatency</code>, <code>tcpconnect</code>), and capturing CPU stack traces with <code>perf record</code> to generate interactive SVG Flame Graphs.</li>
 </ul>
-<p><strong>Labs:</strong></p>
+<p><strong>Hands-on Labs:</strong></p>
 <ul>
-<li><input disabled="" type="checkbox"> Write a <code>bpftrace</code> one-liner that histograms <code>vfs_read()</code> latency in microseconds:
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">bpftrace -e <span class="s1">&#39;kprobe:vfs_read { @start[tid] = nsecs; } kretprobe:vfs_read /@start[tid]/ { @us = hist((nsecs - @start[tid]) / 1000); delete(@start[tid]); }&#39;</span>
-</span></span></code></pre></div></li>
-<li><input disabled="" type="checkbox"> Profile a process with <code>perf record -F 99 -a -g -- sleep 30</code>, then generate an SVG flame graph</li>
-<li><input disabled="" type="checkbox"> Write a standalone eBPF program in C that traces every <code>execve()</code> and logs PID + binary path</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 9.1</strong>: Author a standalone eBPF program in C using <code>libbpf</code> and modern BPF CO-RE (Compile Once – Run Everywhere) to trace every <code>execve()</code> system call across the system.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 9.2</strong>: Write a <code>bpftrace</code> one-liner to generate a live logarithmic histogram of <code>vfs_read()</code> latency in microseconds.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 9.3</strong>: Profile a multi-threaded CPU-bound application using <code>perf record -F 99 -a -g -- sleep 30</code> and render an interactive SVG Flame Graph to pinpoint hot codepaths.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 9.4</strong>: Reproduce the <em>How Linux Works</em> Load Average Paradox: simulate a heavy synchronous disk write load using <code>dd ... oflag=sync</code>, verify elevated load average with low CPU utilization, and trace blocked <code>D</code>-state tasks in <code>vmstat</code>.</li>
 </ul>
 <hr>
-<h2 id="tier-10--kernel-drivers--upstream-patches">Tier 10 — Kernel Drivers &amp; Upstream Patches</h2>
-<p>📖 <strong><a href="/docs/kernel-drivers-and-modules/">Full Guide →</a></strong></p>
-<p><strong>What you learn:</strong> Writing code that runs in Ring 0 and getting it accepted into the Linux kernel.</p>
+<h2 id="tier-10--kernel-drivers-concurrency--upstream-lkml-patches">Tier 10 — Kernel Drivers, Concurrency &amp; Upstream LKML Patches</h2>
+<p>📖 <strong>Full Guide:</strong> <a href="/docs/kernel-drivers-and-modules/">Kernel Drivers &amp; LKML</a></p>
+<p><strong>What you learn:</strong> Writing production-grade code that executes inside Ring 0, kernel synchronization primitives, Rust in the kernel, and the complete workflow for formatting and submitting patches to the Linux Kernel Mailing List.</p>
 <p><strong>Key concepts:</strong></p>
 <ul>
-<li><strong>Character drivers</strong> — <code>alloc_chrdev_region</code>, <code>struct cdev</code>, <code>struct file_operations</code> (<code>open</code>, <code>read</code>, <code>write</code>)</li>
-<li><strong>User↔Kernel boundary</strong> — <code>copy_to_user()</code> / <code>copy_from_user()</code> (never dereference user pointers directly!)</li>
-<li><strong>Synchronization</strong> — Spinlocks (never sleep!), Mutexes (can sleep), RCU (lockless reads, deferred reclaim)</li>
-<li><strong>Rust in the kernel</strong> — Memory-safe drivers via the <code>kernel</code> crate (<code>rust/kernel/</code>)</li>
-<li><strong>Patch workflow</strong> — <code>scripts/checkpatch.pl</code>, <code>git format-patch</code>, <code>git send-email</code> to LKML</li>
+<li><strong>Character Device Driver Architecture</strong> — Major and minor device allocation (<code>alloc_chrdev_region</code>), <code>struct cdev</code> registration, and mapping system calls to driver operations via <code>struct file_operations</code> (<code>open</code>, <code>read</code>, <code>write</code>, <code>unlocked_ioctl</code>, <code>release</code>).</li>
+<li><strong>The User↔Kernel Memory Boundary</strong> — Why kernel code must never dereference user pointers directly, and how <code>copy_to_user()</code> and <code>copy_from_user()</code> enforce memory bounds checking and page fault handling.</li>
+<li><strong>Ring 0 Concurrency &amp; Synchronization</strong> — Spinlocks (atomic spinning, must NEVER sleep, disables interrupts), Mutexes (sleep-capable locks for long operations), and Read-Copy-Update (RCU lockless read concurrency with deferred memory reclaim).</li>
+<li><strong>Interrupt Handling Mechanics</strong> — Top-half interrupt handlers (fast, acknowledge hardware, run with interrupts disabled) vs. bottom-half deferral mechanisms (<code>workqueues</code>, <code>tasklets</code>, <code>threaded_irqs</code>).</li>
+<li><strong>Rust in the Linux Kernel</strong> — Authoring memory-safe kernel drivers using the upstream <code>kernel</code> crate (<code>rust/kernel/</code>), type-safe abstraction wrappers, and zero-cost safety guarantees.</li>
+<li><strong>Upstream LKML Patch Contribution</strong> — Conforming to the Linux kernel coding style, auditing patches with <code>scripts/checkpatch.pl --strict</code>, identifying subsystem maintainers with <code>scripts/get_maintainer.pl</code>, generating commits via <code>git format-patch</code>, and transmitting patches to LKML using <code>git send-email</code>.</li>
 </ul>
-<p><strong>Labs:</strong></p>
+<p><strong>Hands-on Labs:</strong></p>
 <ul>
-<li><input disabled="" type="checkbox"> Write a character device driver (<code>/dev/ringbuf</code>) with a circular buffer, mutex locking, and <code>copy_to_user()</code></li>
-<li><input disabled="" type="checkbox"> Test your driver: <code>echo &quot;hello&quot; &gt; /dev/ringbuf</code> then <code>cat /dev/ringbuf</code></li>
-<li><input disabled="" type="checkbox"> Format a patch with <code>git format-patch</code>, validate with <code>checkpatch.pl --strict</code></li>
+<li><input disabled="" type="checkbox"> <strong>Lab 10.1</strong>: Develop a complete character device driver (<code>/dev/ringbuf</code>) in C with a circular FIFO buffer, mutex concurrency protection, and safe <code>copy_to_user()</code> / <code>copy_from_user()</code> handling.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 10.2</strong>: Compile your driver against the running kernel headers, load it via <code>insmod</code>, create a device node with <code>mknod</code>, and test userspace bidirectional communication with <code>echo</code> and <code>cat</code>.</li>
+<li><input disabled="" type="checkbox"> <strong>Lab 10.3</strong>: Format a clean patch with <code>git format-patch -1</code>, validate it against kernel conventions using <code>checkpatch.pl --strict</code>, and identify the correct maintainer list using <code>get_maintainer.pl</code>.</li>
 </ul>
 <hr>
-<h2 id="recommended-reading">Recommended Reading</h2>
+<h2 id="industry-roles--certification-alignment">Industry Roles &amp; Certification Alignment</h2>
+<p>This roadmap prepares engineers for both production operations and low-level systems engineering. Here is how the tiers map to industry roles and certifications:</p>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: left">Target Role</th>
+					<th style="text-align: left">Recommended Tiers</th>
+					<th style="text-align: left">Relevant Industry Certifications</th>
+					<th style="text-align: left">Primary Competencies</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: left"><strong>Linux Systems Administrator</strong></td>
+					<td style="text-align: left"><strong>Tiers 01 – 03</strong></td>
+					<td style="text-align: left">LFCS, CompTIA Linux+, RHCSA</td>
+					<td style="text-align: left">Shell automation, FHS, permissions, device nodes, systemd, LVM, PAM, user security.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Site Reliability Engineer (SRE)</strong></td>
+					<td style="text-align: left"><strong>Tiers 03 – 08</strong></td>
+					<td style="text-align: left">LFCE, RHCE, CKA</td>
+					<td style="text-align: left">Boot pipelines, subsystem triage, context switching, memory limits, storage I/O, socket states.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Platform / Cloud Native Engineer</strong></td>
+					<td style="text-align: left"><strong>Tiers 07 – 09</strong></td>
+					<td style="text-align: left">CKA, CKS, KCNA</td>
+					<td style="text-align: left">Containers from scratch, namespaces, cgroups v2, OverlayFS, Seccomp, eBPF network filtering.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Systems Performance Engineer</strong></td>
+					<td style="text-align: left"><strong>Tiers 05, 07, 09</strong></td>
+					<td style="text-align: left">SRE / Performance Specialist</td>
+					<td style="text-align: left">USE/RED methods, Load Average triage, kprobes/uprobes, bpftrace, BCC, CPU flame graphs.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>Linux Kernel &amp; Embedded Engineer</strong></td>
+					<td style="text-align: left"><strong>Tiers 04 – 07, 10</strong></td>
+					<td style="text-align: left">Embedded Linux / Kernel Developer</td>
+					<td style="text-align: left">Monolithic tree, QEMU compile, LKMs, character drivers, spinlocks, RCU, Rust in kernel, LKML patches.</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="recommended-reading--definitive-literature">Recommended Reading &amp; Definitive Literature</h2>
+<p>To master the depth of each tier, we recommend the following authoritative textbooks:</p>
 <table>
 	<thead>
 			<tr>
 					<th style="text-align: left">Book</th>
-					<th style="text-align: left">Author</th>
-					<th style="text-align: left">Best For</th>
+					<th style="text-align: left">Author(s)</th>
+					<th style="text-align: left">Primary Tiers</th>
+					<th style="text-align: left">Why You Must Read It</th>
 			</tr>
 	</thead>
 	<tbody>
 			<tr>
 					<td style="text-align: left"><strong>How Linux Works: What Every Superuser Should Know (3rd Ed.)</strong></td>
 					<td style="text-align: left">Brian Ward</td>
-					<td style="text-align: left">Foundational superuser mechanics (devices, disks, boot sequence, systemd, networks)</td>
+					<td style="text-align: left"><strong>Tiers 01, 02, 06, 09</strong></td>
+					<td style="text-align: left">The definitive guide to how Linux actually works under the hood: devices, disks, boot sequence, networks, and systemd.</td>
 			</tr>
 			<tr>
 					<td style="text-align: left"><strong>Linux Kernel Development (3rd Ed.)</strong></td>
 					<td style="text-align: left">Robert Love</td>
-					<td style="text-align: left">Clear kernel architecture introduction</td>
+					<td style="text-align: left"><strong>Tiers 04, 05, 06, 10</strong></td>
+					<td style="text-align: left">The most accessible and clear explanation of kernel architecture, scheduling, interrupt handlers, and kernel data structures.</td>
 			</tr>
 			<tr>
 					<td style="text-align: left"><strong>Understanding the Linux Kernel (3rd Ed.)</strong></td>
-					<td style="text-align: left">Bovet &amp; Cesati</td>
-					<td style="text-align: left">Deep reference for MM, scheduler, VFS</td>
+					<td style="text-align: left">Daniel P. Bovet &amp; Marco Cesati</td>
+					<td style="text-align: left"><strong>Tiers 03, 05, 06, 07</strong></td>
+					<td style="text-align: left">The exhaustive academic reference for VFS, page tables, memory allocators, and process switching.</td>
 			</tr>
 			<tr>
-					<td style="text-align: left"><strong>Systems Performance (2nd Ed.)</strong></td>
+					<td style="text-align: left"><strong>Systems Performance: Enterprise and the Cloud (2nd Ed.)</strong></td>
 					<td style="text-align: left">Brendan Gregg</td>
-					<td style="text-align: left">Performance analysis and eBPF</td>
+					<td style="text-align: left"><strong>Tiers 07, 09</strong></td>
+					<td style="text-align: left">The performance engineering bible covering the USE method, CPU/disk/network triage, perf, and eBPF.</td>
 			</tr>
 			<tr>
 					<td style="text-align: left"><strong>The Linux Programming Interface</strong></td>
 					<td style="text-align: left">Michael Kerrisk</td>
-					<td style="text-align: left">Complete syscall and POSIX API reference</td>
+					<td style="text-align: left"><strong>Tiers 01, 03, 06, 07</strong></td>
+					<td style="text-align: left">The definitive encyclopedia of POSIX system calls, process lifecycles, signals, sockets, and memory mappings.</td>
 			</tr>
 			<tr>
 					<td style="text-align: left"><strong>Linux Device Drivers (3rd Ed.)</strong></td>
-					<td style="text-align: left">Corbet, Rubini, Kroah-Hartman</td>
-					<td style="text-align: left">Driver and module development</td>
+					<td style="text-align: left">Jonathan Corbet, Alessandro Rubini, Greg Kroah-Hartman</td>
+					<td style="text-align: left"><strong>Tier 10</strong></td>
+					<td style="text-align: left">The classic guide to authoring character drivers, block drivers, and hardware interrupt handlers.</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>BPF Performance Tools</strong></td>
+					<td style="text-align: left">Brendan Gregg</td>
+					<td style="text-align: left"><strong>Tier 09</strong></td>
+					<td style="text-align: left">Practical cookbook for diagnosing operating systems and applications using eBPF and bpftrace.</td>
 			</tr>
 	</tbody>
 </table>
+<hr>
+<h2 id="recommended-learning-strategy">Recommended Learning Strategy</h2>
+<p>To gain the most from this roadmap:</p>
+<ol>
+<li><strong>Follow the Tiers Sequentially</strong>: Do not skip to writing kernel drivers before understanding CPU rings, page tables, and memory allocators.</li>
+<li><strong>Execute Every Lab on Real Systems</strong>: Reading alone will not build intuition. Set up a dedicated Linux machine, cloud instance, or local VM using Vagrant, Multipass, or QEMU.</li>
+<li><strong>Inspect the <code>/proc</code> and <code>/sys</code> Filesystems</strong>: When running processes, inspect <code>/proc/&lt;PID&gt;/status</code>, <code>/proc/&lt;PID&gt;/fd/</code>, and <code>/sys/fs/cgroup/</code> to observe the kernel&rsquo;s active data structures.</li>
+<li><strong>Read the Kernel Source</strong>: Don&rsquo;t treat the kernel as a black box. Clone <code>git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git</code> and inspect <code>include/linux/sched.h</code>, <code>include/linux/fs.h</code>, and <code>mm/page_alloc.c</code>.</li>
+<li><strong>Engage with the Community</strong>: Join technical discussions on the <a href="https://discord.gg/rEvr7vq" target="_blank">CloudNativeFolks Discord</a> and share your lab findings with fellow systems engineers!</li>
+</ol>
 
       </div>
       
@@ -651,18 +870,22 @@
     <strong><i class="icon icon-toc"></i> On this page</strong>
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#the-10-tier-learning-path">The 10-Tier Learning Path</a></li>
-    <li><a href="#tier-01--shell-permissions--posix-basics">Tier 01 — Shell, Permissions &amp; POSIX Basics</a></li>
-    <li><a href="#tier-02--systemd-storage--networking">Tier 02 — systemd, Storage &amp; Networking</a></li>
-    <li><a href="#tier-03--protection-rings-mmu--system-calls">Tier 03 — Protection Rings, MMU &amp; System Calls</a></li>
-    <li><a href="#tier-04--kernel-architecture--boot-sequence">Tier 04 — Kernel Architecture &amp; Boot Sequence</a></li>
-    <li><a href="#tier-05--kernel-subsystems-vfs-mm-scheduler-net-ipc">Tier 05 — Kernel Subsystems (VFS, MM, Scheduler, Net, IPC)</a></li>
-    <li><a href="#tier-06--processes-threads--context-switching">Tier 06 — Processes, Threads &amp; Context Switching</a></li>
-    <li><a href="#tier-07--storage-filesystems--io_uring">Tier 07 — Storage, Filesystems &amp; io_uring</a></li>
-    <li><a href="#tier-08--containers-from-scratch">Tier 08 — Containers from Scratch</a></li>
-    <li><a href="#tier-09--performance-engineering--ebpf">Tier 09 — Performance Engineering &amp; eBPF</a></li>
-    <li><a href="#tier-10--kernel-drivers--upstream-patches">Tier 10 — Kernel Drivers &amp; Upstream Patches</a></li>
-    <li><a href="#recommended-reading">Recommended Reading</a></li>
+    <li><a href="#the-4-progression-phases">The 4 Progression Phases</a></li>
+    <li><a href="#the-10-tier-mastery-pyramid">The 10-Tier Mastery Pyramid</a></li>
+    <li><a href="#curriculum-modules--tiers-cross-reference">Curriculum Modules &amp; Tiers Cross-Reference</a></li>
+    <li><a href="#tier-01--shell-pipelines-posix--device-nodes-dev">Tier 01 — Shell Pipelines, POSIX &amp; Device Nodes (<code>/dev</code>)</a></li>
+    <li><a href="#tier-02--distro-architectures-systemd--modern-networking">Tier 02 — Distro Architectures, <code>systemd</code> &amp; Modern Networking</a></li>
+    <li><a href="#tier-03--privilege-rings-mmu-paging--dynamic-linking">Tier 03 — Privilege Rings, MMU Paging &amp; Dynamic Linking</a></li>
+    <li><a href="#tier-04--kernel-architecture-lkms--boot-sequence">Tier 04 — Kernel Architecture, LKMs &amp; Boot Sequence</a></li>
+    <li><a href="#tier-05--kernel-subsystems-vfs-mm-eevdf-netfilter--ipc">Tier 05 — Kernel Subsystems: VFS, MM, EEVDF, Netfilter &amp; IPC</a></li>
+    <li><a href="#tier-06--process-lifecycles-signals--proc-diagnostics">Tier 06 — Process Lifecycles, Signals &amp; <code>/proc</code> Diagnostics</a></li>
+    <li><a href="#tier-07--storage-layer-filesystems--io_uring">Tier 07 — Storage Layer, Filesystems &amp; <code>io_uring</code></a></li>
+    <li><a href="#tier-08--container-primitives--sandboxing-from-scratch">Tier 08 — Container Primitives &amp; Sandboxing from Scratch</a></li>
+    <li><a href="#tier-09--performance-engineering-systems-triage--ebpf">Tier 09 — Performance Engineering, Systems Triage &amp; eBPF</a></li>
+    <li><a href="#tier-10--kernel-drivers-concurrency--upstream-lkml-patches">Tier 10 — Kernel Drivers, Concurrency &amp; Upstream LKML Patches</a></li>
+    <li><a href="#industry-roles--certification-alignment">Industry Roles &amp; Certification Alignment</a></li>
+    <li><a href="#recommended-reading--definitive-literature">Recommended Reading &amp; Definitive Literature</a></li>
+    <li><a href="#recommended-learning-strategy">Recommended Learning Strategy</a></li>
   </ul>
 </nav>
   </div>

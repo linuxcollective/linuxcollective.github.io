@@ -40,22 +40,8 @@
 &lt;p&gt;Understanding how these subsystems collaborate under the hood reveals why Linux achieves near-zero latency, immense I/O bandwidth, and high-density virtualization.&lt;/p&gt;</description></item><item><title>Linux Systems Engineering Roadmap</title><link>https://linuxcollective.github.io/docs/roadmap/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/roadmap/</guid><description>&lt;blockquote&gt;
 &lt;p&gt;&lt;em&gt;&amp;ldquo;Talk is cheap. Show me the code.&amp;rdquo;&lt;/em&gt; — &lt;strong&gt;Linus Torvalds&lt;/strong&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;A step-by-step path from your first terminal command to writing kernel drivers and submitting patches upstream. Each tier builds on the previous one — follow them in order.&lt;/p&gt;
-&lt;hr&gt;
-&lt;h2 id="the-10-tier-learning-path"&gt;The 10-Tier Learning Path&lt;/h2&gt;
-&lt;pre tabindex="0"&gt;&lt;code&gt; Tier 10 ─ Kernel Drivers &amp;amp; Upstream Patches ← You write kernel code
- Tier 09 ─ Performance Engineering &amp;amp; eBPF ← You trace the kernel live
- Tier 08 ─ Containers from Scratch ← You build Docker by hand
- Tier 07 ─ Storage, Filesystems &amp;amp; io_uring ← You master disk I/O
- Tier 06 ─ Processes, Threads &amp;amp; Context Switching ← You understand task_struct
- Tier 05 ─ Kernel Subsystems (VFS, MM, Sched, Net) ← You read kernel source
- Tier 04 ─ Kernel Architecture &amp;amp; Boot Sequence ← You compile a kernel
- Tier 03 ─ Protection Rings, MMU &amp;amp; System Calls ← You cross the Ring 0 boundary
- Tier 02 ─ systemd, Storage &amp;amp; Networking ← You administer servers
- Tier 01 ─ Shell, Permissions &amp;amp; POSIX Basics ← You start here
-&lt;/code&gt;&lt;/pre&gt;&lt;hr&gt;
-&lt;h2 id="tier-01--shell-permissions--posix-basics"&gt;Tier 01 — Shell, Permissions &amp;amp; POSIX Basics&lt;/h2&gt;
-&lt;p&gt;📖 &lt;strong&gt;&lt;a href="https://linuxcollective.github.io/docs/shell-and-sysadmin/"&gt;Full Guide →&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;</description></item><item><title>Overview</title><link>https://linuxcollective.github.io/docs/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/overview/</guid><description>&lt;p&gt;Welcome to &lt;strong&gt;Linux Collective&lt;/strong&gt; — a community-driven knowledge base and collaborative initiative dedicated to Linux systems, kernel engineering, and cloud native architectures.&lt;/p&gt;
+&lt;p&gt;The &lt;strong&gt;Linux Systems Engineering Roadmap&lt;/strong&gt; is a comprehensive, progressive learning curriculum designed to take engineers from their first terminal pipeline all the way to authoring loadable kernel modules, diagnosing low-level performance bottlenecks, and submitting upstream patches to the Linux Kernel Mailing List (LKML).&lt;/p&gt;
+&lt;p&gt;Inspired by Brian Ward&amp;rsquo;s foundational guide &lt;em&gt;How Linux Works: What Every Superuser Should Know&lt;/em&gt; and Robert Love&amp;rsquo;s &lt;em&gt;Linux Kernel Development&lt;/em&gt;, each tier builds directly upon the hardware, architectural, and operational concepts established in the previous tier.&lt;/p&gt;</description></item><item><title>Overview</title><link>https://linuxcollective.github.io/docs/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/overview/</guid><description>&lt;p&gt;Welcome to &lt;strong&gt;Linux Collective&lt;/strong&gt; — a community-driven knowledge base and collaborative initiative dedicated to Linux systems, kernel engineering, and cloud native architectures.&lt;/p&gt;
 &lt;h2 id="what-is-linux-collective"&gt;What is Linux Collective?&lt;/h2&gt;
 &lt;p&gt;Linux Collective is an open-source initiative founded by &lt;a href="https://blog.cloudnativefolks.org"&gt;CloudNativeFolks&lt;/a&gt; to empower developers, system administrators, and infrastructure engineers with deep-dive technical insights into the Linux operating system.&lt;/p&gt;
 &lt;p&gt;Inspired by Brian Ward&amp;rsquo;s definitive guide &lt;em&gt;How Linux Works: What Every Superuser Should Know&lt;/em&gt; and Robert Love&amp;rsquo;s &lt;em&gt;Linux Kernel Development&lt;/em&gt;, we bridge the gap between basic command-line administration and high-performance kernel systems engineering:&lt;/p&gt;</description></item><item><title>Performance Engineering, Observability &amp; eBPF</title><link>https://linuxcollective.github.io/docs/ebpf-and-observability/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://linuxcollective.github.io/docs/ebpf-and-observability/</guid><description>&lt;blockquote&gt;

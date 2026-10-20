@@ -1,6 +1,6 @@
 {{ define "main" }}
 <div id="site-main-content-wrapper">
-  {{ $dataLocale := index .Site.Data .Site.Language.Lang }}
+  {{ $dataLocale := index hugo.Data .Site.Language.Lang }}
   {{ if isset $dataLocale .Section }}
     {{ partial "sidebar" . }}
   {{ end }}
